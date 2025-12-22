@@ -115,10 +115,13 @@
                             <!-- سيتم إضافة الأيقونات ديناميكياً -->
                         </div>
                         <input type="hidden" id="selectedIcon" required>
+                        <input type="hidden" id="editingExamId">
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary">إضافة الاختبار</button>
+                        <button type="submit" class="btn-primary" id="submitExamBtn">إضافة الاختبار</button>
+                        <button type="button" class="btn-secondary" id="cancelEditBtn" style="display: none;">إلغاء
+                            التعديل</button>
                         <button type="reset" class="btn-secondary">إعادة تعيين</button>
                     </div>
                     <div id="addExamMessage" class="success-message" style="display: none;"></div>

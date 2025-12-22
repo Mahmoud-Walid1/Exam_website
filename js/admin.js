@@ -246,12 +246,16 @@ function setupAddExamForm() {
     const form = document.getElementById('addExamForm');
     const gradeSelect = document.getElementById('examGrade');
     const message = document.getElementById('addExamMessage');
+    const cancelBtn = document.getElementById('cancelEditBtn');
 
     // Update dropdowns when grade changes
     gradeSelect.addEventListener('change', () => {
         updateExamGradeLevelDropdown();
         updateExamSubjectDropdown();
     });
+
+    // Cancel edit button
+    cancelBtn.addEventListener('click', cancelEdit);
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -263,6 +267,7 @@ function setupAddExamForm() {
         const gradeLevel = document.getElementById('examGradeLevel').value;
         const subject = document.getElementById('examSubject').value;
         const icon = selectedIcon;
+        const editingId = document.getElementById('editingExamId').value;
 
         if (!icon) {
             alert('من فضلك اختر أيقونة للاختبار');
@@ -271,36 +276,39 @@ function setupAddExamForm() {
 
         try {
             // Show loading
-            const submitBtn = form.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('submitExamBtn');
             const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'جاري الإضافة...';
+            submitBtn.textContent = editingId ? 'جاري التحديث...' : 'جاري الإضافة...';
             submitBtn.disabled = true;
 
-            // Add exam to Firestore
-            await addExam({
+            const examData = {
                 name,
                 url,
                 grade,
                 gradeLevel,
                 subject,
                 icon
-            });
+            };
 
-            // Success message
-            message.textContent = 'تم إضافة الاختبار بنجاح! ✅';
+            if (editingId) {
+                // Update existing exam
+                await updateExam(editingId, examData);
+                message.textContent = 'تم تحديث الاختبار بنجاح! ✅';
+            } else {
+                // Add new exam
+                await addExam(examData);
+                message.textContent = 'تم إضافة الاختبار بنجاح! ✅';
+            }
             message.style.display = 'block';
 
             // Reset form
-            form.reset();
-            selectedIcon = null;
-            document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
-            document.getElementById('selectedIcon').value = '';
+            cancelEdit();
 
             // Reload exams
             await loadExams();
 
             // Reset button
-            submitBtn.textContent = originalText;
+            submitBtn.textContent = 'إضافة الاختبار';
             submitBtn.disabled = false;
 
             // Hide message after 3 seconds
@@ -315,6 +323,57 @@ function setupAddExamForm() {
             submitBtn.disabled = false;
         }
     });
+}
+
+// Edit existing exam
+window.editExam = function (examId, exams) {
+    const exam = exams.find(e => e.id === examId);
+    if (!exam) return;
+
+    // Fill form with exam data
+    document.getElementById('examName').value = exam.name;
+    document.getElementById('examUrl').value = exam.url;
+    document.getElementById('examGrade').value = exam.grade;
+
+    // Trigger grade change to populate dropdowns
+    document.getElementById('examGrade').dispatchEvent(new Event('change'));
+
+    // Wait a bit for dropdowns to populate, then set values
+    setTimeout(() => {
+        document.getElementById('examGradeLevel').value = exam.gradeLevel;
+        document.getElementById('examSubject').value = exam.subject;
+    }, 100);
+
+    // Set icon
+    selectedIcon = exam.icon;
+    document.getElementById('selectedIcon').value = exam.icon;
+    document.querySelectorAll('.icon-option').forEach(opt => {
+        if (opt.querySelector('img').src.includes(exam.icon)) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+    });
+
+    // Update UI for edit mode
+    document.getElementById('submitExamBtn').textContent = 'حفظ التعديلات ✅';
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    document.getElementById('editingExamId').value = examId;
+
+    // Scroll to form
+    document.getElementById('addExamForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+// Cancel edit mode and return to add mode
+function cancelEdit() {
+    const form = document.getElementById('addExamForm');
+    form.reset();
+    selectedIcon = null;
+    document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+    document.getElementById('selectedIcon').value = '';
+    document.getElementById('editingExamId').value = '';
+    document.getElementById('submitExamBtn').textContent = 'إضافة الاختبار';
+    document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
 // Update exam grade level dropdown based on selected stage
@@ -427,7 +486,8 @@ function displayExamsTable() {
             <td>${exam.subject}</td>
             <td><a href="${exam.url}" target="_blank" class="table-link">رابط المنتج</a></td>
             <td class="table-actions">
-                <button class="btn-danger btn-small" onclick="handleDeleteExam('${exam.id}')">حذف</button>
+                <button class="btn-primary btn-small" onclick="editExam('${exam.id}', allExams)" style="margin-left: 5px;">✏️ تعديل</button>
+                <button class="btn-danger btn-small" onclick="handleDeleteExam('${exam.id}')">🗑️ حذف</button>
             </td>
         </tr>
     `).join('');
