@@ -486,7 +486,7 @@ function displayExamsTable() {
             <td>${exam.subject}</td>
             <td><a href="${exam.url}" target="_blank" class="table-link">رابط المنتج</a></td>
             <td class="table-actions">
-                <button class="btn-primary btn-small" onclick="editExam('${exam.id}', allExams)" style="margin-left: 5px;">✏️ تعديل</button>
+                <button class="btn-primary btn-small" onclick="editExam('${exam.id}')" style="margin-left: 5px;">✏️ تعديل</button>
                 <button class="btn-danger btn-small" onclick="handleDeleteExam('${exam.id}')">🗑️ حذف</button>
             </td>
         </tr>
