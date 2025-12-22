@@ -41,6 +41,7 @@ function setupFilters() {
             btn.classList.add('active');
             currentGrade = btn.dataset.grade;
             currentGradeLevel = 'all'; // Reset grade level
+            currentSubject = 'all'; // Reset subject too
             updateGradeLevelFilter();
             updateSubjectFilter();
             filterExams();
@@ -182,6 +183,7 @@ function displayExams(exams) {
                 <h3 class="exam-title">${exam.name}</h3>
                 <div class="exam-meta">
                     <span class="exam-badge">${exam.grade}</span>
+                    ${exam.gradeLevel ? `<span class="exam-badge">الصف ${exam.gradeLevel}</span>` : ''}
                     <span class="exam-badge">${exam.subject}</span>
                 </div>
                 <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
@@ -205,9 +207,9 @@ async function updateTicker() {
             return; // Keep default placeholder cards
         }
 
-        // Create ticker cards from ticker items with clickable URLs
-        const tickerHTML = tickerItems.map(item => `
-            <div class="ticker-card" onclick="window.open('${item.url || '#'}', '_blank')" style="cursor: pointer;">
+        // Create ticker cards from ticker items
+        const tickerHTML = tickerItems.map((item, index) => `
+            <div class="ticker-card" data-url="${item.url || ''}" data-index="${index}" style="cursor: pointer;">
                 <img src="${item.icon}" alt="${item.text}" class="ticker-card-image" onerror="this.src='icons/default.png'">
                 <div class="ticker-card-content">
                     <p class="ticker-text">${item.text}</p>
@@ -217,6 +219,18 @@ async function updateTicker() {
 
         // Duplicate content twice for seamless infinite loop
         tickerTrack.innerHTML = tickerHTML + tickerHTML;
+
+        // Add click event listeners to all ticker cards
+        const tickerCards = tickerTrack.querySelectorAll('.ticker-card');
+        tickerCards.forEach(card => {
+            const url = card.dataset.url;
+            if (url && url !== '') {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.open(url, '_blank');
+                });
+            }
+        });
     } catch (error) {
         console.error('Error updating ticker:', error);
     }
