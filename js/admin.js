@@ -326,9 +326,14 @@ function setupAddExamForm() {
 }
 
 // Edit existing exam
-window.editExam = function (examId, exams) {
-    const exam = exams.find(e => e.id === examId);
-    if (!exam) return;
+window.editExam = function (examId) {
+    const exam = allExams.find(e => e.id === examId);
+    if (!exam) {
+        console.error('Exam not found:', examId);
+        return;
+    }
+
+    console.log('Editing exam:', exam);
 
     // Fill form with exam data
     document.getElementById('examName').value = exam.name;
