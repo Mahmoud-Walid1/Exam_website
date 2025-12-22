@@ -20,6 +20,13 @@ const AVAILABLE_ICONS = [
     { name: 'default.png', label: 'افتراضي' }
 ];
 
+// Grade levels for each stage
+const GRADE_LEVELS = {
+    'ابتدائي': ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'],
+    'إعدادي': ['الأول', 'الثاني', 'الثالث'],
+    'ثانوي': ['الأول', 'الثاني', 'الثالث']
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Admin panel loaded');
@@ -129,7 +136,10 @@ async function setupTickerManager() {
         tickerItemsList.innerHTML = items.map(item => `
             <div class="ticker-item-card">
                 <img src="${item.icon}" alt="${item.text}" style="width: 40px; height: 40px; object-fit: contain;">
-                <span>${item.text}</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">${item.text}</div>
+                    <a href="${item.url || '#'}" target="_blank" style="font-size: 0.8rem; color: var(--secondary-color);">عرض المنتج</a>
+                </div>
                 <button class="btn-danger btn-small" onclick="handleDeleteTickerItem('${item.id}')">×</button>
             </div>
         `).join('');
@@ -138,10 +148,16 @@ async function setupTickerManager() {
     // Add ticker item
     document.getElementById('addTickerBtn').addEventListener('click', async () => {
         const text = document.getElementById('tickerText').value.trim();
+        const url = document.getElementById('tickerUrl').value.trim();
         const icon = document.getElementById('tickerIcon').value;
 
         if (!text) {
             alert('من فضلك أدخل نص الملزمة');
+            return;
+        }
+
+        if (!url) {
+            alert('من فضلك أدخل رابط المنتج');
             return;
         }
 
@@ -150,10 +166,11 @@ async function setupTickerManager() {
             return;
         }
 
-        const success = await addTickerItem({ text, icon });
+        const success = await addTickerItem({ text, url, icon });
 
         if (success) {
             document.getElementById('tickerText').value = '';
+            document.getElementById('tickerUrl').value = '';
             document.getElementById('tickerIcon').value = '';
             await loadTickerItems();
             alert('تم إضافة العنصر للشريط! ✅');
@@ -230,8 +247,11 @@ function setupAddExamForm() {
     const gradeSelect = document.getElementById('examGrade');
     const message = document.getElementById('addExamMessage');
 
-    // Update subject dropdown when grade changes
-    gradeSelect.addEventListener('change', updateExamSubjectDropdown);
+    // Update dropdowns when grade changes
+    gradeSelect.addEventListener('change', () => {
+        updateExamGradeLevelDropdown();
+        updateExamSubjectDropdown();
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -240,6 +260,7 @@ function setupAddExamForm() {
         const name = document.getElementById('examName').value;
         const url = document.getElementById('examUrl').value;
         const grade = document.getElementById('examGrade').value;
+        const gradeLevel = document.getElementById('examGradeLevel').value;
         const subject = document.getElementById('examSubject').value;
         const icon = selectedIcon;
 
@@ -260,6 +281,7 @@ function setupAddExamForm() {
                 name,
                 url,
                 grade,
+                gradeLevel,
                 subject,
                 icon
             });
@@ -293,6 +315,28 @@ function setupAddExamForm() {
             submitBtn.disabled = false;
         }
     });
+}
+
+// Update exam grade level dropdown based on selected stage
+function updateExamGradeLevelDropdown() {
+    const gradeSelect = document.getElementById('examGrade');
+    const gradeLevelSelect = document.getElementById('examGradeLevel');
+    const selectedGrade = gradeSelect.value;
+
+    gradeLevelSelect.innerHTML = '<option value="">اختر الصف</option>';
+
+    if (selectedGrade && GRADE_LEVELS[selectedGrade]) {
+        gradeLevelSelect.disabled = false;
+        GRADE_LEVELS[selectedGrade].forEach(level => {
+            const option = document.createElement('option');
+            option.value = level;
+            option.textContent = `الصف ${level}`;
+            gradeLevelSelect.appendChild(option);
+        });
+    } else {
+        gradeLevelSelect.disabled = true;
+        gradeLevelSelect.innerHTML = '<option value="">اختر المرحلة أولاً</option>';
+    }
 }
 
 // Update exam subject dropdown based on selected grade
@@ -370,7 +414,7 @@ function displayExamsTable() {
     const tableBody = document.getElementById('examsTableBody');
 
     if (allExams.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">لا توجد اختبارات</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد اختبارات</td></tr>';
         return;
     }
 
@@ -379,6 +423,7 @@ function displayExamsTable() {
             <td><img src="${exam.icon}" alt="${exam.name}" class="table-image" onerror="this.src='icons/default.png'"></td>
             <td>${exam.name}</td>
             <td>${exam.grade}</td>
+            <td>${exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '-'}</td>
             <td>${exam.subject}</td>
             <td><a href="${exam.url}" target="_blank" class="table-link">رابط المنتج</a></td>
             <td class="table-actions">

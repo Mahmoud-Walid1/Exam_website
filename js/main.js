@@ -6,8 +6,16 @@ import { initializeSubjects, getSubjects, onExamsChange, getTickerItems } from '
 
 let allExams = [];
 let currentGrade = 'all';
+let currentGradeLevel = 'all';
 let currentSubject = 'all';
 let allSubjects = {};
+
+// Grade levels for each stage
+const GRADE_LEVELS = {
+    'ابتدائي': ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'],
+    'إعدادي': ['الأول', 'الثاني', 'الثالث'],
+    'ثانوي': ['الأول', 'الثاني', 'الثالث']
+};
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
@@ -32,13 +40,50 @@ function setupFilters() {
             gradeButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentGrade = btn.dataset.grade;
+            currentGradeLevel = 'all'; // Reset grade level
+            updateGradeLevelFilter();
             updateSubjectFilter();
             filterExams();
         });
     });
 
     // Subject filter buttons will be added dynamically
+    updateGradeLevelFilter();
     updateSubjectFilter();
+}
+
+// Update grade level filter based on selected stage
+function updateGradeLevelFilter() {
+    const gradeLevelGroup = document.getElementById('gradeLevelFilterGroup');
+    const gradeLevelContainer = document.getElementById('gradeLevelFilters');
+
+    if (currentGrade === 'all') {
+        gradeLevelGroup.style.display = 'none';
+        return;
+    }
+
+    gradeLevelGroup.style.display = 'block';
+    gradeLevelContainer.innerHTML = '<button class="filter-btn active" data-level="all">الكل</button>';
+
+    const levels = GRADE_LEVELS[currentGrade] || [];
+    levels.forEach(level => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.level = level;
+        btn.textContent = `الصف ${level}`;
+        gradeLevelContainer.appendChild(btn);
+    });
+
+    // Add event listeners to new buttons
+    const levelButtons = gradeLevelContainer.querySelectorAll('.filter-btn');
+    levelButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            levelButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentGradeLevel = btn.dataset.level;
+            filterExams();
+        });
+    });
 }
 
 // Update subject filter based on selected grade
@@ -105,6 +150,11 @@ function filterExams() {
         filteredExams = filteredExams.filter(exam => exam.grade === currentGrade);
     }
 
+    // Filter by grade level
+    if (currentGradeLevel !== 'all') {
+        filteredExams = filteredExams.filter(exam => exam.gradeLevel === currentGradeLevel);
+    }
+
     // Filter by subject
     if (currentSubject !== 'all') {
         filteredExams = filteredExams.filter(exam => exam.subject === currentSubject);
@@ -155,9 +205,9 @@ async function updateTicker() {
             return; // Keep default placeholder cards
         }
 
-        // Create ticker cards from ticker items
+        // Create ticker cards from ticker items with clickable URLs
         const tickerHTML = tickerItems.map(item => `
-            <div class="ticker-card">
+            <div class="ticker-card" onclick="window.open('${item.url || '#'}', '_blank')" style="cursor: pointer;">
                 <img src="${item.icon}" alt="${item.text}" class="ticker-card-image" onerror="this.src='icons/default.png'">
                 <div class="ticker-card-content">
                     <p class="ticker-text">${item.text}</p>

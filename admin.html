@@ -91,6 +91,15 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label for="examGradeLevel">الصف الدراسي *</label>
+                            <select id="examGradeLevel" required disabled>
+                                <option value="">اختر المرحلة أولاً</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="examSubject">المادة الدراسية *</label>
                             <select id="examSubject" required>
                                 <option value="">اختر المادة</option>
@@ -148,11 +157,15 @@
                 <div class="ticker-manager">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="tickerText">نص الملزمة</label>
+                            <label for="tickerText">نص الملزمة *</label>
                             <input type="text" id="tickerText" placeholder="مثال: ملزمة رياضيات الصف الأول">
                         </div>
                         <div class="form-group">
-                            <label for="tickerIcon">أيقونة الملزمة</label>
+                            <label for="tickerUrl">رابط المنتج على سلة *</label>
+                            <input type="url" id="tickerUrl" placeholder="https://sabir5-1-1.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label for="tickerIcon">أيقونة الملزمة *</label>
                             <select id="tickerIcon">
                                 <option value="">اختر أيقونة</option>
                                 <option value="icons/math.png">رياضيات</option>
@@ -184,6 +197,7 @@
                                 <th>الأيقونة</th>
                                 <th>اسم الاختبار</th>
                                 <th>المرحلة</th>
+                                <th>الصف الدراسي</th>
                                 <th>المادة</th>
                                 <th>الرابط</th>
                                 <th>الإجراءات</th>
