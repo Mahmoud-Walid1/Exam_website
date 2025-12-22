@@ -96,7 +96,10 @@ function updateSubjectFilter() {
 
     // Re-add "الكل" button
     const allButton = document.createElement('button');
-    allButton.className = 'filter-btn active';
+    allButton.className = 'filter-btn';
+    if (currentSubject === 'all') {
+        allButton.classList.add('active');
+    }
     allButton.dataset.subject = 'all';
     allButton.textContent = 'الكل';
     allButton.addEventListener('click', () => {
@@ -119,6 +122,10 @@ function updateSubjectFilter() {
     subjects.forEach(subject => {
         const btn = document.createElement('button');
         btn.className = 'filter-btn';
+        // Check if this subject is currently selected
+        if (currentSubject === subject) {
+            btn.classList.add('active');
+        }
         btn.dataset.subject = subject;
         btn.textContent = subject;
         btn.addEventListener('click', () => {
@@ -129,6 +136,13 @@ function updateSubjectFilter() {
         });
         subjectFiltersContainer.appendChild(btn);
     });
+
+    // If current subject is not in the new list, reset to 'all'
+    if (currentSubject !== 'all' && !subjects.includes(currentSubject)) {
+        currentSubject = 'all';
+        allButton.classList.add('active');
+        filterExams();
+    }
 }
 
 // Setup real-time exams listener
@@ -179,9 +193,9 @@ function displayExams(exams) {
             <div class="exam-content">
                 <h3 class="exam-title">${exam.name}</h3>
                 <div class="exam-meta">
-                    <span class="exam-badge">📚 ${exam.subject}</span>
-                    ${exam.gradeLevel ? `<span class="exam-badge">🎯 الصف ${exam.gradeLevel}</span>` : ''}
-                    <span class="exam-badge">🏫 ${exam.grade}</span>
+                    <span class="exam-badge badge-subject">📚 ${exam.subject}</span>
+                    ${exam.gradeLevel ? `<span class="exam-badge badge-level">🎯 الصف ${exam.gradeLevel}</span>` : ''}
+                    <span class="exam-badge badge-grade">🏫 ${exam.grade}</span>
                 </div>
                 <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
                     عرض في المتجر 🛒
