@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialize Firebase Subjects</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .info {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-right: 4px solid #667eea;
+        }
+
+        .subjects-list {
+            margin: 15px 0;
+        }
+
+        .subjects-list h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subjects-list ul {
+            list-style: none;
+            padding-right: 20px;
+        }
+
+        .subjects-list li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .subjects-list li:before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔧 تهيئة مواد Firebase</h1>
+
+        <div class="info">
+            <p style="margin-bottom: 15px; font-weight: bold;">هذه الصفحة ستقوم بإضافة المواد الافتراضية لقاعدة
+                البيانات:</p>
+
+            <div class="subjects-list">
+                <h3>📚 ابتدائي:</h3>
+                <ul>
+                    <li>لغتي</li>
+                    <li>رياضيات</li>
+                    <li>علوم</li>
+                    <li>دراسات اجتماعية</li>
+                    <li>دراسات إسلامية</li>
+                </ul>
+            </div>
+
+            <div class="subjects-list">
+                <h3>📖 متوسط:</h3>
+                <ul>
+                    <li>لغة عربية</li>
+                    <li>رياضيات</li>
+                    <li>علوم</li>
+                    <li>دراسات اجتماعية</li>
+                    <li>لغة إنجليزية</li>
+                </ul>
+            </div>
+
+            <div class="subjects-list">
+                <h3>🎓 ثانوي:</h3>
+                <ul>
+                    <li>لغة عربية</li>
+                    <li>رياضيات</li>
+                    <li>فيزياء</li>
+                    <li>كيمياء</li>
+                    <li>أحياء</li>
+                    <li>لغة إنجليزية</li>
+                </ul>
+            </div>
+        </div>
+
+        <button id="initBtn" onclick="initializeNow()">
+            🚀 ابدأ التهيئة
+        </button>
+
+        <div id="status"></div>
+    </div>
+
+    <script type="module">
+        import { initializeSubjects } from './js/firebase-data.js';
+
+        window.initializeNow = async function () {
+            const btn = document.getElementById('initBtn');
+            const status = document.getElementById('status');
+
+            btn.disabled = true;
+            btn.textContent = '⏳ جاري التهيئة...';
+
+            status.style.display = 'block';
+            status.className = 'loading';
+            status.textContent = '⏳ جاري إضافة المواد إلى Firebase...';
+
+            try {
+                await initializeSubjects();
+
+                status.className = 'success';
+                status.textContent = '✅ تمت التهيئة بنجاح! يمكنك الآن إغلاق هذه الصفحة والعودة للموقع.';
+
+                btn.textContent = '✅ تمت التهيئة بنجاح';
+
+                setTimeout(() => {
+                    window.close();
+                }, 3000);
+
+            } catch (error) {
+                status.className = 'error';
+                status.textContent = '❌ حدث خطأ: ' + error.message;
+
+                btn.disabled = false;
+                btn.textContent = '🔄 حاول مرة أخرى';
+
+                console.error('Error:', error);
+            }
+        };
+    </script>
+</body>
+
+</html>
