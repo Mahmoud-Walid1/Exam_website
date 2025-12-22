@@ -192,24 +192,24 @@ body {
 
 .hero {
     background: linear-gradient(135deg, rgba(30, 58, 95, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%);
-    padding: 60px 0;
+    padding: 40px 0;
     text-align: center;
 }
 
 .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 800;
     color: var(--primary-color);
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     line-height: 1.3;
 }
 
 .hero-description {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     color: var(--text-muted);
     max-width: 800px;
     margin: 0 auto;
-    line-height: 1.8;
+    line-height: 1.7;
 }
 
 /* ========================================
@@ -292,8 +292,8 @@ body {
 
 .exams-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px;
 }
 
 .exam-card {
@@ -312,16 +312,16 @@ body {
 
 .exam-image {
     width: 100%;
-    height: 250px;
+    height: 180px;
     object-fit: cover;
 }
 
 .exam-content {
-    padding: 20px;
+    padding: 16px;
 }
 
 .exam-title {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--primary-color);
     margin-bottom: 10px;
@@ -329,29 +329,49 @@ body {
 
 .exam-meta {
     display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
 .exam-badge {
-    background: var(--bg-light);
-    color: var(--text-muted);
-    padding: 5px 12px;
-    border-radius: 15px;
-    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
     font-weight: 600;
+    border: 1.5px solid;
+}
+
+/* Badge color variations */
+.exam-badge:nth-child(1) {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #60a5fa;
+}
+
+.exam-badge:nth-child(2) {
+    background: #fce7f3;
+    color: #be185d;
+    border-color: #f472b6;
+}
+
+.exam-badge:nth-child(3) {
+    background: #d1fae5;
+    color: #065f46;
+    border-color: #34d399;
 }
 
 .exam-btn {
     display: block;
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     background: var(--secondary-color);
     color: white;
     text-align: center;
     border-radius: 8px;
     text-decoration: none;
     font-weight: 700;
+    font-size: 0.95rem;
     transition: var(--transition);
 }
 
