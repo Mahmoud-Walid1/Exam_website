@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="اختبارات نهائية لجميع المراحل الدراسية - مكتبة المعلمين">
+    <meta name="keywords" content="اختبارات نهائية، ابتدائي، إعدادي، ثانوي، مكتبة المعلمين">
+    <title>مكتبة المعلمين - اختبارات نهائية</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logos-container">
+                    <img src="images/logo1.png" alt="مكتبة المعلمين" class="logo-img"
+                        onerror="this.src='icons/default.png'">
+                    <img src="images/logo2.png" alt="العلوم والتقنية" class="logo-img"
+                        onerror="this.src='icons/default.png'">
+                </div>
+                <div class="header-text">
+                    <h1 class="site-title">مكتبة المعلمين</h1>
+                    <p class="site-subtitle">العلوم والتقنية للجميع</p>
+                    <p class="site-tagline">اختبارات نهائية</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Announcement Ticker / شريط الملازم المتحرك -->
+    <div class="exams-ticker">
+        <div class="ticker-track" id="tickerTrack">
+            <!-- سيتم إضافة بطاقات الاختبارات ديناميكياً من JavaScript -->
+            <div class="ticker-card">
+                <div class="ticker-card-content">
+                    <div class="ticker-placeholder">📚</div>
+                    <p class="ticker-text">اختبارات نهائية شاملة</p>
+                </div>
+            </div>
+            <div class="ticker-card">
+                <div class="ticker-card-content">
+                    <div class="ticker-placeholder">📝</div>
+                    <p class="ticker-text">جميع المراحل الدراسية</p>
+                </div>
+            </div>
+            <div class="ticker-card">
+                <div class="ticker-card-content">
+                    <div class="ticker-placeholder">✅</div>
+                    <p class="ticker-text">محدثة باستمرار</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h2 class="hero-title">اختبارات نهائية احترافية لجميع المراحل الدراسية</h2>
+            <p class="hero-description">
+                نوفر لك اختبارات نهائية متميزة ومعدة بعناية فائقة لجميع المراحل والمواد الدراسية.
+                اختبارات شاملة تغطي المنهج بالكامل وتساعدك في تقييم طلابك بشكل احترافي.
+            </p>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section">
+        <div class="container">
+            <div class="filters-container">
+                <!-- Grade Filter -->
+                <div class="filter-group">
+                    <label class="filter-label">المرحلة الدراسية:</label>
+                    <div class="filter-buttons grade-filters">
+                        <button class="filter-btn active" data-grade="all">الكل</button>
+                        <button class="filter-btn" data-grade="ابتدائي">ابتدائي</button>
+                        <button class="filter-btn" data-grade="إعدادي">إعدادي</button>
+                        <button class="filter-btn" data-grade="ثانوي">ثانوي</button>
+                    </div>
+                </div>
+
+                <!-- Subject Filter -->
+                <div class="filter-group">
+                    <label class="filter-label">المادة الدراسية:</label>
+                    <div class="filter-buttons subject-filters">
+                        <button class="filter-btn active" data-subject="all">الكل</button>
+                        <!-- سيتم إضافة المواد ديناميكياً من JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Exams Grid -->
+    <section class="exams-section">
+        <div class="container">
+            <h2 class="section-title">الاختبارات المتوفرة</h2>
+            <div class="exams-grid" id="examsGrid">
+                <!-- سيتم إضافة بطاقات الاختبارات ديناميكياً من JavaScript -->
+                <div class="no-exams" id="noExams">
+                    <p>لا توجد اختبارات متوفرة حالياً</p>
+                    <p style="font-size: 0.9rem; margin-top: 10px;">سجل دخول من <a href="admin.html"
+                            style="color: var(--secondary-color)">لوحة التحكم</a> لإضافة اختبارات</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Custom Requests Section -->
+    <section class="custom-requests">
+        <div class="container">
+            <div class="custom-requests-card">
+                <div class="custom-icon">📝</div>
+                <h3 class="custom-title">لم تجد الاختبار المطلوب؟</h3>
+                <p class="custom-description">
+                    يمكنك طلب اختبار مخصص حسب احتياجك! نوفر خدمة الطلبات الخاصة لتصميم اختبارات تناسب متطلباتك الخاصة.
+                </p>
+                <a href="https://sabir5-1-1.com/" target="_blank" class="custom-btn">
+                    اطلب اختباراً مخصصاً الآن
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>مكتبة المعلمين</h4>
+                    <p>العلوم والتقنية للجميع</p>
+                </div>
+                <div class="footer-section">
+                    <h4>تواصل معنا</h4>
+                    <a href="https://sabir5-1-1.com/" target="_blank" class="footer-link">زيارة المتجر</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 مكتبة المعلمين. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0sXsVOAjsaGreuIZPAcjdFNpiTxX0xog",
+            authDomain: "adv-mr-saber.firebaseapp.com",
+            projectId: "adv-mr-saber",
+            storageBucket: "adv-mr-saber.firebasestorage.app",
+            messagingSenderId: "75884123360",
+            appId: "1:75884123360:web:5f703338e29db60040ec85",
+            measurementId: "G-6M2M4T77D8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+
+        const app = initializeApp(window.firebaseConfig);
+        window.db = getFirestore(app);
+    </script>
+
+    <!-- Main JavaScript -->
+    <script src="js/firebase-data.js" type="module"></script>
+    <script src="js/main.js" type="module"></script>
+</body>
+
+</html>

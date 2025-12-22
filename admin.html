@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - مكتبة المعلمين</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <!-- Login Section -->
+    <div id="loginSection" class="login-section">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1>لوحة التحكم</h1>
+                    <p>مكتبة المعلمين - اختبارات نهائية</p>
+                </div>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="email">البريد الإلكتروني</label>
+                        <input type="email" id="email" required placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">كلمة المرور</label>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+                    <div id="loginError" class="error-message" style="display: none;"></div>
+                    <button type="submit" class="btn-primary">تسجيل الدخول</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+        <!-- Admin Header -->
+        <header class="admin-header">
+            <div class="container">
+                <div class="admin-header-content">
+                    <div>
+                        <h1>لوحة التحكم</h1>
+                        <p>مكتبة المعلمين - إدارة الاختبارات</p>
+                    </div>
+                    <div class="admin-actions">
+                        <a href="index.html" target="_blank" class="btn-secondary">عرض الموقع</a>
+                        <button id="logoutBtn" class="btn-danger">تسجيل الخروج</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container admin-content">
+            <!-- Add Exam Section -->
+            <section class="admin-section">
+                <h2 class="section-title">إضافة اختبار جديد</h2>
+                <form id="addExamForm" class="admin-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="examName">اسم الاختبار *</label>
+                            <input type="text" id="examName" required
+                                placeholder="مثال: اختبار نهائي لغتي - الصف الأول">
+                        </div>
+                        <div class="form-group">
+                            <label for="examUrl">رابط المنتج على سلة *</label>
+                            <input type="url" id="examUrl" required placeholder="https://sabir5-1-1.com/...">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="examGrade">المرحلة الدراسية *</label>
+                            <select id="examGrade" required>
+                                <option value="">اختر المرحلة</option>
+                                <option value="ابتدائي">ابتدائي</option>
+                                <option value="إعدادي">إعدادي</option>
+                                <option value="ثانوي">ثانوي</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="examSubject">المادة الدراسية *</label>
+                            <select id="examSubject" required>
+                                <option value="">اختر المادة</option>
+                                <!-- سيتم إضافة المواد ديناميكياً -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>اختر أيقونة الاختبار *</label>
+                        <div class="icon-selector" id="iconSelector">
+                            <!-- سيتم إضافة الأيقونات ديناميكياً -->
+                        </div>
+                        <input type="hidden" id="selectedIcon" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">إضافة الاختبار</button>
+                        <button type="reset" class="btn-secondary">إعادة تعيين</button>
+                    </div>
+                    <div id="addExamMessage" class="success-message" style="display: none;"></div>
+                </form>
+            </section>
+
+            <!-- Manage Subjects Section -->
+            <section class="admin-section">
+                <h2 class="section-title">إدارة المواد الدراسية</h2>
+                <div class="subjects-manager">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="subjectGrade">المرحلة</label>
+                            <select id="subjectGrade">
+                                <option value="ابتدائي">ابتدائي</option>
+                                <option value="إعدادي">إعدادي</option>
+                                <option value="ثانوي">ثانوي</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newSubject">اسم المادة الجديدة</label>
+                            <input type="text" id="newSubject" placeholder="مثال: التربية الفنية">
+                        </div>
+                        <div class="form-group">
+                            <button id="addSubjectBtn" class="btn-primary">إضافة مادة</button>
+                        </div>
+                    </div>
+                    <div id="subjectsList" class="subjects-list">
+                        <!-- سيتم إضافة قائمة المواد ديناميكياً -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Exams List Section -->
+            <section class="admin-section">
+                <h2 class="section-title">الاختبارات الحالية</h2>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>الأيقونة</th>
+                                <th>اسم الاختبار</th>
+                                <th>المرحلة</th>
+                                <th>المادة</th>
+                                <th>الرابط</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="examsTableBody">
+                            <!-- سيتم إضافة الاختبارات ديناميكياً -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0sXsVOAjsaGreuIZPAcjdFNpiTxX0xog",
+            authDomain: "adv-mr-saber.firebaseapp.com",
+            projectId: "adv-mr-saber",
+            storageBucket: "adv-mr-saber.firebasestorage.app",
+            messagingSenderId: "75884123360",
+            appId: "1:75884123360:web:5f703338e29db60040ec85",
+            measurementId: "G-6M2M4T77D8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+
+        const app = initializeApp(window.firebaseConfig);
+        window.db = getFirestore(app);
+        window.auth = getAuth(app);
+    </script>
+
+    <!-- JavaScript -->
+    <script src="js/firebase-data.js" type="module"></script>
+    <script src="js/firebase-auth.js" type="module"></script>
+    <script src="js/admin.js" type="module"></script>
+</body>
+
+</html>

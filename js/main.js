@@ -1,0 +1,167 @@
+// ========================================
+// Main Page JavaScript - Firebase Version
+// ========================================
+
+import { initializeSubjects, getSubjects, onExamsChange } from './firebase-data.js';
+
+let allExams = [];
+let currentGrade = 'all';
+let currentSubject = 'all';
+let allSubjects = {};
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeSubjects();
+    await loadSubjects();
+    setupFilters();
+    setupExamsListener();
+    updateTicker();
+});
+
+// Load subjects from Firebase
+async function loadSubjects() {
+    allSubjects = await getSubjects();
+}
+
+// Setup filter buttons
+function setupFilters() {
+    // Grade filter buttons
+    const gradeButtons = document.querySelectorAll('.grade-filters .filter-btn');
+    gradeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            gradeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentGrade = btn.dataset.grade;
+            updateSubjectFilter();
+            filterExams();
+        });
+    });
+
+    // Subject filter buttons will be added dynamically
+    updateSubjectFilter();
+}
+
+// Update subject filter based on selected grade
+function updateSubjectFilter() {
+    const subjectFiltersContainer = document.querySelector('.subject-filters');
+
+    // Clear existing buttons
+    subjectFiltersContainer.innerHTML = '';
+
+    // Re-add "الكل" button
+    const allButton = document.createElement('button');
+    allButton.className = 'filter-btn active';
+    allButton.dataset.subject = 'all';
+    allButton.textContent = 'الكل';
+    allButton.addEventListener('click', () => {
+        document.querySelectorAll('.subject-filters .filter-btn').forEach(b => b.classList.remove('active'));
+        allButton.classList.add('active');
+        currentSubject = 'all';
+        filterExams();
+    });
+    subjectFiltersContainer.appendChild(allButton);
+
+    // Add subject buttons based on grade
+    let subjects = [];
+    if (currentGrade === 'all') {
+        // Show all subjects from all grades
+        subjects = [...new Set(Object.values(allSubjects).flat())];
+    } else {
+        subjects = allSubjects[currentGrade] || [];
+    }
+
+    subjects.forEach(subject => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.subject = subject;
+        btn.textContent = subject;
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.subject-filters .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentSubject = subject;
+            filterExams();
+        });
+        subjectFiltersContainer.appendChild(btn);
+    });
+
+    // Reset subject filter
+    currentSubject = 'all';
+}
+
+// Setup real-time exams listener
+function setupExamsListener() {
+    onExamsChange((exams) => {
+        allExams = exams;
+        filterExams();
+        updateTicker();
+    });
+}
+
+// Filter and display exams
+function filterExams() {
+    let filteredExams = allExams;
+
+    // Filter by grade
+    if (currentGrade !== 'all') {
+        filteredExams = filteredExams.filter(exam => exam.grade === currentGrade);
+    }
+
+    // Filter by subject
+    if (currentSubject !== 'all') {
+        filteredExams = filteredExams.filter(exam => exam.subject === currentSubject);
+    }
+
+    displayExams(filteredExams);
+}
+
+// Display exams grid
+function displayExams(exams) {
+    const examsGrid = document.getElementById('examsGrid');
+    const noExamsMsg = document.getElementById('noExams');
+
+    if (exams.length === 0) {
+        examsGrid.innerHTML = '';
+        noExamsMsg.style.display = 'block';
+        return;
+    }
+
+    noExamsMsg.style.display = 'none';
+    examsGrid.innerHTML = exams.map(exam => `
+        <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
+            <img src="${exam.icon}" alt="${exam.name}" class="exam-image" onerror="this.src='icons/default.png'">
+            <div class="exam-content">
+                <h3 class="exam-title">${exam.name}</h3>
+                <div class="exam-meta">
+                    <span class="exam-badge">${exam.grade}</span>
+                    <span class="exam-badge">${exam.subject}</span>
+                </div>
+                <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
+                    عرض في المتجر 🛒
+                </a>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Update exam cards ticker with images
+function updateTicker() {
+    const tickerTrack = document.getElementById('tickerTrack');
+
+    if (!tickerTrack || allExams.length === 0) {
+        return; // Keep default placeholder cards
+    }
+
+    // Create ticker cards from exams with icons
+    const tickerHTML = allExams.map(exam => `
+        <div class="ticker-card" onclick="window.open('${exam.url}', '_blank')">
+            <img src="${exam.icon}" alt="${exam.name}" class="ticker-card-image" onerror="this.src='icons/default.png'">
+            <div class="ticker-card-content">
+                <p class="ticker-text">${exam.name}</p>
+                <span class="ticker-badge">${exam.grade} - ${exam.subject}</span>
+            </div>
+        </div>
+    `).join('');
+
+    // Duplicate content twice for seamless infinite loop
+    tickerTrack.innerHTML = tickerHTML + tickerHTML;
+}
