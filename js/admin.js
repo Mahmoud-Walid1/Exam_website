@@ -17,6 +17,9 @@ const AVAILABLE_ICONS = [
     { name: 'english.png', label: 'لغة إنجليزية' },
     { name: 'social_studies.png', label: 'دراسات اجتماعية' },
     { name: 'islamic_studies.png', label: 'دراسات إسلامية' },
+    { name: 'Physics.png', label: 'فيزياء' },
+    { name: 'chemistry.png', label: 'كيمياء' },
+    { name: 'احياء.png', label: 'أحياء' },
     { name: 'default.png', label: 'افتراضي' }
 ];
 
