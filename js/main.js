@@ -155,6 +155,13 @@ function setupExamsListener() {
 
 // Filter and display exams
 function filterExams() {
+    console.log('Filtering exams...', {
+        total: allExams.length,
+        currentGrade,
+        currentGradeLevel,
+        currentSubject
+    });
+
     let filteredExams = allExams;
 
     // Filter by grade
@@ -172,6 +179,7 @@ function filterExams() {
         filteredExams = filteredExams.filter(exam => exam.subject === currentSubject);
     }
 
+    console.log('Filtered exams:', filteredExams.length);
     displayExams(filteredExams);
 }
 
@@ -180,13 +188,17 @@ function displayExams(exams) {
     const examsGrid = document.getElementById('examsGrid');
     const noExamsMsg = document.getElementById('noExams');
 
+    console.log('Displaying exams:', exams.length);
+
     if (exams.length === 0) {
         examsGrid.innerHTML = '';
+        examsGrid.style.display = 'none';
         noExamsMsg.style.display = 'block';
         return;
     }
 
     noExamsMsg.style.display = 'none';
+    examsGrid.style.display = 'grid';
     examsGrid.innerHTML = exams.map(exam => `
         <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
             <img src="${exam.icon}" alt="${exam.name}" class="exam-image" onerror="this.src='icons/default.png'">
