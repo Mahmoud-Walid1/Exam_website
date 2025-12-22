@@ -3,7 +3,7 @@
 // ========================================
 
 import { login, logout, checkAuth } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, addExam, getExams, deleteExam } from './firebase-data.js';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, addExam, getExams, deleteExam, updateExam } from './firebase-data.js';
 
 let allSubjects = {};
 let allExams = [];
