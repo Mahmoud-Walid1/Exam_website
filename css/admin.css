@@ -321,6 +321,37 @@
     transform: scale(1.2);
 }
 
+/* Ticker Manager */
+.ticker-manager {
+    margin-top: 20px;
+}
+
+.ticker-items-list {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ticker-item-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: var(--bg-light);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+}
+
+.ticker-item-card span {
+    flex: 1;
+    font-weight: 600;
+}
+
+.ticker-item-card button {
+    margin-right: 0;
+}
+
 /* Table Styles */
 .table-responsive {
     overflow-x: auto;

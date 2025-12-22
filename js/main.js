@@ -2,7 +2,7 @@
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, onExamsChange } from './firebase-data.js';
+import { initializeSubjects, getSubjects, onExamsChange, getTickerItems } from './firebase-data.js';
 
 let allExams = [];
 let currentGrade = 'all';
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSubjects();
     setupFilters();
     setupExamsListener();
-    updateTicker();
+    await updateTicker(); // Load ticker items
 });
 
 // Load subjects from Firebase
@@ -93,7 +93,6 @@ function setupExamsListener() {
     onExamsChange((exams) => {
         allExams = exams;
         filterExams();
-        updateTicker();
     });
 }
 
@@ -143,25 +142,32 @@ function displayExams(exams) {
     `).join('');
 }
 
-// Update exam cards ticker with images
-function updateTicker() {
+// Update announcement ticker from Firebase ticker items
+async function updateTicker() {
     const tickerTrack = document.getElementById('tickerTrack');
 
-    if (!tickerTrack || allExams.length === 0) {
-        return; // Keep default placeholder cards
-    }
+    if (!tickerTrack) return;
 
-    // Create ticker cards from exams with icons
-    const tickerHTML = allExams.map(exam => `
-        <div class="ticker-card" onclick="window.open('${exam.url}', '_blank')">
-            <img src="${exam.icon}" alt="${exam.name}" class="ticker-card-image" onerror="this.src='icons/default.png'">
-            <div class="ticker-card-content">
-                <p class="ticker-text">${exam.name}</p>
-                <span class="ticker-badge">${exam.grade} - ${exam.subject}</span>
+    try {
+        const tickerItems = await getTickerItems();
+
+        if (tickerItems.length === 0) {
+            return; // Keep default placeholder cards
+        }
+
+        // Create ticker cards from ticker items
+        const tickerHTML = tickerItems.map(item => `
+            <div class="ticker-card">
+                <img src="${item.icon}" alt="${item.text}" class="ticker-card-image" onerror="this.src='icons/default.png'">
+                <div class="ticker-card-content">
+                    <p class="ticker-text">${item.text}</p>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
 
-    // Duplicate content twice for seamless infinite loop
-    tickerTrack.innerHTML = tickerHTML + tickerHTML;
+        // Duplicate content twice for seamless infinite loop
+        tickerTrack.innerHTML = tickerHTML + tickerHTML;
+    } catch (error) {
+        console.error('Error updating ticker:', error);
+    }
 }

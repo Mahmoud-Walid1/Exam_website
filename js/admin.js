@@ -22,23 +22,28 @@ const AVAILABLE_ICONS = [
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Admin panel loaded');
     setupAuthListener();
     setupLoginForm();
 });
 
 // Setup authentication state listener
 function setupAuthListener() {
+    console.log('Setting up auth listener...');
     checkAuth(async (user) => {
+        console.log('Auth state changed:', user ? 'Logged in' : 'Not logged in');
         const loginSection = document.getElementById('loginSection');
         const adminDashboard = document.getElementById('adminDashboard');
 
         if (user) {
             // User is logged in
+            console.log('User logged in:', user.email);
             loginSection.style.display = 'none';
             adminDashboard.style.display = 'block';
             await initializeDashboard();
         } else {
             // User is not logged in
+            console.log('User not logged in');
             loginSection.style.display = 'flex';
             adminDashboard.style.display = 'none';
         }
@@ -49,26 +54,54 @@ function setupAuthListener() {
 function setupLoginForm() {
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('loginError');
+    const loginButton = document.getElementById('loginButton');
+
+    console.log('Login form setup');
 
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        const email = document.getElementById('email').value;
+        console.log('Login form submitted');
+
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
+        console.log('Attempting login with email:', email);
+
         loginError.style.display = 'none';
+        loginButton.disabled = true;
+        loginButton.textContent = 'جاري تسجيل الدخول...';
 
-        const result = await login(email, password);
+        try {
+            const result = await login(email, password);
 
-        if (!result.success) {
-            loginError.textContent = result.error;
+            console.log('Login result:', result);
+
+            if (!result.success) {
+                loginError.textContent = result.error;
+                loginError.style.display = 'block';
+                loginButton.disabled = false;
+                loginButton.textContent = 'تسجيل الدخول';
+                console.error('Login failed:', result.error);
+            } else {
+                console.log('Login successful!');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            loginError.textContent = 'حدث خطأ في تسجيل الدخول. تحقق من اتصال الإنترنت.';
             loginError.style.display = 'block';
+            loginButton.disabled = false;
+            loginButton.textContent = 'تسجيل الدخول';
         }
+
+        return false;
     });
 }
 
 // Initialize dashboard
 async function initializeDashboard() {
+    console.log('Initializing dashboard...');
     await initializeSubjects();
     await loadSubjects();
     await loadExams();
@@ -76,6 +109,72 @@ async function initializeDashboard() {
     setupAddExamForm();
     setupSubjectsManager();
     setupIconSelector();
+    setupTickerManager();
+}
+
+// Setup ticker manager
+async function setupTickerManager() {
+    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js');
+
+    // Load and display ticker items
+    async function loadTickerItems() {
+        const items = await getTickerItems();
+        const tickerItemsList = document.getElementById('tickerItemsList');
+
+        if (items.length === 0) {
+            tickerItemsList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">لا توجد عناصر في الشريط</p>';
+            return;
+        }
+
+        tickerItemsList.innerHTML = items.map(item => `
+            <div class="ticker-item-card">
+                <img src="${item.icon}" alt="${item.text}" style="width: 40px; height: 40px; object-fit: contain;">
+                <span>${item.text}</span>
+                <button class="btn-danger btn-small" onclick="handleDeleteTickerItem('${item.id}')">×</button>
+            </div>
+        `).join('');
+    }
+
+    // Add ticker item
+    document.getElementById('addTickerBtn').addEventListener('click', async () => {
+        const text = document.getElementById('tickerText').value.trim();
+        const icon = document.getElementById('tickerIcon').value;
+
+        if (!text) {
+            alert('من فضلك أدخل نص الملزمة');
+            return;
+        }
+
+        if (!icon) {
+            alert('من فضلك اختر أيقونة');
+            return;
+        }
+
+        const success = await addTickerItem({ text, icon });
+
+        if (success) {
+            document.getElementById('tickerText').value = '';
+            document.getElementById('tickerIcon').value = '';
+            await loadTickerItems();
+            alert('تم إضافة العنصر للشريط! ✅');
+        } else {
+            alert('حدث خطأ');
+        }
+    });
+
+    // Delete ticker item handler
+    window.handleDeleteTickerItem = async (itemId) => {
+        if (confirm('هل تريد حذف هذا العنصر من الشريط؟')) {
+            const success = await deleteTickerItem(itemId);
+            if (success) {
+                await loadTickerItems();
+                alert('تم الحذف! ✅');
+            }
+        }
+    };
+
+    // Initial load
+    await loadTickerItems();
 }
 
 // Setup logout button

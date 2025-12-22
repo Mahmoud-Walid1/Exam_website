@@ -177,6 +177,67 @@ export async function deleteExam(examId) {
     }
 }
 
+// Get ticker items
+export async function getTickerItems() {
+    try {
+        const tickerRef = doc(window.db, 'settings', 'ticker');
+        const tickerDoc = await getDoc(tickerRef);
+
+        if (tickerDoc.exists()) {
+            return tickerDoc.data().items || [];
+        }
+
+        return [];
+    } catch (error) {
+        console.error('Error getting ticker items:', error);
+        return [];
+    }
+}
+
+// Add ticker item
+export async function addTickerItem(item) {
+    try {
+        const tickerRef = doc(window.db, 'settings', 'ticker');
+        const tickerDoc = await getDoc(tickerRef);
+
+        let items = [];
+        if (tickerDoc.exists()) {
+            items = tickerDoc.data().items || [];
+        }
+
+        items.push({
+            id: Date.now().toString(),
+            ...item
+        });
+
+        await setDoc(tickerRef, { items });
+        return true;
+    } catch (error) {
+        console.error('Error adding ticker item:', error);
+        return false;
+    }
+}
+
+// Delete ticker item
+export async function deleteTickerItem(itemId) {
+    try {
+        const tickerRef = doc(window.db, 'settings', 'ticker');
+        const tickerDoc = await getDoc(tickerRef);
+
+        if (tickerDoc.exists()) {
+            let items = tickerDoc.data().items || [];
+            items = items.filter(item => item.id !== itemId);
+            await setDoc(tickerRef, { items });
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Error deleting ticker item:', error);
+        return false;
+    }
+}
+
 // Export for global access
 window.firebaseData = {
     initializeSubjects,
@@ -187,5 +248,8 @@ window.firebaseData = {
     getExams,
     onExamsChange,
     updateExam,
-    deleteExam
+    deleteExam,
+    getTickerItems,
+    addTickerItem,
+    deleteTickerItem
 };

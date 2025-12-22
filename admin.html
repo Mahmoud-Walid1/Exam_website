@@ -30,14 +30,16 @@
                 <form id="loginForm" class="login-form">
                     <div class="form-group">
                         <label for="email">البريد الإلكتروني</label>
-                        <input type="email" id="email" required placeholder="example@email.com">
+                        <input type="email" id="email" name="email" required placeholder="example@email.com"
+                            autocomplete="email">
                     </div>
                     <div class="form-group">
                         <label for="password">كلمة المرور</label>
-                        <input type="password" id="password" required placeholder="••••••••">
+                        <input type="password" id="password" name="password" required placeholder="••••••••"
+                            autocomplete="current-password">
                     </div>
                     <div id="loginError" class="error-message" style="display: none;"></div>
-                    <button type="submit" class="btn-primary">تسجيل الدخول</button>
+                    <button type="submit" class="btn-primary" id="loginButton">تسجيل الدخول</button>
                 </form>
             </div>
         </div>
@@ -140,6 +142,38 @@
                 </div>
             </section>
 
+            <!-- Manage Ticker Items Section -->
+            <section class="admin-section">
+                <h2 class="section-title">إدارة شريط الملازم المتحرك</h2>
+                <div class="ticker-manager">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tickerText">نص الملزمة</label>
+                            <input type="text" id="tickerText" placeholder="مثال: ملزمة رياضيات الصف الأول">
+                        </div>
+                        <div class="form-group">
+                            <label for="tickerIcon">أيقونة الملزمة</label>
+                            <select id="tickerIcon">
+                                <option value="">اختر أيقونة</option>
+                                <option value="icons/math.png">رياضيات</option>
+                                <option value="icons/arabic.png">لغة عربية</option>
+                                <option value="icons/science.png">علوم</option>
+                                <option value="icons/english.png">لغة إنجليزية</option>
+                                <option value="icons/social_studies.png">دراسات اجتماعية</option>
+                                <option value="icons/islamic_studies.png">دراسات إسلامية</option>
+                                <option value="icons/default.png">افتراضي</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button id="addTickerBtn" class="btn-primary">إضافة للشريط</button>
+                        </div>
+                    </div>
+                    <div id="tickerItemsList" class="ticker-items-list">
+                        <!-- سيتم إضافة قائمة عناصر الشريط ديناميكياً -->
+                    </div>
+                </div>
+            </section>
+
             <!-- Exams List Section -->
             <section class="admin-section">
                 <h2 class="section-title">الاختبارات الحالية</h2>
@@ -170,9 +204,7 @@
         import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC0sXsVOAjsaGreuIZPAcjdFNpiTxX0xog",
             authDomain: "adv-mr-saber.firebaseapp.com",
@@ -185,9 +217,6 @@
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-
-        const app = initializeApp(window.firebaseConfig);
         window.db = getFirestore(app);
         window.auth = getAuth(app);
     </script>
