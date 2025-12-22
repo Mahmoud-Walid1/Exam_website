@@ -129,9 +129,6 @@ function updateSubjectFilter() {
         });
         subjectFiltersContainer.appendChild(btn);
     });
-
-    // Reset subject filter
-    currentSubject = 'all';
 }
 
 // Setup real-time exams listener
@@ -182,9 +179,9 @@ function displayExams(exams) {
             <div class="exam-content">
                 <h3 class="exam-title">${exam.name}</h3>
                 <div class="exam-meta">
-                    <span class="exam-badge">${exam.grade}</span>
-                    ${exam.gradeLevel ? `<span class="exam-badge">الصف ${exam.gradeLevel}</span>` : ''}
-                    <span class="exam-badge">${exam.subject}</span>
+                    <span class="exam-badge">📚 ${exam.subject}</span>
+                    ${exam.gradeLevel ? `<span class="exam-badge">🎯 الصف ${exam.gradeLevel}</span>` : ''}
+                    <span class="exam-badge">🏫 ${exam.grade}</span>
                 </div>
                 <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
                     عرض في المتجر 🛒
