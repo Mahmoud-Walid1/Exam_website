@@ -49,6 +49,22 @@ function showLoading() {
     `;
 }
 
+// Show error state
+function showError() {
+    document.getElementById('coverageContainer').innerHTML = `
+        <div class="empty-state" style="background: #fff5f5; border: 2px solid #f56565;">
+            <p style="color: #c53030;">❌ خطأ في تحميل البيانات</p>
+            <p style="font-size: 0.9rem; color: #718096; margin-top: 10px;">
+                تأكد من تسجيل الدخول أو حاول تحديث الصفحة
+            </p>
+        </div>
+    `;
+    document.getElementById('totalExams').textContent = '0';
+    document.getElementById('coveredGrades').textContent = '0/3';
+    document.getElementById('totalSubjects').textContent = '0';
+    document.getElementById('totalWarnings').textContent = '0';
+}
+
 // Generate full report
 function generateReport() {
     const stats = calculateStatistics();
