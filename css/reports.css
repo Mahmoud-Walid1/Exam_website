@@ -131,23 +131,27 @@
     align-items: center;
     gap: 15px;
     padding: 15px;
-    background: #f7fafc;
+    background: #ffffff;
     border-radius: 10px;
     border-right: 4px solid;
+    border: 1px solid #e2e8f0;
 }
 
 .coverage-subject.status-complete {
-    border-color: #48bb78;
+    border-right-color: #38a169;
+    border-color: #c6f6d5;
     background: #f0fff4;
 }
 
 .coverage-subject.status-partial {
-    border-color: #ed8936;
+    border-right-color: #dd6b20;
+    border-color: #fbd38d;
     background: #fffaf0;
 }
 
 .coverage-subject.status-missing {
-    border-color: #f56565;
+    border-right-color: #e53e3e;
+    border-color: #feb2b2;
     background: #fff5f5;
 }
 
@@ -157,8 +161,9 @@
 
 .coverage-subject-name {
     flex: 1;
-    font-weight: 600;
-    color: #2d3748;
+    font-weight: 700;
+    color: #1a202c;
+    font-size: 1.05rem;
 }
 
 .coverage-progress {
@@ -200,20 +205,24 @@
 }
 
 .status-complete .coverage-percentage {
-    color: #48bb78;
+    color: #2f855a;
+    font-weight: 800;
 }
 
 .status-partial .coverage-percentage {
-    color: #ed8936;
+    color: #c05621;
+    font-weight: 800;
 }
 
 .status-missing .coverage-percentage {
-    color: #f56565;
+    color: #c53030;
+    font-weight: 800;
 }
 
 .coverage-details {
-    font-size: 0.85rem;
-    color: #718096;
+    font-size: 0.95rem;
+    color: #4a5568;
+    font-weight: 600;
 }
 
 /* Warnings Section */
@@ -267,14 +276,16 @@
 }
 
 .warning-title {
-    font-weight: 600;
-    color: #2d3748;
+    font-weight: 700;
+    color: #1a202c;
     margin-bottom: 4px;
+    font-size: 1.05rem;
 }
 
 .warning-description {
-    font-size: 0.9rem;
-    color: #718096;
+    font-size: 0.95rem;
+    color: #4a5568;
+    font-weight: 500;
 }
 
 .empty-state {
