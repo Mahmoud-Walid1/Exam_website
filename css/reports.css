@@ -2,9 +2,40 @@
    Reports Page Styles
    ======================================== */
 
+/* CSS Variables */
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #0d9488;
+    --text-dark: #1f2937;
+    --bg-light: #f3f4f6;
+}
+
 /* Page Background */
 body.admin-body {
     background: #f3f4f6 !important;
+}
+
+/* Fix Header Visibility */
+.admin-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+}
+
+.admin-header h1,
+.admin-header p {
+    color: white !important;
+}
+
+.admin-actions .btn-primary,
+.admin-actions .btn-secondary {
+    background: white !important;
+    color: #2563eb !important;
+    border: 2px solid white !important;
+}
+
+.admin-actions .btn-primary:hover,
+.admin-actions .btn-secondary:hover {
+    background: #f0f9ff !important;
+    transform: translateY(-2px);
 }
 
 /* Statistics Cards */
