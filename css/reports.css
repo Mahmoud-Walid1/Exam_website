@@ -2,6 +2,11 @@
    Reports Page Styles
    ======================================== */
 
+/* Page Background */
+body.admin-body {
+    background: #f3f4f6 !important;
+}
+
 /* Statistics Cards */
 .stats-section {
     margin-bottom: 40px;
@@ -83,6 +88,16 @@
     font-size: 0.95rem;
     color: #718096;
     font-weight: 500;
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #667eea;
 }
 
 /* Coverage Section */
