@@ -623,34 +623,48 @@ lord-icon.icon-xlarge {
 
 @media (max-width: 768px) {
     .header {
-        padding: 25px 0;
+        padding: 20px 0 15px;
     }
 
     .header-content {
-        flex-direction: column;
+        flex-direction: row; /* Keep side by side but smaller */
         gap: 20px;
+        flex-wrap: wrap;
     }
 
     .logo-block {
-        gap: 8px;
+        gap: 5px;
+        flex: 1; /* Equal space */
+        min-width: 120px;
     }
 
     .logo-img {
-        width: 70px;
-        height: 70px;
+        width: 65px;
+        height: 65px;
+        border-radius: 12px;
     }
 
     .logo-name {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    .header-tagline {
+        margin-top: 10px;
     }
 
     .site-tagline {
-        font-size: 0.85rem;
-        padding: 5px 15px;
+        font-size: 0.8rem;
+        padding: 4px 15px;
+    }
+
+    .hero {
+        padding: 30px 0;
     }
 
     .hero-title {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+        margin-bottom: 10px;
     }
 
     /* Fix typing animation on mobile — allow text wrapping */
@@ -674,20 +688,24 @@ lord-icon.icon-xlarge {
     }
 
     .hero-description {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 
     .filters-section {
-        padding: 25px 0;
+        padding: 20px 0;
+    }
+
+    .filter-label {
+        font-size: 1rem;
     }
 
     .filter-buttons {
         flex-wrap: nowrap;
         overflow-x: auto;
         justify-content: flex-start;
-        padding: 10px 5px 15px;
+        padding: 5px 5px 12px;
         -webkit-overflow-scrolling: touch;
-        gap: 10px;
+        gap: 8px;
         width: 100%;
     }
 
@@ -702,12 +720,26 @@ lord-icon.icon-xlarge {
 
     .filter-btn {
         flex: 0 0 auto;
-        font-size: 0.85rem;
-        padding: 8px 18px;
+        font-size: 0.8rem;
+        padding: 8px 15px;
+    }
+
+    .exams-section {
+        padding: 40px 0;
+    }
+
+    .section-title {
+        font-size: 1.6rem;
+        margin-bottom: 30px;
     }
 
     .exams-grid {
         grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .custom-requests {
+        padding: 40px 0;
     }
 
     .custom-requests-card {
@@ -715,7 +747,15 @@ lord-icon.icon-xlarge {
     }
 
     .custom-title {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+    }
+
+    .custom-description {
+        font-size: 0.95rem;
+    }
+
+    .custom-btn {
+        min-width: 100%; /* Stack on small mobile */
     }
 
     .ticker-card {
@@ -728,24 +768,28 @@ lord-icon.icon-xlarge {
 }
 
 @media (max-width: 480px) {
+    .header-content {
+        gap: 15px;
+    }
+
     .logo-img {
-        width: 60px;
-        height: 60px;
+        width: 55px;
+        height: 55px;
     }
 
     .logo-name {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
 
     .hero-title {
-        font-size: 1.3rem;
+        font-size: 1.25rem;
     }
 
     .no-exams-title {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 
     .no-exams-subtitle {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 }
