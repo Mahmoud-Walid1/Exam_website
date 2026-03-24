@@ -53,7 +53,7 @@ body {
 .header {
     background: linear-gradient(135deg, var(--primary-color) 0%, #1a365d 50%, #2c5282 100%);
     color: white;
-    padding: 35px 0;
+    padding: 35px 0 25px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
@@ -72,23 +72,23 @@ body {
 
 .header-content {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    gap: 30px;
+    gap: 40px;
     position: relative;
     z-index: 1;
 }
 
-.logos-container {
+.logo-block {
     display: flex;
-    gap: 15px;
+    flex-direction: column;
     align-items: center;
-    order: 2;
+    gap: 10px;
 }
 
 .logo-img {
-    width: 85px;
-    height: 85px;
+    width: 90px;
+    height: 90px;
     border-radius: 16px;
     object-fit: contain;
     background: white;
@@ -101,23 +101,19 @@ body {
     transform: scale(1.08);
 }
 
-.header-text {
-    order: 1;
+.logo-name {
+    font-size: 1.1rem;
+    font-weight: 700;
     text-align: center;
+    opacity: 0.95;
+    letter-spacing: 0.3px;
 }
 
-.site-title {
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin-bottom: 6px;
-    letter-spacing: 0.5px;
-}
-
-.site-subtitle {
-    font-size: 1.15rem;
-    opacity: 0.9;
-    margin-bottom: 8px;
-    font-weight: 400;
+.header-tagline {
+    text-align: center;
+    margin-top: 15px;
+    position: relative;
+    z-index: 1;
 }
 
 .site-tagline {
@@ -125,9 +121,8 @@ body {
     color: white;
     background: linear-gradient(135deg, var(--secondary-color), #0ea5e9);
     display: inline-block;
-    padding: 6px 20px;
+    padding: 6px 25px;
     border-radius: 25px;
-    margin-top: 5px;
     font-weight: 600;
     letter-spacing: 0.3px;
 }

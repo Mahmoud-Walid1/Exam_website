@@ -244,14 +244,17 @@ async function updateTicker() {
             'https://cdn.lordicon.com/vdjwmfqs.json', // document
         ];
 
-        // If no Firebase items, use defaults
+        // If no Firebase items, use default features/benefits
         if (itemsToUse.length === 0) {
             itemsToUse = [
                 { text: 'اختبارات محاكية نهائية شاملة', icon: '', url: '' },
                 { text: 'جميع المراحل الدراسية', icon: '', url: '' },
                 { text: 'محدثة باستمرار', icon: '', url: '' },
-                { text: 'مكتبة المعلمين', icon: '', url: '' },
-                { text: 'العلوم والتقنية للجميع', icon: '', url: '' },
+                { text: 'تغطية كاملة للمنهج', icon: '', url: '' },
+                { text: 'تقييم احترافي للطلاب', icon: '', url: '' },
+                { text: 'ابتدائي - متوسط - ثانوي', icon: '', url: '' },
+                { text: 'أسئلة متنوعة ومحدثة', icon: '', url: '' },
+                { text: 'سهولة الاستخدام', icon: '', url: '' },
             ];
         }
 
@@ -275,32 +278,29 @@ async function updateTicker() {
             </div>`;
         }
 
-        // Calculate how many cards we need to fill one half (must fill at least 2x viewport)
+        // Fill one half with enough cards to ALWAYS cover the entire viewport
         const viewportWidth = window.innerWidth;
-        const cardWidth = 220; // card 200px + gap 20px
-        const minCardsPerHalf = Math.ceil((viewportWidth * 1.5) / cardWidth);
+        const cardWidth = 220;
+        // Each half must be at least 2x the viewport width to guarantee no gap
+        const minCardsPerHalf = Math.max(itemsToUse.length * 2, Math.ceil((viewportWidth * 2.5) / cardWidth));
 
-        // Repeat items until we have enough for one half
         let halfCards = [];
-        let i = 0;
-        while (halfCards.length < Math.max(minCardsPerHalf, itemsToUse.length)) {
+        for (let i = 0; i < minCardsPerHalf; i++) {
             halfCards.push(buildCard(itemsToUse[i % itemsToUse.length], i));
-            i++;
         }
 
         const halfHTML = halfCards.join('');
 
-        // Exactly 2 identical halves → translateX(-50%) loops perfectly
+        // Two identical halves → translateX(-50%) creates perfect infinite loop
         tickerTrack.innerHTML = halfHTML + halfHTML;
 
-        // Adjust speed: consistent ~50px/s
+        // Speed: consistent ~50px/s
         const totalHalfWidth = halfCards.length * cardWidth;
         const duration = totalHalfWidth / 50;
         tickerTrack.style.animationDuration = duration + 's';
 
-        // Add click event listeners to all ticker cards
-        const tickerCards = tickerTrack.querySelectorAll('.ticker-card');
-        tickerCards.forEach(card => {
+        // Click handlers
+        tickerTrack.querySelectorAll('.ticker-card').forEach(card => {
             const url = card.dataset.url;
             if (url && url !== '') {
                 card.addEventListener('click', (e) => {
