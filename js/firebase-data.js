@@ -151,6 +151,8 @@ export function onExamsChange(callback) {
             });
         });
         callback(exams);
+    }, (error) => {
+        console.error('Error in onExamsChange snapshot:', error);
     });
 }
 
