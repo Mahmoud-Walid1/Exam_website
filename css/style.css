@@ -51,54 +51,85 @@ body {
 ======================================== */
 
 .header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #2c5282 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a365d 50%, #2c5282 100%);
     color: white;
-    padding: 30px 0;
-    box-shadow: var(--shadow-md);
+    padding: 35px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
 }
 
 .header-content {
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
+    gap: 30px;
+    position: relative;
+    z-index: 1;
 }
 
 .logos-container {
     display: flex;
     gap: 15px;
     align-items: center;
+    order: 2;
 }
 
 .logo-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
+    width: 85px;
+    height: 85px;
+    border-radius: 16px;
     object-fit: contain;
     background: white;
     padding: 8px;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.08);
+}
+
+.header-text {
+    order: 1;
+    text-align: center;
 }
 
 .site-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 800;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
 }
 
 .site-subtitle {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     opacity: 0.9;
-    margin-bottom: 2px;
+    margin-bottom: 8px;
+    font-weight: 400;
 }
 
 .site-tagline {
-    font-size: 1rem;
-    color: var(--secondary-color);
-    background: rgba(255, 255, 255, 0.2);
+    font-size: 0.95rem;
+    color: white;
+    background: linear-gradient(135deg, var(--secondary-color), #0ea5e9);
     display: inline-block;
-    padding: 5px 15px;
-    border-radius: 20px;
+    padding: 6px 20px;
+    border-radius: 25px;
     margin-top: 5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 /* ========================================
