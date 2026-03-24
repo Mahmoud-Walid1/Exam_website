@@ -272,12 +272,15 @@ async function updateTicker() {
             </div>`;
         }
 
-        // Fill one half with enough cards to ALWAYS cover the entire viewport
+        // Fill one half
         const viewportWidth = window.innerWidth;
-        const cardStepWidth = 220; // 200px card + 20px margin
+        const isMobile = viewportWidth <= 768;
+        const cardWidth = isMobile ? 160 : 200;
+        const gap = 20;
+        const cardStepWidth = cardWidth + gap;
         
-        // Each half must be at least 1.5x the viewport width or at least 8 cards
-        const minCardsPerHalf = Math.max(8, Math.ceil((viewportWidth * 1.5) / cardStepWidth));
+        // Ensure we have enough cards to fill the screen twice plus some buffer
+        const minCardsPerHalf = Math.max(8, Math.ceil((viewportWidth * 2) / cardStepWidth));
 
         let halfCards = [];
         for (let i = 0; i < Math.max(minCardsPerHalf, itemsToUse.length); i++) {
@@ -285,23 +288,23 @@ async function updateTicker() {
         }
 
         const halfHTML = halfCards.join('');
-
-        // Two identical halves → translateX(-50%) creates perfect infinite loop
         tickerTrack.innerHTML = halfHTML + halfHTML;
 
-        // Speed: consistent ~50px/s
-        const totalHalfWidth = halfCards.length * cardStepWidth;
-        const duration = totalHalfWidth / 55; // Slightly faster for better feel
+        // Calculate exact pixel width of one half for the animation
+        const halfWidth = halfCards.length * cardStepWidth;
+        
+        // Set CSS variable for the translation
+        tickerTrack.style.setProperty('--scroll-width', `-${halfWidth}px`);
+        
+        // Speed: ~50px/s
+        const duration = halfWidth / 50;
         tickerTrack.style.animationDuration = duration + 's';
 
-        // Click handlers
+        // Add event listeners...
         tickerTrack.querySelectorAll('.ticker-card').forEach(card => {
             const url = card.dataset.url;
             if (url && url !== '') {
-                card.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.open(url, '_blank');
-                });
+                card.addEventListener('click', () => window.open(url, '_blank'));
             }
         });
     } catch (error) {
