@@ -549,23 +549,33 @@ lord-icon.icon-xlarge {
     opacity: 0.9;
 }
 
+.custom-btns-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
 .custom-btn {
     display: inline-block;
-    padding: 15px 40px;
     background: var(--secondary-color);
     color: white;
     text-decoration: none;
-    border-radius: 30px;
+    padding: 15px 30px;
+    border-radius: 50px;
     font-weight: 700;
-    font-size: 1.1rem;
     transition: var(--transition);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
+    min-width: 220px; /* Equal width for both */
+    text-align: center;
 }
 
 .custom-btn:hover {
-    background: white;
-    color: var(--primary-color);
-    transform: scale(1.05);
+    background: #0d9488;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    color: white;
 }
 
 /* ========================================
