@@ -436,18 +436,23 @@ lord-icon.icon-xlarge {
     position: absolute;
     top: 15px;
     right: 15px;
-    padding: 6px 16px;
+    padding: 6px 14px;
     border-radius: 50px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 800;
     color: white;
     z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    line-height: 1;
+}
+
+.stage-badge lord-icon {
+    flex-shrink: 0;
 }
 
 .stage-ابتدائي { background: rgba(16, 185, 129, 0.9); } /* Green */

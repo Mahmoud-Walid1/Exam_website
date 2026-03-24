@@ -205,7 +205,7 @@ function displayExams(exams) {
                  data-subject="${exam.subject}">
                 <div class="exam-image-container">
                     <div class="stage-badge stage-${exam.grade}">
-                        <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#ffffff" style="width:18px;height:18px;"></lord-icon>
+                        <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#ffffff" style="width:16px;height:16px;"></lord-icon>
                         ${exam.grade}
                     </div>
                     <img src="${hasImage ? exam.imageUrl : 'icons/default.png'}" 
