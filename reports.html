@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير الاختبارات - لوحة التحكم</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/reports.css">
+</head>
+
+<body class="admin-body">
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="container">
+            <div class="admin-header-content">
+                <div>
+                    <h1>📊 تقرير الاختبارات <span
+                            style="font-size: 0.9rem; opacity: 0.6; font-weight: normal;">v1.2</span></h1>
+                    <p>تحليل شامل لتغطية الاختبارات</p>
+                </div>
+                <div class="admin-actions">
+                    <a href="admin.html" class="btn-secondary">← العودة للوحة التحكم</a>
+                    <a href="index.html" target="_blank" class="btn-secondary">عرض الموقع</a>
+                    <button id="refreshBtn" class="btn-primary">🔄 تحديث التقرير</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container admin-content">
+
+        <!-- Statistics Cards -->
+        <section class="stats-section">
+            <h2 class="section-title">📊 الإحصائيات العامة</h2>
+            <div class="stats-grid">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalExams">0</div>
+                        <div class="stat-label">إجمالي الاختبارات</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-success">
+                    <div class="stat-icon">🎓</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="coveredGrades">0/3</div>
+                        <div class="stat-label">المراحل المغطاة</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-info">
+                    <div class="stat-icon">📖</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalSubjects">0</div>
+                        <div class="stat-label">المواد المتوفرة</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalWarnings">0</div>
+                        <div class="stat-label">التحذيرات</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Coverage Matrix -->
+        <section class="coverage-section">
+            <h2 class="section-title">✅ جدول التغطية</h2>
+            <div id="coverageContainer">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Warnings List -->
+        <section class="warnings-section">
+            <h2 class="section-title">⚠️ التحذيرات والملاحظات</h2>
+            <div id="warningsContainer">
+                <div class="empty-state">
+                    <p>لا توجد تحذيرات - كل شيء على ما يرام! ✨</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0sXsVOAjsaGreuIZPAcjdFNpiTxX0xog",
+            authDomain: "adv-mr-saber.firebaseapp.com",
+            projectId: "adv-mr-saber",
+            storageBucket: "adv-mr-saber.firebasestorage.app",
+            messagingSenderId: "75884123360",
+            appId: "1:75884123360:web:5f703338e29db60040ec85",
+            measurementId: "G-6M2M4T77D8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+    </script>
+
+    <!-- Reports JavaScript -->
+    <script type="module" src="js/reports.js"></script>
+</body>
+
+</html>

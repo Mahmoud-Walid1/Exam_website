@@ -1,0 +1,19 @@
+# Ignore Firebase environment variables
+.env
+
+# Ignore node_modules if you add npm later
+node_modules/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore backup files
+*.bak
+*~
