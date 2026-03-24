@@ -116,7 +116,28 @@ async function initializeDashboard() {
     setupTickerManager();
     setupAdminManager();
     setupTabSwitching();
-    updateQuickStats();
+    setupMobileSidebar();
+    await updateQuickStats();
+}
+
+// Setup Mobile Sidebar Toggle
+function setupMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    
+    if (toggle) {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('open');
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+    }
 }
 
 // Setup Tab Switching
@@ -124,6 +145,7 @@ function setupTabSwitching() {
     const navItems = document.querySelectorAll('.nav-item[data-tab]');
     const tabContents = document.querySelectorAll('.tab-content');
     const currentTabTitle = document.getElementById('currentTabTitle');
+    const sidebar = document.querySelector('.sidebar');
 
     navItems.forEach(item => {
         item.addEventListener('click', () => {
@@ -135,13 +157,18 @@ function setupTabSwitching() {
 
             // Update Content Active state
             tabContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(`${tabId}-tab`).classList.add('active');
+            const targetTab = document.getElementById(`${tabId}-tab`);
+            if (targetTab) targetTab.classList.add('active');
 
             // Update Header Title
             currentTabTitle.textContent = item.querySelector('span').textContent;
 
-            // Trigger specific tab logic if needed
+            // Close sidebar on mobile after selection
+            sidebar.classList.remove('open');
+
+            // Trigger specific tab logic
             if (tabId === 'dashboard') updateQuickStats();
+            if (tabId === 'reports') displayFullReport();
         });
     });
 
@@ -154,22 +181,128 @@ function setupTabSwitching() {
     }
 }
 
-// Update Quick Stats
-async function updateQuickStats() {
-    const { getTickerItems } = await import('./firebase-data.js');
-    const tickerItems = await getTickerItems();
+// ========================================
+// Reporting Logic (Integrated)
+// ========================================
 
+function calculateCoverage() {
+    const coverage = {};
+    for (const [grade, levels] of Object.entries(GRADE_LEVELS)) {
+        coverage[grade] = {};
+        const gradeSubjects = allSubjects[grade] || [];
+        for (const subject of gradeSubjects) {
+            const subjectCoverage = { total: levels.length, covered: 0, missing: [], exams: [] };
+            for (const level of levels) {
+                const exam = allExams.find(e => e.grade === grade && e.gradeLevel === level && e.subject === subject);
+                if (exam) { subjectCoverage.covered++; subjectCoverage.exams.push({ level, exam }); }
+                else { subjectCoverage.missing.push(level); }
+            }
+            subjectCoverage.percentage = (subjectCoverage.covered / subjectCoverage.total) * 100;
+            coverage[grade][subject] = subjectCoverage;
+        }
+    }
+    return coverage;
+}
+
+function generateWarnings(coverage) {
+    const warnings = [];
+    for (const [grade, subjects] of Object.entries(coverage)) {
+        for (const [subject, data] of Object.entries(subjects)) {
+            if (data.covered === 0) {
+                warnings.push({ type: 'critical', grade, subject, message: `نقص كامل: لا يوجد اختبار ${subject} - ${grade}`, icon: '🔴' });
+            } else if (data.missing.length > 0) {
+                const missingLevels = data.missing.map(l => `ص ${l}`).join('، ');
+                warnings.push({ type: 'moderate', grade, subject, message: `نقص جزئي: ${subject} (${missingLevels}) - ${grade}`, details: `متوفر لـ ${data.covered} من ${data.total} صفوف`, icon: '⚠️' });
+            }
+        }
+    }
+    return warnings;
+}
+
+// Update Quick Stats & Home Summary
+async function updateQuickStats() {
     const statExams = document.getElementById('statTotalExams');
     const statSubjects = document.getElementById('statTotalSubjects');
-    const statTicker = document.getElementById('statTotalTicker');
+    const statCovered = document.getElementById('statCoveredGrades');
+    const statWarningsCount = document.getElementById('statTotalWarnings');
+    const homeWarnings = document.getElementById('homeWarningsContainer');
 
+    const coverage = calculateCoverage();
+    const warnings = generateWarnings(coverage);
+    const criticalWarnings = warnings.filter(w => w.type !== 'info');
+
+    // Stats Grid
     if (statExams) statExams.textContent = allExams.length;
     if (statSubjects) {
         let total = 0;
         Object.values(allSubjects).forEach(list => total += list.length);
         statSubjects.textContent = total;
     }
-    if (statTicker) statTicker.textContent = tickerItems.length;
+    if (statCovered) {
+        const grades = Object.keys(GRADE_LEVELS);
+        const coveredCount = grades.filter(grade => allExams.some(e => e.grade === grade)).length;
+        statCovered.textContent = `${coveredCount}/${grades.length}`;
+    }
+    if (statWarningsCount) statWarningsCount.textContent = criticalWarnings.length;
+
+    // Home Summary
+    if (homeWarnings) {
+        if (criticalWarnings.length === 0) {
+            homeWarnings.innerHTML = '<p style="color: #48bb78; text-align: center;">كل شيء مغطى بشكل ممتاز! ✨</p>';
+        } else {
+            homeWarnings.innerHTML = `
+                <div class="warnings-container">
+                    ${criticalWarnings.slice(0, 5).map(w => `
+                        <div class="warning-item ${w.type}">
+                            <span class="warning-icon">${w.icon}</span>
+                            <span class="warning-message">${w.message}</span>
+                        </div>
+                    `).join('')}
+                    ${criticalWarnings.length > 5 ? `<p class="warnings-more">+ ${criticalWarnings.length - 5} تنبيهات أخرى</p>` : ''}
+                </div>
+            `;
+        }
+    }
+}
+
+// Full Report Tab Logic
+function displayFullReport() {
+    const container = document.getElementById('fullCoverageContainer');
+    const coverage = calculateCoverage();
+    let html = '';
+
+    for (const [grade, subjects] of Object.entries(coverage)) {
+        const totalSubs = Object.keys(subjects).length;
+        const completeSubs = Object.values(subjects).filter(s => s.covered === s.total).length;
+
+        html += `
+            <div class="coverage-grade-card">
+                <div class="coverage-grade-header">
+                    <h3 class="coverage-grade-title">🎓 ${grade}</h3>
+                    <span class="coverage-grade-badge">${completeSubs}/${totalSubs} مكتملة</span>
+                </div>
+                <div class="coverage-subjects-grid">
+                    ${Object.entries(subjects).map(([subject, data]) => {
+                        let statusColor = data.percentage === 100 ? '#48bb78' : (data.percentage > 0 ? '#ed8936' : '#ef4444');
+                        return `
+                        <div class="coverage-subject-card">
+                            <div class="coverage-subject-info">
+                                <span class="coverage-subject-name">${subject}</span>
+                                <span class="coverage-subject-percent" style="color: ${statusColor};">${Math.round(data.percentage)}%</span>
+                            </div>
+                            <div class="coverage-progress-bg">
+                                <div class="coverage-progress-fill" style="width: ${data.percentage}%; background: ${statusColor};"></div>
+                            </div>
+                            <div class="coverage-subject-meta">${data.covered}/${data.total} صفوف تمت تغطيتها</div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html || '<p style="text-align: center; color: #94a3b8;">لا توجد بيانات متاحة حالياً</p>';
 }
 
 // Setup ticker manager
@@ -204,20 +337,9 @@ async function setupTickerManager() {
         const url = document.getElementById('tickerUrl').value.trim();
         const icon = document.getElementById('tickerIcon').value;
 
-        if (!text) {
-            alert('من فضلك أدخل نص الملزمة');
-            return;
-        }
-
-        if (!url) {
-            alert('من فضلك أدخل رابط المنتج');
-            return;
-        }
-
-        if (!icon) {
-            alert('من فضلك اختر أيقونة');
-            return;
-        }
+        if (!text) { alert('من فضلك أدخل نص الملزمة'); return; }
+        if (!url) { alert('من فضلك أدخل رابط المنتج'); return; }
+        if (!icon) { alert('من فضلك اختر أيقونة'); return; }
 
         const success = await addTickerItem({ text, url, icon });
 
@@ -226,6 +348,7 @@ async function setupTickerManager() {
             document.getElementById('tickerUrl').value = '';
             document.getElementById('tickerIcon').value = '';
             await loadTickerItems();
+            updateQuickStats();
             alert('تم إضافة العنصر للشريط! ✅');
         } else {
             alert('حدث خطأ');
@@ -238,6 +361,7 @@ async function setupTickerManager() {
             const success = await deleteTickerItem(itemId);
             if (success) {
                 await loadTickerItems();
+                updateQuickStats();
                 alert('تم الحذف! ✅');
             }
         }
@@ -292,6 +416,7 @@ async function loadSubjects() {
 async function loadExams() {
     allExams = await getExams();
     displayExamsTable();
+    updateQuickStats();
 }
 
 // Setup add exam form
@@ -323,10 +448,7 @@ function setupAddExamForm() {
         const imageUrl = document.getElementById('examImageUrl').value.trim();
         const editingId = document.getElementById('editingExamId').value;
 
-        if (!icon) {
-            alert('من فضلك اختر أيقونة للاختبار');
-            return;
-        }
+        if (!icon) { alert('من فضلك اختر أيقونة للاختبار'); return; }
 
         try {
             // Show loading
@@ -335,22 +457,12 @@ function setupAddExamForm() {
             submitBtn.textContent = editingId ? 'جاري التحديث...' : 'جاري الإضافة...';
             submitBtn.disabled = true;
 
-            const examData = {
-                name,
-                url,
-                grade,
-                gradeLevel,
-                subject,
-                icon,
-                imageUrl
-            };
+            const examData = { name, url, grade, gradeLevel, subject, icon, imageUrl };
 
             if (editingId) {
-                // Update existing exam
                 await updateExam(editingId, examData);
                 message.textContent = 'تم تحديث الاختبار بنجاح! ✅';
             } else {
-                // Add new exam
                 await addExam(examData);
                 message.textContent = 'تم إضافة الاختبار بنجاح! ✅';
             }
@@ -358,8 +470,6 @@ function setupAddExamForm() {
 
             // Reset form
             cancelEdit();
-
-            // Reload exams
             await loadExams();
 
             // Reset button
@@ -367,9 +477,7 @@ function setupAddExamForm() {
             submitBtn.disabled = false;
 
             // Hide message after 3 seconds
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3000);
+            setTimeout(() => { message.style.display = 'none'; }, 3000);
 
         } catch (error) {
             alert('حدث خطأ: ' + error.message);
@@ -383,51 +491,35 @@ function setupAddExamForm() {
 // Edit existing exam
 window.editExam = function (examId) {
     const exam = allExams.find(e => e.id === examId);
-    if (!exam) {
-        console.error('Exam not found:', examId);
-        return;
-    }
+    if (!exam) return;
 
-    console.log('Editing exam:', exam);
-
-    // Fill form with exam data
     document.getElementById('examName').value = exam.name;
     document.getElementById('examUrl').value = exam.url;
     document.getElementById('examGrade').value = exam.grade;
 
-    // Trigger grade change to populate dropdowns
+    // Trigger grade change
     document.getElementById('examGrade').dispatchEvent(new Event('change'));
 
-    // Wait a bit for dropdowns to populate, then set values
     setTimeout(() => {
         document.getElementById('examGradeLevel').value = exam.gradeLevel;
         document.getElementById('examSubject').value = exam.subject;
     }, 100);
 
-    // Set image URL if exists
     document.getElementById('examImageUrl').value = exam.imageUrl || '';
-
-    // Set icon
     selectedIcon = exam.icon;
     document.getElementById('selectedIcon').value = exam.icon;
     document.querySelectorAll('.icon-option').forEach(opt => {
-        if (opt.querySelector('img').src.includes(exam.icon)) {
-            opt.classList.add('active');
-        } else {
-            opt.classList.remove('active');
-        }
+        if (opt.querySelector('img').src.includes(exam.icon)) opt.classList.add('active');
+        else opt.classList.remove('active');
     });
 
-    // Update UI for edit mode
     document.getElementById('submitExamBtn').textContent = 'حفظ التعديلات ✅';
     document.getElementById('cancelEditBtn').style.display = 'inline-block';
     document.getElementById('editingExamId').value = examId;
-
-    // Scroll to form
     document.getElementById('addExamForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
-// Cancel edit mode and return to add mode
+// Cancel edit
 function cancelEdit() {
     const form = document.getElementById('addExamForm');
     form.reset();
@@ -440,20 +532,17 @@ function cancelEdit() {
     document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
-// Update exam grade level dropdown based on selected stage
+// Update exam grade level dropdown
 function updateExamGradeLevelDropdown() {
     const gradeSelect = document.getElementById('examGrade');
     const gradeLevelSelect = document.getElementById('examGradeLevel');
     const selectedGrade = gradeSelect.value;
-
     gradeLevelSelect.innerHTML = '<option value="">اختر الصف</option>';
-
     if (selectedGrade && GRADE_LEVELS[selectedGrade]) {
         gradeLevelSelect.disabled = false;
         GRADE_LEVELS[selectedGrade].forEach(level => {
             const option = document.createElement('option');
-            option.value = level;
-            option.textContent = `الصف ${level}`;
+            option.value = level; option.textContent = `الصف ${level}`;
             gradeLevelSelect.appendChild(option);
         });
     } else {
@@ -462,19 +551,16 @@ function updateExamGradeLevelDropdown() {
     }
 }
 
-// Update exam subject dropdown based on selected grade
+// Update exam subject dropdown
 function updateExamSubjectDropdown() {
     const gradeSelect = document.getElementById('examGrade');
     const subjectSelect = document.getElementById('examSubject');
     const selectedGrade = gradeSelect.value;
-
     subjectSelect.innerHTML = '<option value="">اختر المادة</option>';
-
     if (selectedGrade && allSubjects[selectedGrade]) {
         allSubjects[selectedGrade].forEach(subject => {
             const option = document.createElement('option');
-            option.value = subject;
-            option.textContent = subject;
+            option.value = subject; option.textContent = subject;
             subjectSelect.appendChild(option);
         });
     }
@@ -483,32 +569,23 @@ function updateExamSubjectDropdown() {
 // Setup subjects manager
 function setupSubjectsManager() {
     const addSubjectBtn = document.getElementById('addSubjectBtn');
-
     addSubjectBtn.addEventListener('click', async () => {
         const grade = document.getElementById('subjectGrade').value;
         const subject = document.getElementById('newSubject').value.trim();
-
-        if (!subject) {
-            alert('من فضلك أدخل اسم المادة');
-            return;
-        }
-
+        if (!subject) { alert('من فضلك أدخل اسم المادة'); return; }
         const success = await addSubject(grade, subject);
-
         if (success) {
             document.getElementById('newSubject').value = '';
             await loadSubjects();
+            updateQuickStats();
             alert('تم إضافة المادة بنجاح! ✅');
-        } else {
-            alert('المادة موجودة بالفعل');
-        }
+        } else { alert('المادة موجودة بالفعل'); }
     });
 }
 
 // Update subjects display
 function updateSubjectsDisplay() {
     const subjectsList = document.getElementById('subjectsList');
-
     subjectsList.innerHTML = Object.entries(allSubjects).map(([grade, subjects]) => `
         <div class="subject-group">
             <h4>${grade}</h4>
@@ -529,36 +606,39 @@ window.handleDeleteSubject = async (grade, subject) => {
     if (confirm(`هل تريد حذف المادة "${subject}" من ${grade}؟`)) {
         await deleteSubject(grade, subject);
         await loadSubjects();
+        updateQuickStats();
     }
 };
 
 // Display exams table
 function displayExamsTable() {
     const tableBody = document.getElementById('examsTableBody');
-
     if (allExams.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد اختبارات</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد اختبارات</td></tr>';
         return;
     }
 
-    tableBody.innerHTML = allExams.map(exam => {
-        const hasImage = exam.imageUrl && exam.imageUrl.trim() !== '';
-        return `
+    tableBody.innerHTML = allExams.map(exam => `
         <tr>
             <td><img src="${exam.icon}" alt="${exam.name}" class="table-image" onerror="this.src='icons/default.png'"></td>
-            <td>${exam.name}</td>
-            <td>${exam.grade}</td>
-            <td>${exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '-'}</td>
+            <td style="font-weight: 700;">${exam.name}</td>
+            <td><span class="exam-badge" style="background:#f1f5f9;">${exam.grade}</span></td>
+            <td>الصف ${exam.gradeLevel}</td>
             <td>${exam.subject}</td>
-            <td>${hasImage ? `<img src="${exam.imageUrl}" alt="صورة" class="table-image" onerror="this.src='icons/default.png'">` : '-'}</td>
+            <td><img src="${exam.imageUrl || 'icons/default.png'}" class="table-image" onerror="this.src='icons/default.png'"></td>
             <td><a href="${exam.url}" target="_blank" class="table-link">رابط المنتج</a></td>
             <td class="table-actions">
-                <button class="btn-primary btn-small" onclick="editExam('${exam.id}')" style="margin-left: 5px;">✏️ تعديل</button>
-                <button class="btn-danger btn-small" onclick="handleDeleteExam('${exam.id}')">🗑️ حذف</button>
+                <button class="btn-edit" onclick="editExam('${exam.id}')">
+                    <lord-icon src="https://cdn.lordicon.com/pnavxiaz.json" trigger="hover" colors="primary:#ffffff" style="width:18px;height:18px;"></lord-icon>
+                    تعديل
+                </button>
+                <button class="btn-delete" onclick="handleDeleteExam('${exam.id}')">
+                    <lord-icon src="https://cdn.lordicon.com/kfzoxerb.json" trigger="hover" colors="primary:#ffffff" style="width:18px;height:18px;"></lord-icon>
+                    حذف
+                </button>
             </td>
         </tr>
-    `;
-    }).join('');
+    `).join('');
 }
 
 // Handle delete exam
@@ -568,31 +648,20 @@ window.handleDeleteExam = async (examId) => {
             await deleteExam(examId);
             await loadExams();
             alert('تم حذف الاختبار بنجاح! ✅');
-        } catch (error) {
-            alert('حدث خطأ في الحذف');
-        }
+        } catch (error) { alert('حدث خطأ في الحذف'); }
     }
 };
 
-// ========================================
-// Admin Email Management
-// ========================================
-
+// Setup Admin Manager
 async function setupAdminManager() {
     const addAdminBtn = document.getElementById('addAdminBtn');
     if (!addAdminBtn) return;
 
-    // Load and display current admin emails
     async function loadAdminEmails() {
         const emails = await getAdminEmails();
-        const adminEmailsList = document.getElementById('adminEmailsList');
-
-        if (emails.length === 0) {
-            adminEmailsList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">لا توجد حسابات مسؤولين مسجلة</p>';
-            return;
-        }
-
-        adminEmailsList.innerHTML = emails.map(email => `
+        const list = document.getElementById('adminEmailsList');
+        if (emails.length === 0) { list.innerHTML = '<p style="text-align: center; color: #94a3b8;">لا توجد حسابات مسؤولين</p>'; return; }
+        list.innerHTML = emails.map(email => `
             <div class="admin-email-card">
                 <span class="admin-email-icon">👤</span>
                 <span class="admin-email-text">${email}</span>
@@ -601,70 +670,29 @@ async function setupAdminManager() {
         `).join('');
     }
 
-    // Add new admin
     addAdminBtn.addEventListener('click', async () => {
         const email = document.getElementById('newAdminEmail').value.trim();
-        const password = document.getElementById('newAdminPassword').value;
-
-        if (!email) {
-            alert('من فضلك أدخل البريد الإلكتروني');
-            return;
-        }
-
-        if (!password || password.length < 6) {
-            alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-            return;
-        }
-
+        const pass = document.getElementById('newAdminPassword').value;
+        if (!email || !pass || pass.length < 6) { alert('بيانات غير صحيحة'); return; }
         addAdminBtn.disabled = true;
-        addAdminBtn.textContent = 'جاري الإضافة...';
-
         try {
-            // Register in Firebase Auth
-            const result = await registerAdmin(email, password);
-
-            if (!result.success) {
-                alert(result.error);
-                addAdminBtn.disabled = false;
-                addAdminBtn.textContent = 'إضافة مسؤول';
-                return;
-            }
-
-            // Add to admin emails list in Firestore
-            const added = await addAdminEmail(email);
-
-            if (added) {
+            const res = await registerAdmin(email, pass);
+            if (res.success) {
+                await addAdminEmail(email);
                 document.getElementById('newAdminEmail').value = '';
                 document.getElementById('newAdminPassword').value = '';
                 await loadAdminEmails();
-                alert('تم إضافة المسؤول بنجاح! ✅');
-
-                // Re-login as current admin (since createUser logs in the new user)
-                // This is a known Firebase behavior
-                alert('ملاحظة: سيتم إعادة تسجيل دخولك تلقائياً. قد تحتاج لتسجيل الدخول مرة أخرى.');
-            } else {
-                alert('البريد الإلكتروني موجود بالفعل في قائمة المسؤولين');
-            }
-        } catch (error) {
-            console.error('Error adding admin:', error);
-            alert('حدث خطأ في إضافة المسؤول');
-        }
-
+                alert('تم الإضافة بنجاح! ✅');
+            } else { alert(res.error); }
+        } catch (e) { alert('خطأ'); }
         addAdminBtn.disabled = false;
-        addAdminBtn.textContent = 'إضافة مسؤول';
     });
 
-    // Delete admin handler
     window.handleDeleteAdmin = async (email) => {
-        if (confirm(`هل تريد حذف المسؤول "${email}"؟`)) {
-            const success = await deleteAdminEmail(email);
-            if (success) {
-                await loadAdminEmails();
-                alert('تم حذف المسؤول من القائمة! ✅\nملاحظة: لحذف الحساب نهائياً يجب حذفه من Firebase Console');
-            }
+        if (confirm(`حذف المسئول ${email}؟`)) {
+            if (await deleteAdminEmail(email)) await loadAdminEmails();
         }
     };
 
-    // Initial load
     await loadAdminEmails();
 }

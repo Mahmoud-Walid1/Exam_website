@@ -74,10 +74,10 @@
                         <lord-icon src="https://cdn.lordicon.com/bhfjfgqz.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
                         <span>المسؤولين</span>
                     </div>
-                    <a href="reports.html" class="nav-item">
+                    <div class="nav-item" data-tab="reports">
                         <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
                         <span>التقارير</span>
-                    </a>
+                    </div>
                 </nav>
                 <div class="sidebar-footer">
                     <button id="logoutBtn" class="btn-danger" style="width: 100%;">تسجيل الخروج</button>
@@ -88,6 +88,9 @@
             <main class="main-content">
                 <header class="top-bar">
                     <div class="top-bar-left">
+                        <button id="sidebarToggle" class="sidebar-toggle">
+                            <lord-icon src="https://cdn.lordicon.com/wgwcqrvd.json" trigger="hover" colors="primary:#1e293b" style="width:24px;height:24px;"></lord-icon>
+                        </button>
                         <h2 id="currentTabTitle">الرئيسية</h2>
                     </div>
                     <div class="top-bar-right">
@@ -99,20 +102,32 @@
                     <!-- Dashboard Home Tab -->
                     <div id="dashboard-tab" class="tab-content active">
                         <div class="admin-section">
-                            <h2 class="section-title">📊 ملخص الإحصائيات</h2>
-                            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                                <div class="stat-card" style="padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                                    <h3 style="font-size: 2rem; color: var(--secondary-color);" id="statTotalExams">0</h3>
-                                    <p style="color: #64748b;">إجمالي الاختبارات</p>
+                            <h2 class="section-title">📊 ملخص الإحصائيات والتغطية</h2>
+                            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                                <div class="stat-card" style="padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; background: white;">
+                                    <h3 style="font-size: 1.8rem; color: #667eea; margin: 0;" id="statTotalExams">0</h3>
+                                    <p style="color: #64748b; margin: 5px 0 0; font-size: 0.85rem;">إجمالي الاختبارات</p>
                                 </div>
-                                <div class="stat-card" style="padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                                    <h3 style="font-size: 2rem; color: var(--secondary-color);" id="statTotalSubjects">0</h3>
-                                    <p style="color: #64748b;">المواد الدراسية</p>
+                                <div class="stat-card" style="padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; background: white;">
+                                    <h3 style="font-size: 1.8rem; color: #48bb78; margin: 0;" id="statCoveredGrades">0/3</h3>
+                                    <p style="color: #64748b; margin: 5px 0 0; font-size: 0.85rem;">المراحل المغطاة</p>
                                 </div>
-                                <div class="stat-card" style="padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                                    <h3 style="font-size: 2rem; color: var(--secondary-color);" id="statTotalTicker">0</h3>
-                                    <p style="color: #64748b;">عناصر الشريط</p>
+                                <div class="stat-card" style="padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; background: white;">
+                                    <h3 style="font-size: 1.8rem; color: #4299e1; margin: 0;" id="statTotalSubjects">0</h3>
+                                    <p style="color: #64748b; margin: 5px 0 0; font-size: 0.85rem;">المواد الدراسية</p>
                                 </div>
+                                <div class="stat-card" style="padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; background: white;">
+                                    <h3 style="font-size: 1.8rem; color: #ed8936; margin: 0;" id="statTotalWarnings">0</h3>
+                                    <p style="color: #64748b; margin: 5px 0 0; font-size: 0.85rem;">تنبيهات النقص</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Report Summary on Home -->
+                        <div class="admin-section">
+                            <h2 class="section-title">⚠️ ملاحظات التغطية العاجلة</h2>
+                            <div id="homeWarningsContainer">
+                                <p style="color: #94a3b8; text-align: center;">جاري تحليل البيانات... ✨</p>
                             </div>
                         </div>
                     </div>
@@ -267,25 +282,12 @@
                         </section>
                     </div>
 
-                    <!-- Admins Tab -->
-                    <div id="admins-tab" class="tab-content">
+                    <!-- Reports Tab -->
+                    <div id="reports-tab" class="tab-content">
                         <section class="admin-section">
-                            <h2 class="section-title">إدارة المسؤولين</h2>
-                            <div class="admin-manager">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="newAdminEmail">البريد الإلكتروني للمسؤول الجديد</label>
-                                        <input type="email" id="newAdminEmail" placeholder="admin@example.com">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="newAdminPassword">كلمة المرور</label>
-                                        <input type="password" id="newAdminPassword" placeholder="كلمة مرور قوية (6 أحرف+)">
-                                    </div>
-                                    <div class="form-group">
-                                        <button id="addAdminBtn" class="btn-primary">إضافة مسؤول</button>
-                                    </div>
-                                </div>
-                                <div id="adminEmailsList" class="admin-emails-list"></div>
+                            <h2 class="section-title">📊 تقرير التغطية الشامل</h2>
+                            <div id="fullCoverageContainer">
+                                <p style="color: #94a3b8; text-align: center;">جاري معالجة البيانات... ✨</p>
                             </div>
                         </section>
                     </div>

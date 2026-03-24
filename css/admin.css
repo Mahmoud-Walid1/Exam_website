@@ -62,8 +62,38 @@
     position: sticky;
     top: 0;
     height: 100vh;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
+}
+
+/* Sidebar Toggle (Mobile) */
+.sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    margin-right: -10px;
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed;
+        right: 0;
+        transform: translateX(100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .main-content {
+        margin-right: 0;
+    }
 }
 
 .sidebar-header {
@@ -164,6 +194,152 @@
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+/* Stats and Reports Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--secondary-color);
+}
+
+.stat-card h3 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.stat-card p {
+    color: #64748b;
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Warnings Container Styles */
+.warnings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.warning-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    font-size: 0.95rem;
+}
+
+.warning-item.critical {
+    border-right: 4px solid #ef4444;
+}
+
+.warning-item.moderate {
+    border-right: 4px solid #ed8936;
+}
+
+/* Coverage Report Tab */
+.coverage-grade-card {
+    margin-bottom: 30px;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #eef2f6;
+}
+
+.coverage-grade-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f8fafc;
+}
+
+.coverage-grade-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.coverage-grade-badge {
+    background: #eef2f6;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.coverage-subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.coverage-subject-card {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    transition: var(--transition);
+}
+
+.coverage-subject-card:hover {
+    border-color: var(--secondary-color);
+    background: white;
+}
+
+.coverage-subject-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.coverage-subject-name {
+    font-weight: 700;
+    color: #334155;
+}
+
+.coverage-subject-percent {
+    font-weight: 800;
+}
+
+.coverage-progress-bg {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.coverage-progress-fill {
+    height: 100%;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.coverage-subject-meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
 }
 
 /* Form Styles */
@@ -318,6 +494,37 @@
 .btn-warning {
     background: var(--warning-color);
     color: white;
+}
+
+/* Action Specific Buttons */
+.btn-edit {
+    background: #0d9488;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+.btn-edit:hover {
+    background: #0f766e;
+    transform: scale(1.05);
+}
+
+.btn-delete {
+    background: #ef4444;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+    transform: scale(1.05);
 }
 
 .btn-small {
@@ -521,6 +728,7 @@
 .table-actions {
     display: flex;
     gap: 8px;
+    justify-content: center;
 }
 
 /* Responsive */
