@@ -140,7 +140,7 @@ body {
 
 .ticker-track {
     display: flex;
-    gap: 20px;
+    flex-wrap: nowrap; /* Prevent wrapping icons */
     animation: scroll-horizontal 40s linear infinite;
     width: max-content;
 }
@@ -152,6 +152,7 @@ body {
 .ticker-card {
     flex-shrink: 0;
     width: 200px;
+    margin-left: 20px; /* Use margin instead of gap for seamless loop */
     background: white;
     border-radius: 12px;
     overflow: hidden;

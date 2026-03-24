@@ -280,12 +280,13 @@ async function updateTicker() {
 
         // Fill one half with enough cards to ALWAYS cover the entire viewport
         const viewportWidth = window.innerWidth;
-        const cardWidth = 220;
-        // Each half must be at least 2x the viewport width to guarantee no gap
-        const minCardsPerHalf = Math.max(itemsToUse.length * 2, Math.ceil((viewportWidth * 2.5) / cardWidth));
+        const cardStepWidth = 220; // 200px card + 20px margin
+        
+        // Each half must be at least 1.5x the viewport width or at least 8 cards
+        const minCardsPerHalf = Math.max(8, Math.ceil((viewportWidth * 1.5) / cardStepWidth));
 
         let halfCards = [];
-        for (let i = 0; i < minCardsPerHalf; i++) {
+        for (let i = 0; i < Math.max(minCardsPerHalf, itemsToUse.length); i++) {
             halfCards.push(buildCard(itemsToUse[i % itemsToUse.length], i));
         }
 
@@ -295,8 +296,8 @@ async function updateTicker() {
         tickerTrack.innerHTML = halfHTML + halfHTML;
 
         // Speed: consistent ~50px/s
-        const totalHalfWidth = halfCards.length * cardWidth;
-        const duration = totalHalfWidth / 50;
+        const totalHalfWidth = halfCards.length * cardStepWidth;
+        const duration = totalHalfWidth / 55; // Slightly faster for better feel
         tickerTrack.style.animationDuration = duration + 's';
 
         // Click handlers
