@@ -234,41 +234,69 @@ async function updateTicker() {
 
         let itemsToUse = tickerItems;
 
+        // Lord Icon URLs for different categories
+        const lordIconUrls = [
+            'https://cdn.lordicon.com/kipaqhoz.json', // book
+            'https://cdn.lordicon.com/dxjqoygy.json', // graduation cap
+            'https://cdn.lordicon.com/gqzfzudq.json', // refresh/update
+            'https://cdn.lordicon.com/abfverha.json', // notebook
+            'https://cdn.lordicon.com/lsrcesku.json', // pencil
+            'https://cdn.lordicon.com/vdjwmfqs.json', // document
+        ];
+
         // If no Firebase items, use defaults
         if (itemsToUse.length === 0) {
             itemsToUse = [
-                { text: 'اختبارات محاكية نهائية شاملة', icon: 'icons/default.png', url: '' },
-                { text: 'جميع المراحل الدراسية', icon: 'icons/default.png', url: '' },
-                { text: 'محدثة باستمرار', icon: 'icons/default.png', url: '' }
+                { text: 'اختبارات محاكية نهائية شاملة', icon: '', url: '' },
+                { text: 'جميع المراحل الدراسية', icon: '', url: '' },
+                { text: 'محدثة باستمرار', icon: '', url: '' },
+                { text: 'مكتبة المعلمين', icon: '', url: '' },
+                { text: 'العلوم والتقنية للجميع', icon: '', url: '' },
             ];
         }
 
-        // Create a single set of ticker cards
-        const singleSetHTML = itemsToUse.map((item, index) => `
-            <div class="ticker-card" data-url="${item.url || ''}" data-index="${index}" style="cursor: pointer;">
-                <img src="${item.icon}" alt="${item.text}" class="ticker-card-image" onerror="this.src='icons/default.png'">
+        // Build a single card HTML with Lord Icon
+        function buildCard(item, index) {
+            const lordIcon = lordIconUrls[index % lordIconUrls.length];
+            return `
+            <div class="ticker-card" data-url="${item.url || ''}" style="cursor: pointer;">
+                <div class="ticker-placeholder">
+                    <lord-icon
+                        src="${lordIcon}"
+                        trigger="loop"
+                        delay="${1500 + (index % 3) * 500}"
+                        colors="primary:#1e3a5f,secondary:#0d9488"
+                        style="width:70px;height:70px;">
+                    </lord-icon>
+                </div>
                 <div class="ticker-card-content">
                     <p class="ticker-text">${item.text}</p>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }
 
-        // Calculate how many copies we need to fill the viewport seamlessly
-        // Each card is ~200px + 20px gap = 220px, viewport width / 220 gives rough count
+        // Calculate how many cards we need to fill one half (must fill at least 2x viewport)
         const viewportWidth = window.innerWidth;
-        const cardWidth = 220; // width + gap
-        const singleSetWidth = itemsToUse.length * cardWidth;
-        // We need at least 2 copies, but more if the content is shorter than the viewport
-        const copies = Math.max(2, Math.ceil((viewportWidth * 3) / singleSetWidth));
+        const cardWidth = 220; // card 200px + gap 20px
+        const minCardsPerHalf = Math.ceil((viewportWidth * 1.5) / cardWidth);
 
-        // Repeat content enough times for seamless infinite scroll
-        tickerTrack.innerHTML = singleSetHTML.repeat(copies);
+        // Repeat items until we have enough for one half
+        let halfCards = [];
+        let i = 0;
+        while (halfCards.length < Math.max(minCardsPerHalf, itemsToUse.length)) {
+            halfCards.push(buildCard(itemsToUse[i % itemsToUse.length], i));
+            i++;
+        }
 
-        // Set animation duration based on content width for consistent speed
-        const totalWidth = singleSetWidth * copies;
-        const pxPerSecond = 50; // pixels per second
-        const duration = totalWidth / pxPerSecond / copies; // duration for one set
-        tickerTrack.style.animationDuration = (duration * copies / 2) + 's';
+        const halfHTML = halfCards.join('');
+
+        // Exactly 2 identical halves → translateX(-50%) loops perfectly
+        tickerTrack.innerHTML = halfHTML + halfHTML;
+
+        // Adjust speed: consistent ~50px/s
+        const totalHalfWidth = halfCards.length * cardWidth;
+        const duration = totalHalfWidth / 50;
+        tickerTrack.style.animationDuration = duration + 's';
 
         // Add click event listeners to all ticker cards
         const tickerCards = tickerTrack.querySelectorAll('.ticker-card');
