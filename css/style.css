@@ -563,12 +563,58 @@ lord-icon.icon-xlarge {
 ======================================== */
 
 @media (max-width: 768px) {
+    .header {
+        padding: 25px 0;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .logos-container {
+        order: 1;
+    }
+
+    .header-text {
+        order: 2;
+    }
+
     .site-title {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
+    }
+
+    .site-subtitle {
+        font-size: 1rem;
+    }
+
+    .site-tagline {
+        font-size: 0.85rem;
+        padding: 5px 15px;
     }
 
     .hero-title {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
+    }
+
+    /* Fix typing animation on mobile — allow text wrapping */
+    .hero-title.typing-animation {
+        white-space: normal;
+        border-left: none;
+        animation: fadeInUp 1s ease forwards;
+        max-width: 100%;
+        overflow: visible;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .hero-description {
@@ -596,19 +642,26 @@ lord-icon.icon-xlarge {
         font-size: 1.5rem;
     }
 
-    .ticker-item {
-        font-size: 0.9rem;
+    .ticker-card {
+        width: 160px;
+    }
+
+    .ticker-placeholder {
+        height: 90px;
     }
 }
 
 @media (max-width: 480px) {
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-
     .logo-img {
         width: 60px;
         height: 60px;
+    }
+
+    .site-title {
+        font-size: 1.4rem;
+    }
+
+    .hero-title {
+        font-size: 1.3rem;
     }
 }
