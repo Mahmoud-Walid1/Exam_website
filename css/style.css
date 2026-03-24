@@ -280,64 +280,72 @@ lord-icon.icon-xlarge {
 
 /* ========================================
    Filters Section
-======================================== */
+======================================= */
 
 .filters-section {
-    background: white;
-    padding: 30px 0;
-    box-shadow: var(--shadow-sm);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background: #f8fafc;
+    padding: 40px 0;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .filters-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 30px;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 15px;
 }
 
 .filter-label {
-    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
     color: var(--primary-color);
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    margin-bottom: 5px;
 }
 
 .filter-buttons {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .filter-btn {
-    padding: 10px 25px;
-    border: 2px solid var(--border-color);
+    padding: 12px 28px;
+    border: 2px solid #e2e8f0;
     background: white;
-    color: var(--text-dark);
-    border-radius: 25px;
+    color: #64748b;
+    border-radius: 30px;
     font-family: 'Cairo', sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .filter-btn:hover {
     border-color: var(--secondary-color);
     color: var(--secondary-color);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
 }
 
 .filter-btn.active {
-    background: var(--secondary-color);
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #0ea5e9 100%);
     color: white;
-    border-color: var(--secondary-color);
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
 }
 
 /* ========================================
@@ -346,16 +354,62 @@ lord-icon.icon-xlarge {
 
 .exams-section {
     padding: 60px 0;
+    background: white;
 }
 
 .section-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 800;
     color: var(--primary-color);
-    margin-bottom: 40px;
+    margin-bottom: 50px;
     text-align: center;
+    position: relative;
+    padding-bottom: 15px;
 }
 
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: var(--secondary-color);
+    border-radius: 2px;
+}
+
+.no-exams {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f8fafc;
+    border-radius: 20px;
+    border: 2px dashed #e2e8f0;
+    animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.no-exams-icon {
+    margin-bottom: 25px;
+}
+
+.no-exams-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 12px;
+}
+
+.no-exams-subtitle {
+    font-size: 1.1rem;
+    color: #64748b;
+    max-width: 400px;
+    margin: 0 auto;
+}
 .exams-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -564,23 +618,20 @@ lord-icon.icon-xlarge {
 
     .header-content {
         flex-direction: column;
-        gap: 15px;
+        gap: 20px;
     }
 
-    .logos-container {
-        order: 1;
+    .logo-block {
+        gap: 8px;
     }
 
-    .header-text {
-        order: 2;
+    .logo-img {
+        width: 70px;
+        height: 70px;
     }
 
-    .site-title {
-        font-size: 1.6rem;
-    }
-
-    .site-subtitle {
-        font-size: 1rem;
+    .logo-name {
+        font-size: 0.95rem;
     }
 
     .site-tagline {
@@ -595,7 +646,7 @@ lord-icon.icon-xlarge {
     /* Fix typing animation on mobile — allow text wrapping */
     .hero-title.typing-animation {
         white-space: normal;
-        border-left: none;
+        border-right: none;
         animation: fadeInUp 1s ease forwards;
         max-width: 100%;
         overflow: visible;
@@ -617,11 +668,31 @@ lord-icon.icon-xlarge {
     }
 
     .filters-section {
-        position: static;
+        padding: 25px 0;
+    }
+
+    .filter-buttons {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 10px 5px 15px;
+        -webkit-overflow-scrolling: touch;
+        gap: 10px;
+        width: 100%;
+    }
+
+    /* Hide scrollbar but keep functionality */
+    .filter-buttons::-webkit-scrollbar {
+        display: none;
+    }
+    .filter-buttons {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 
     .filter-btn {
-        font-size: 0.9rem;
+        flex: 0 0 auto;
+        font-size: 0.85rem;
         padding: 8px 18px;
     }
 
@@ -652,11 +723,19 @@ lord-icon.icon-xlarge {
         height: 60px;
     }
 
-    .site-title {
-        font-size: 1.4rem;
+    .logo-name {
+        font-size: 0.85rem;
     }
 
     .hero-title {
         font-size: 1.3rem;
+    }
+
+    .no-exams-title {
+        font-size: 1.3rem;
+    }
+
+    .no-exams-subtitle {
+        font-size: 0.95rem;
     }
 }
