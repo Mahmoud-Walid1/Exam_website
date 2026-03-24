@@ -196,33 +196,38 @@ function displayExams(exams) {
     examsGrid.style.display = 'grid';
     examsGrid.innerHTML = exams.map(exam => {
         const hasImage = exam.imageUrl && exam.imageUrl.trim() !== '';
-        const imgSrc = hasImage ? exam.imageUrl : exam.icon;
-        const imgClass = hasImage ? 'exam-image exam-image-url' : 'exam-image';
         
         return `
-            <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
+            <div class="exam-card" 
+                 onclick="window.open('${exam.url}', '_blank')"
+                 data-grade="${exam.grade}"
+                 data-level="${exam.gradeLevel}"
+                 data-subject="${exam.subject}">
                 <div class="exam-image-container">
-                    <img src="${imgSrc}" alt="${exam.name}" class="${imgClass}" onerror="this.src='icons/default.png'">
+                    <div class="stage-badge stage-${exam.grade}">
+                        <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#ffffff" style="width:18px;height:18px;"></lord-icon>
+                        ${exam.grade}
+                    </div>
+                    <img src="${hasImage ? exam.imageUrl : 'icons/default.png'}" 
+                         alt="${exam.name}" 
+                         class="exam-image ${hasImage ? 'exam-image-url' : ''}" 
+                         onerror="this.src='icons/default.png'">
                 </div>
                 <div class="exam-content">
                     <h3 class="exam-title">${exam.name}</h3>
                     <div class="exam-meta">
-                        <span class="exam-badge badge-grade">
-                            <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#15803d" style="width:16px;height:16px;"></lord-icon>
-                            ${exam.grade}
-                        </span>
-                        <span class="exam-badge badge-level">
-                            <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#e11d48" style="width:16px;height:16px;"></lord-icon>
-                            الصف ${exam.gradeLevel}
-                        </span>
-                        <span class="exam-badge badge-subject">
-                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#1d4ed8" style="width:16px;height:16px;"></lord-icon>
+                        <div class="exam-badge">
+                            <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
                             ${exam.subject}
-                        </span>
+                        </div>
+                        <div class="exam-badge">
+                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
+                            الصف ${exam.gradeLevel}
+                        </div>
                     </div>
                     <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
+                        <lord-icon src="https://cdn.lordicon.com/cllunfud.json" trigger="hover" colors="primary:#ffffff" style="width:20px;height:20px;"></lord-icon>
                         <span>عرض في المتجر</span>
-                        <lord-icon src="https://cdn.lordicon.com/lpcmueiv.json" trigger="hover" colors="primary:#ffffff" style="width:20px;height:20px;"></lord-icon>
                     </a>
                 </div>
             </div>
