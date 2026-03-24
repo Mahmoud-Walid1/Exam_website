@@ -1,7 +1,4 @@
-// ========================================
-// Firebase Authentication
-// ========================================
-
+import { auth } from './firebase-config.js';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
@@ -12,7 +9,7 @@ import {
 // Login with email and password
 export async function login(email, password) {
     try {
-        const userCredential = await signInWithEmailAndPassword(window.auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         return {
             success: true,
             user: userCredential.user
@@ -49,7 +46,7 @@ export async function login(email, password) {
 // Register a new admin user
 export async function registerAdmin(email, password) {
     try {
-        const userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         return {
             success: true,
             user: userCredential.user
@@ -80,7 +77,7 @@ export async function registerAdmin(email, password) {
 // Logout
 export async function logout() {
     try {
-        await signOut(window.auth);
+        await signOut(auth);
         return { success: true };
     } catch (error) {
         console.error('Logout error:', error);
@@ -93,14 +90,14 @@ export async function logout() {
 
 // Check auth state
 export function checkAuth(callback) {
-    return onAuthStateChanged(window.auth, (user) => {
+    return onAuthStateChanged(auth, (user) => {
         callback(user);
     });
 }
 
 // Get current user
 export function getCurrentUser() {
-    return window.auth.currentUser;
+    return auth.currentUser;
 }
 
 // Export for global access

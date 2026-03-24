@@ -2,7 +2,7 @@
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, onExamsChange, getTickerItems } from './firebase-data.js';
+import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS } from './firebase-data.js';
 
 let allExams = [];
 let currentGrade = 'all';
@@ -10,12 +10,6 @@ let currentGradeLevel = 'all';
 let currentSubject = 'all';
 let allSubjects = {};
 
-// Grade levels for each stage
-const GRADE_LEVELS = {
-    'ابتدائي': ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'],
-    'متوسط': ['الأول', 'الثاني', 'الثالث'],
-    'ثانوي': ['الأول', 'الثاني', 'الثالث']
-};
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {

@@ -2,17 +2,11 @@
 // Reports Page JavaScript
 // ========================================
 
-import { getExams, getSubjects } from './firebase-data.js';
+import { getExams, getSubjects, GRADE_LEVELS } from './firebase-data.js';
 
 let allExams = [];
 let allSubjects = {};
 
-// Grade levels for each stage
-const GRADE_LEVELS = {
-    'ابتدائي': ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'],
-    'متوسط': ['الأول', 'الثاني', 'الثالث'],
-    'ثانوي': ['الأول', 'الثاني', 'الثالث']
-};
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {

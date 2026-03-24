@@ -1,7 +1,4 @@
-// ========================================
-// Firebase Data Management - Icons Version
-// ========================================
-
+import { db, auth } from './firebase-config.js';
 import {
     collection,
     addDoc,
@@ -21,10 +18,17 @@ const DEFAULT_SUBJECTS = {
     'ثانوي': ['لغة عربية', 'رياضيات', 'فيزياء', 'كيمياء', 'أحياء', 'لغة إنجليزية']
 };
 
+// Standard grade levels for each stage
+export const GRADE_LEVELS = {
+    'ابتدائي': ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'],
+    'متوسط': ['الأول', 'الثاني', 'الثالث'],
+    'ثانوي': ['الأول', 'الثاني', 'الثالث']
+};
+
 // Initialize default subjects if not exists
 export async function initializeSubjects() {
     try {
-        const subjectsRef = doc(window.db, 'settings', 'subjects');
+        const subjectsRef = doc(db, 'settings', 'subjects');
         const subjectsDoc = await getDoc(subjectsRef);
 
         if (!subjectsDoc.exists()) {
@@ -39,7 +43,7 @@ export async function initializeSubjects() {
 // Get all subjects for a specific grade
 export async function getSubjects(grade = null) {
     try {
-        const subjectsRef = doc(window.db, 'settings', 'subjects');
+        const subjectsRef = doc(db, 'settings', 'subjects');
         const subjectsDoc = await getDoc(subjectsRef);
 
         if (subjectsDoc.exists()) {
@@ -57,7 +61,7 @@ export async function getSubjects(grade = null) {
 // Add a subject to a grade
 export async function addSubject(grade, subject) {
     try {
-        const subjectsRef = doc(window.db, 'settings', 'subjects');
+        const subjectsRef = doc(db, 'settings', 'subjects');
         const subjectsDoc = await getDoc(subjectsRef);
 
         if (subjectsDoc.exists()) {
@@ -81,7 +85,7 @@ export async function addSubject(grade, subject) {
 // Delete a subject from a grade
 export async function deleteSubject(grade, subject) {
     try {
-        const subjectsRef = doc(window.db, 'settings', 'subjects');
+        const subjectsRef = doc(db, 'settings', 'subjects');
         const subjectsDoc = await getDoc(subjectsRef);
 
         if (subjectsDoc.exists()) {
@@ -102,7 +106,7 @@ export async function deleteSubject(grade, subject) {
 // Add a new exam
 export async function addExam(examData) {
     try {
-        const examsRef = collection(window.db, 'exams');
+        const examsRef = collection(db, 'exams');
         const docRef = await addDoc(examsRef, {
             ...examData,
             createdAt: new Date().toISOString()
@@ -117,7 +121,7 @@ export async function addExam(examData) {
 // Get all exams
 export async function getExams() {
     try {
-        const examsRef = collection(window.db, 'exams');
+        const examsRef = collection(db, 'exams');
         const snapshot = await getDocs(examsRef);
         const exams = [];
 
@@ -137,7 +141,7 @@ export async function getExams() {
 
 // Listen to real-time exam updates
 export function onExamsChange(callback) {
-    const examsRef = collection(window.db, 'exams');
+    const examsRef = collection(db, 'exams');
     return onSnapshot(examsRef, (snapshot) => {
         const exams = [];
         snapshot.forEach((doc) => {
@@ -153,7 +157,7 @@ export function onExamsChange(callback) {
 // Update an exam
 export async function updateExam(examId, examData) {
     try {
-        const examRef = doc(window.db, 'exams', examId);
+        const examRef = doc(db, 'exams', examId);
         await updateDoc(examRef, {
             ...examData,
             updatedAt: new Date().toISOString()
@@ -168,7 +172,7 @@ export async function updateExam(examId, examData) {
 // Delete an exam
 export async function deleteExam(examId) {
     try {
-        const examRef = doc(window.db, 'exams', examId);
+        const examRef = doc(db, 'exams', examId);
         await deleteDoc(examRef);
         return true;
     } catch (error) {
@@ -180,7 +184,7 @@ export async function deleteExam(examId) {
 // Get ticker items
 export async function getTickerItems() {
     try {
-        const tickerRef = doc(window.db, 'settings', 'ticker');
+        const tickerRef = doc(db, 'settings', 'ticker');
         const tickerDoc = await getDoc(tickerRef);
 
         if (tickerDoc.exists()) {
@@ -197,7 +201,7 @@ export async function getTickerItems() {
 // Add ticker item
 export async function addTickerItem(item) {
     try {
-        const tickerRef = doc(window.db, 'settings', 'ticker');
+        const tickerRef = doc(db, 'settings', 'ticker');
         const tickerDoc = await getDoc(tickerRef);
 
         let items = [];
@@ -221,7 +225,7 @@ export async function addTickerItem(item) {
 // Delete ticker item
 export async function deleteTickerItem(itemId) {
     try {
-        const tickerRef = doc(window.db, 'settings', 'ticker');
+        const tickerRef = doc(db, 'settings', 'ticker');
         const tickerDoc = await getDoc(tickerRef);
 
         if (tickerDoc.exists()) {
@@ -241,7 +245,7 @@ export async function deleteTickerItem(itemId) {
 // Get admin emails
 export async function getAdminEmails() {
     try {
-        const adminsRef = doc(window.db, 'settings', 'admins');
+        const adminsRef = doc(db, 'settings', 'admins');
         const adminsDoc = await getDoc(adminsRef);
 
         if (adminsDoc.exists()) {
@@ -258,7 +262,7 @@ export async function getAdminEmails() {
 // Add admin email
 export async function addAdminEmail(email) {
     try {
-        const adminsRef = doc(window.db, 'settings', 'admins');
+        const adminsRef = doc(db, 'settings', 'admins');
         const adminsDoc = await getDoc(adminsRef);
 
         let emails = [];
@@ -282,7 +286,7 @@ export async function addAdminEmail(email) {
 // Delete admin email
 export async function deleteAdminEmail(email) {
     try {
-        const adminsRef = doc(window.db, 'settings', 'admins');
+        const adminsRef = doc(db, 'settings', 'admins');
         const adminsDoc = await getDoc(adminsRef);
 
         if (adminsDoc.exists()) {

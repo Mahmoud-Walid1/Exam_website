@@ -3,7 +3,7 @@
 // ========================================
 
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail } from './firebase-data.js';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS } from './firebase-data.js';
 
 let allSubjects = {};
 let allExams = [];
@@ -23,12 +23,6 @@ const AVAILABLE_ICONS = [
     { name: 'default.png', label: 'افتراضي' }
 ];
 
-// Grade levels for each stage
-const GRADE_LEVELS = {
-    'ابتدائي': ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'],
-    'متوسط': ['الأول', 'الثاني', 'الثالث'],
-    'ثانوي': ['الأول', 'الثاني', 'الثالث']
-};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {

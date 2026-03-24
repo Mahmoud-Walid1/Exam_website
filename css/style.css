@@ -490,13 +490,6 @@ lord-icon.icon-xlarge {
     background: var(--primary-color);
 }
 
-.no-exams {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-    font-size: 1.2rem;
-}
-
 /* ========================================
    Custom Requests Section
 ======================================== */
