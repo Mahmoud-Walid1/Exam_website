@@ -294,6 +294,7 @@ lord-icon.icon-xlarge {
 .filter-label {
     display: flex;
     align-items: center;
+    justify-content: center; /* Center the label content and icon */
     gap: 10px;
     font-weight: 800;
     color: var(--primary-color);
