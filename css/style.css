@@ -136,14 +136,18 @@ body {
     padding: 25px 0;
     overflow: hidden;
     position: relative;
-    direction: rtl; /* Explicitly RTL */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    direction: ltr; /* Force LTR for stable animation math */
 }
 
 .ticker-track {
     display: flex;
     flex-wrap: nowrap;
-    animation: scroll-horizontal 40s linear infinite;
     width: max-content;
+    gap: 20px; /* Modern flex gap */
+    animation: scroll-horizontal 40s linear infinite;
+    will-change: transform;
 }
 
 .ticker-track:hover {
@@ -153,7 +157,6 @@ body {
 .ticker-card {
     flex-shrink: 0;
     width: 200px;
-    margin-left: 20px; /* Space between cards */
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(5px);
     border-radius: 16px;

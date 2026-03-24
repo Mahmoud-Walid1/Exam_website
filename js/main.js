@@ -279,8 +279,8 @@ async function updateTicker() {
         const gap = 20;
         const cardStepWidth = cardWidth + gap;
         
-        // Ensure we have enough cards to fill the screen twice plus some buffer
-        const minCardsPerHalf = Math.max(8, Math.ceil((viewportWidth * 2) / cardStepWidth));
+        // Ensure we have a massive buffer to cover any screen size (3x viewport)
+        const minCardsPerHalf = Math.max(12, Math.ceil((viewportWidth * 3) / cardStepWidth));
 
         let halfCards = [];
         for (let i = 0; i < Math.max(minCardsPerHalf, itemsToUse.length); i++) {
@@ -291,13 +291,14 @@ async function updateTicker() {
         tickerTrack.innerHTML = halfHTML + halfHTML;
 
         // Calculate exact pixel width of one half for the animation
-        const halfWidth = halfCards.length * cardStepWidth;
+        // With gap, the distance to the next identical set is exactly cards * (width + gap)
+        const halfWidthValue = halfCards.length * cardStepWidth;
         
-        // Set CSS variable for the translation
-        tickerTrack.style.setProperty('--scroll-width', `-${halfWidth}px`);
+        // Use a negative value to scroll from right to left (standard marquee)
+        tickerTrack.style.setProperty('--scroll-width', `-${halfWidthValue}px`);
         
-        // Speed: ~50px/s
-        const duration = halfWidth / 50;
+        // Speed: ~40px/s for smoother reading
+        const duration = halfWidthValue / 40;
         tickerTrack.style.animationDuration = duration + 's';
 
         // Add event listeners...
