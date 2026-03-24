@@ -198,22 +198,35 @@ function displayExams(exams) {
         const hasImage = exam.imageUrl && exam.imageUrl.trim() !== '';
         const imgSrc = hasImage ? exam.imageUrl : exam.icon;
         const imgClass = hasImage ? 'exam-image exam-image-url' : 'exam-image';
+        
         return `
-        <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
-            <img src="${imgSrc}" alt="${exam.name}" class="${imgClass}" onerror="this.src='icons/default.png'">
-            <div class="exam-content">
-                <h3 class="exam-title">${exam.name}</h3>
-                <div class="exam-meta">
-                    <span class="exam-badge badge-subject">📚 ${exam.subject}</span>
-                    ${exam.gradeLevel ? `<span class="exam-badge badge-level">🎯 الصف ${exam.gradeLevel}</span>` : ''}
-                    <span class="exam-badge badge-grade">🏫 ${exam.grade}</span>
+            <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
+                <div class="exam-image-container">
+                    <img src="${imgSrc}" alt="${exam.name}" class="${imgClass}" onerror="this.src='icons/default.png'">
                 </div>
-                <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
-                    عرض في المتجر 🛒
-                </a>
+                <div class="exam-content">
+                    <h3 class="exam-title">${exam.name}</h3>
+                    <div class="exam-meta">
+                        <span class="exam-badge badge-grade">
+                            <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#15803d" style="width:16px;height:16px;"></lord-icon>
+                            ${exam.grade}
+                        </span>
+                        <span class="exam-badge badge-level">
+                            <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#e11d48" style="width:16px;height:16px;"></lord-icon>
+                            الصف ${exam.gradeLevel}
+                        </span>
+                        <span class="exam-badge badge-subject">
+                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#1d4ed8" style="width:16px;height:16px;"></lord-icon>
+                            ${exam.subject}
+                        </span>
+                    </div>
+                    <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
+                        <span>عرض في المتجر</span>
+                        <lord-icon src="https://cdn.lordicon.com/lpcmueiv.json" trigger="hover" colors="primary:#ffffff" style="width:20px;height:20px;"></lord-icon>
+                    </a>
+                </div>
             </div>
-        </div>
-    `;
+        `;
     }).join('');
 }
 

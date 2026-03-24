@@ -407,87 +407,121 @@ lord-icon.icon-xlarge {
 
 .exam-card {
     background: white;
-    border-radius: 15px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: var(--shadow-md);
-    transition: var(--transition);
+    box-shadow: 0 10px 25px rgba(30, 58, 95, 0.08);
+    border: 1px solid #f1f5f9;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
 }
 
 .exam-card:hover {
-    transform: translateY(-10px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(30, 58, 95, 0.12);
+    border-color: var(--secondary-color);
+}
+
+.exam-image-container {
+    width: 100%;
+    height: 190px;
+    overflow: hidden;
+    background: #f8fafc;
+    position: relative;
 }
 
 .exam-image {
     width: 100%;
-    height: 180px;
+    height: 100%;
     object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.exam-card:hover .exam-image {
+    transform: scale(1.08);
 }
 
 .exam-image.exam-image-url {
     object-fit: contain;
-    background: var(--bg-light);
-    padding: 10px;
+    padding: 15px;
 }
 
 .exam-content {
-    padding: 16px;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .exam-title {
-    font-size: 1.05rem;
-    font-weight: 700;
+    font-size: 1.15rem;
+    font-weight: 800;
     color: var(--primary-color);
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    line-height: 1.4;
+    min-height: 3.2rem;
 }
 
 .exam-meta {
     display: flex;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
 .exam-badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border: 1.5px solid;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition);
 }
 
-/* Badge color variations */
 .badge-subject {
-    background: #dbeafe;
-    color: #1e40af;
-    border-color: #60a5fa;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
 }
 
 .badge-level {
-    background: #fce7f3;
-    color: #be185d;
-    border-color: #f472b6;
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
 }
 
 .badge-grade {
-    background: #d1fae5;
-    color: #065f46;
-    border-color: #34d399;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
 }
 
 .exam-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     width: 100%;
-    padding: 10px;
-    background: var(--secondary-color);
+    padding: 14px;
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #0ea5e9 100%);
     color: white;
     text-align: center;
-    border-radius: 8px;
+    border-radius: 12px;
     text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
-    transition: var(--transition);
+    font-weight: 800;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+    margin-top: auto;
+}
+
+.exam-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
+    filter: brightness(1.1);
 }
 
 .exam-btn:hover {
