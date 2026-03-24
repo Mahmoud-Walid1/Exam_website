@@ -11,85 +11,121 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="css/reports.css">
-</head>
-
-<body class="admin-body">
-
-    <!-- Header -->
-    <header class="admin-header">
-        <div class="container">
-            <div class="admin-header-content">
-                <div>
-                    <h1>📊 تقرير الاختبارات <span
-                            style="font-size: 0.9rem; opacity: 0.6; font-weight: normal;">v1.2</span></h1>
-                    <p>تحليل شامل لتغطية الاختبارات</p>
+    <!-- Header Container for Login/Auth if needed -->
+    <div id="reportsDashboard" class="admin-dashboard">
+        <div class="dashboard-wrapper">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>لوحة التحكم</h2>
                 </div>
-                <div class="admin-actions">
-                    <a href="admin.html" class="btn-secondary">← العودة للوحة التحكم</a>
-                    <a href="index.html" target="_blank" class="btn-secondary">عرض الموقع</a>
-                    <button id="refreshBtn" class="btn-primary">🔄 تحديث التقرير</button>
+                <nav class="sidebar-nav">
+                    <a href="admin.html?tab=dashboard" class="nav-item">
+                        <lord-icon src="https://cdn.lordicon.com/hjbsbdhf.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
+                        <span>الرئيسية</span>
+                    </a>
+                    <a href="admin.html?tab=exams" class="nav-item">
+                        <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
+                        <span>الاختبارات</span>
+                    </a>
+                    <a href="admin.html?tab=subjects" class="nav-item">
+                        <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
+                        <span>المواد الدراسية</span>
+                    </a>
+                    <a href="admin.html?tab=ticker" class="nav-item">
+                        <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
+                        <span>شريط الملازم</span>
+                    </a>
+                    <a href="admin.html?tab=admins" class="nav-item">
+                        <lord-icon src="https://cdn.lordicon.com/bhfjfgqz.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
+                        <span>المسؤولين</span>
+                    </a>
+                    <div class="nav-item active">
+                        <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
+                        <span>التقارير</span>
+                    </div>
+                </nav>
+                <div class="sidebar-footer">
+                    <a href="admin.html" class="btn-secondary" style="width: 100%; display: block; text-align: center; margin-bottom: 10px;">العودة للمسؤول</a>
+                    <a href="index.html" target="_blank" class="btn-primary" style="width: 100%; display: block; text-align: center;">عرض الموقع</a>
                 </div>
-            </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <header class="top-bar">
+                    <div class="top-bar-left">
+                        <h2>📊 تقرير الاختبارات <span style="font-size: 0.8rem; opacity: 0.5;">v1.3</span></h2>
+                    </div>
+                    <div class="top-bar-right">
+                        <button id="refreshBtn" class="btn-primary">🔄 تحديث التقارير</button>
+                    </div>
+                </header>
+
+                <div class="content-body">
+                    <!-- Statistics Section -->
+                    <section class="admin-section">
+                        <h2 class="section-title">📊 الإحصائيات العامة</h2>
+                        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div class="stat-card" style="padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; border-right: 4px solid #667eea; background: white;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 2rem;">📚</span>
+                                    <div>
+                                        <h3 style="font-size: 1.8rem; color: #667eea; margin: 0;" id="totalExams">0</h3>
+                                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">إجمالي الاختبارات</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card" style="padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; border-right: 4px solid #48bb78; background: white;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 2rem;">🎓</span>
+                                    <div>
+                                        <h3 style="font-size: 1.8rem; color: #48bb78; margin: 0;" id="coveredGrades">0/3</h3>
+                                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">المراحل المغطاة</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card" style="padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; border-right: 4px solid #4299e1; background: white;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 2rem;">📖</span>
+                                    <div>
+                                        <h3 style="font-size: 1.8rem; color: #4299e1; margin: 0;" id="totalSubjects">0</h3>
+                                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">المواد المتوفرة</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card" style="padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; border-right: 4px solid #ed8936; background: white;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 2rem;">⚠️</span>
+                                    <div>
+                                        <h3 style="font-size: 1.8rem; color: #ed8936; margin: 0;" id="totalWarnings">0</h3>
+                                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">التحذيرات</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Coverage Matrix -->
+                    <section class="admin-section">
+                        <h2 class="section-title">✅ جدول التغطية الشامل</h2>
+                        <div id="coverageContainer">
+                            <!-- Populated by JS -->
+                        </div>
+                    </section>
+
+                    <!-- Warnings List -->
+                    <section class="admin-section">
+                        <h2 class="section-title">⚠️ التحذيرات والملاحظات</h2>
+                        <div id="warningsContainer">
+                            <div class="empty-state" style="padding: 40px; text-align: center;">
+                                <p style="color: #94a3b8;">جاري تحميل البيانات... ✨</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
         </div>
-    </header>
-
-    <div class="container admin-content">
-
-        <!-- Statistics Cards -->
-        <section class="stats-section">
-            <h2 class="section-title">📊 الإحصائيات العامة</h2>
-            <div class="stats-grid">
-                <div class="stat-card stat-primary">
-                    <div class="stat-icon">📚</div>
-                    <div class="stat-info">
-                        <div class="stat-value" id="totalExams">0</div>
-                        <div class="stat-label">إجمالي الاختبارات</div>
-                    </div>
-                </div>
-                <div class="stat-card stat-success">
-                    <div class="stat-icon">🎓</div>
-                    <div class="stat-info">
-                        <div class="stat-value" id="coveredGrades">0/3</div>
-                        <div class="stat-label">المراحل المغطاة</div>
-                    </div>
-                </div>
-                <div class="stat-card stat-info">
-                    <div class="stat-icon">📖</div>
-                    <div class="stat-info">
-                        <div class="stat-value" id="totalSubjects">0</div>
-                        <div class="stat-label">المواد المتوفرة</div>
-                    </div>
-                </div>
-                <div class="stat-card stat-warning">
-                    <div class="stat-icon">⚠️</div>
-                    <div class="stat-info">
-                        <div class="stat-value" id="totalWarnings">0</div>
-                        <div class="stat-label">التحذيرات</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Coverage Matrix -->
-        <section class="coverage-section">
-            <h2 class="section-title">✅ جدول التغطية</h2>
-            <div id="coverageContainer">
-                <!-- Will be populated by JavaScript -->
-            </div>
-        </section>
-
-        <!-- Warnings List -->
-        <section class="warnings-section">
-            <h2 class="section-title">⚠️ التحذيرات والملاحظات</h2>
-            <div id="warningsContainer">
-                <div class="empty-state">
-                    <p>لا توجد تحذيرات - كل شيء على ما يرام! ✨</p>
-                </div>
-            </div>
-        </section>
-
     </div>
 
     <!-- Firebase SDK -->

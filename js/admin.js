@@ -115,6 +115,61 @@ async function initializeDashboard() {
     setupIconSelector();
     setupTickerManager();
     setupAdminManager();
+    setupTabSwitching();
+    updateQuickStats();
+}
+
+// Setup Tab Switching
+function setupTabSwitching() {
+    const navItems = document.querySelectorAll('.nav-item[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const currentTabTitle = document.getElementById('currentTabTitle');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const tabId = item.dataset.tab;
+
+            // Update Sidebar Active state
+            navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            // Update Content Active state
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+
+            // Update Header Title
+            currentTabTitle.textContent = item.querySelector('span').textContent;
+
+            // Trigger specific tab logic if needed
+            if (tabId === 'dashboard') updateQuickStats();
+        });
+    });
+
+    // Check for Deep Link on Load
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = urlParams.get('tab');
+    if (initialTab) {
+        const targetNav = document.querySelector(`.nav-item[data-tab="${initialTab}"]`);
+        if (targetNav) targetNav.click();
+    }
+}
+
+// Update Quick Stats
+async function updateQuickStats() {
+    const { getTickerItems } = await import('./firebase-data.js');
+    const tickerItems = await getTickerItems();
+
+    const statExams = document.getElementById('statTotalExams');
+    const statSubjects = document.getElementById('statTotalSubjects');
+    const statTicker = document.getElementById('statTotalTicker');
+
+    if (statExams) statExams.textContent = allExams.length;
+    if (statSubjects) {
+        let total = 0;
+        Object.values(allSubjects).forEach(list => total += list.length);
+        statSubjects.textContent = total;
+    }
+    if (statTicker) statTicker.textContent = tickerItems.length;
 }
 
 // Setup ticker manager

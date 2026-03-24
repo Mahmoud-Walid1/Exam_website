@@ -12,31 +12,10 @@
 
 /* Page Background */
 body.admin-body {
-    background: #f3f4f6 !important;
+    background: #f1f5f9;
 }
 
-/* Fix Header Visibility */
-.admin-header {
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-}
-
-.admin-header h1,
-.admin-header p {
-    color: white !important;
-}
-
-.admin-actions .btn-primary,
-.admin-actions .btn-secondary {
-    background: white !important;
-    color: #2563eb !important;
-    border: 2px solid white !important;
-}
-
-.admin-actions .btn-primary:hover,
-.admin-actions .btn-secondary:hover {
-    background: #f0f9ff !important;
-    transform: translateY(-2px);
-}
+/* Redundant header/actions styles removed as they are handled by dashboard layout */
 
 /* Statistics Cards */
 .stats-section {
@@ -132,16 +111,13 @@ body.admin-body {
 }
 
 /* Coverage Section */
-.coverage-section {
-    margin-bottom: 40px;
-}
-
 .coverage-grade {
     background: white;
-    border-radius: 15px;
+    border-radius: 12px;
     padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .coverage-grade-header {
