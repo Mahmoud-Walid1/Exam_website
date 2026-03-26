@@ -5,7 +5,7 @@
 import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes } from './firebase-data.js';
 
 let allExams = [];
-let currentTerm = 'all';
+let currentTerm = 'الفصل الأول';
 let currentGrade = 'all';
 let currentGradeLevel = 'all';
 let currentSubject = 'all';
@@ -161,7 +161,7 @@ function filterExams() {
     let filteredExams = allExams;
     
     if (currentTerm !== 'all') {
-        filteredExams = filteredExams.filter(exam => exam.term === currentTerm);
+        filteredExams = filteredExams.filter(exam => (exam.term || 'الفصل الأول') === currentTerm);
     }
 
     // Filter by grade
@@ -206,43 +206,62 @@ function displayExams(exams) {
     examsGrid.innerHTML = exams.map(exam => {
         const hasImage = exam.imageUrl && exam.imageUrl.trim() !== '';
         
+        // Define media content: Fallback icon is always ready
+        const iconSrc = exam.icon || 'https://cdn.lordicon.com/dxjqoygy.json';
+        const iconHtml = `
+            <div class="exam-icon-wrapper">
+                <lord-icon src="${iconSrc}" trigger="loop" delay="2000" colors="primary:#ffffff,secondary:#ffffff" style="width:80px;height:80px;"></lord-icon>
+            </div>
+        `;
+
+        let mediaContent = '';
+        if (hasImage) {
+            mediaContent = `
+                ${iconHtml}
+                <div class="exam-cover-image" style="background-image: url('${exam.imageUrl}')"></div>
+                <img src="${exam.imageUrl}" alt="${exam.name}" class="exam-image-contain" 
+                     onload="this.parentElement.querySelector('.exam-icon-wrapper').style.display='none';" 
+                     onerror="this.style.display='none'; this.previousElementSibling.style.display='none'; this.parentElement.querySelector('.exam-icon-wrapper').style.display='flex';">
+            `;
+        } else {
+            mediaContent = iconHtml;
+        }
+
         return `
-            <div class="exam-card" 
-                 onclick="window.open('${exam.url}', '_blank')">
-                <div class="exam-image-container">
-                    <div class="stage-badge stage-${exam.grade}">
-                        <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#ffffff" style="width:16px;height:16px;"></lord-icon>
+            <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
+                <div class="exam-header">
+                    <div class="stage-chip stage-${exam.grade}">
+                        <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#ffffff" style="width:14px;height:14px;"></lord-icon>
                         ${exam.grade}
                     </div>
-                    <img src="${hasImage ? exam.imageUrl : 'icons/default.png'}" 
-                         alt="${exam.name}" 
-                         class="exam-image ${hasImage ? 'exam-image-url' : ''}" 
-                         onerror="this.src='icons/default.png'">
+                    ${mediaContent}
                 </div>
-                <div class="exam-content">
+                <div class="exam-body">
                     <h3 class="exam-title">${exam.name}</h3>
-                    <div class="exam-meta">
-                        <div class="exam-badge" title="الفصل الدراسي">
-                            <lord-icon src="https://cdn.lordicon.com/qzwudxuv.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
+                    <div class="exam-tags">
+                        <span class="exam-tag term-tag">
+                            <lord-icon src="https://cdn.lordicon.com/qzwudxuv.json" trigger="hover" colors="primary:#4338ca" style="width:16px;height:16px;"></lord-icon>
                             ${exam.term || 'الفصل الأول'}
-                        </div>
-                        <div class="exam-badge" title="نوع الاختبار">
-                            <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
+                        </span>
+                        <span class="exam-tag type-tag">
+                            <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#be185d" style="width:16px;height:16px;"></lord-icon>
                             ${exam.examType || 'اختبار نهائي'}
-                        </div>
-                        <div class="exam-badge" title="المادة">
-                            <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
+                        </span>
+                        <span class="exam-tag subject-tag">
+                            <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#15803d" style="width:16px;height:16px;"></lord-icon>
                             ${exam.subject}
-                        </div>
-                        <div class="exam-badge" title="الصف">
-                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
+                        </span>
+                        <span class="exam-tag level-tag">
+                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#4b5563" style="width:16px;height:16px;"></lord-icon>
                             الصف ${exam.gradeLevel}
-                        </div>
+                        </span>
                     </div>
-                    <a href="${exam.url}" target="_blank" class="exam-btn" onclick="event.stopPropagation()">
+                </div>
+                <div class="exam-footer">
+                    <div class="exam-action-btn">
                         <lord-icon src="https://cdn.lordicon.com/cllunfud.json" trigger="hover" colors="primary:#ffffff" style="width:20px;height:20px;"></lord-icon>
-                        <span>عرض في المتجر</span>
-                    </a>
+                        عرض في المتجر
+                    </div>
                 </div>
             </div>
         `;

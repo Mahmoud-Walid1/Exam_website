@@ -431,64 +431,93 @@ lord-icon.icon-xlarge {
 }
 
 .exam-card {
-    background: white;
+    background: var(--bg-white);
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 25px rgba(30, 58, 95, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     border: 1px solid #f1f5f9;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     cursor: pointer;
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .exam-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(30, 58, 95, 0.12);
-    border-color: var(--secondary-color);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
 }
 
-.exam-image-container {
+.exam-header {
     width: 100%;
-    height: 200px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    height: 220px;
     position: relative;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+/* Blurred Background Cover for vertical images */
+.exam-cover-image {
+    position: absolute;
+    top: -10%; left: -10%; right: -10%; bottom: -10%;
+    background-size: cover;
+    background-position: center top;
+    filter: blur(20px);
+    opacity: 0.4;
+    z-index: 2;
+}
+
+/* The actual image */
+.exam-image-contain {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    z-index: 3;
+}
+
+/* Gradient wrapper for icon when no image */
+.exam-icon-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
 }
 
 /* Floating Stage Badge */
-.stage-badge {
+.stage-chip {
     position: absolute;
     top: 15px;
     right: 15px;
+    z-index: 10;
     padding: 6px 14px;
-    border-radius: 50px;
+    border-radius: 30px;
     font-size: 0.85rem;
     font-weight: 800;
     color: white;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     gap: 8px;
-    line-height: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
+.stage-chip.stage-ابتدائي { background: rgba(16, 185, 129, 0.95); }
+.stage-chip.stage-متوسط { background: rgba(59, 130, 246, 0.95); }
+.stage-chip.stage-ثانوي { background: rgba(139, 92, 246, 0.95); }
 
-.stage-badge lord-icon {
-    flex-shrink: 0;
-}
-
-.stage-ابتدائي { background: rgba(16, 185, 129, 0.9); } /* Green */
-.stage-متوسط { background: rgba(59, 130, 246, 0.9); }  /* Blue */
-.stage-ثانوي { background: rgba(139, 92, 246, 0.9); }  /* Purple */
-
-.exam-content {
+.exam-body {
     padding: 20px;
-    flex: 1;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 .exam-title {
@@ -496,62 +525,63 @@ lord-icon.icon-xlarge {
     font-weight: 800;
     color: var(--primary-color);
     margin-bottom: 15px;
-    line-height: 1.4;
-    min-height: 3.2rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-.exam-meta {
+.exam-tags {
     display: flex;
-    gap: 6px;
-    margin-bottom: 20px;
     flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
 }
 
-.exam-badge {
-    padding: 4px 12px;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 600;
+.exam-tag {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 5px;
-    background: rgba(241, 245, 249, 0.8);
+    gap: 6px;
+    background: #f1f5f9;
     color: #475569;
-    border: 1px solid #e2e8f0;
-    transition: all 0.2s ease;
+}
+.exam-tag.term-tag { background: #e0e7ff; color: #4338ca; }
+.exam-tag.type-tag { background: #fce7f3; color: #be185d; }
+.exam-tag.subject-tag { background: #dcfce7; color: #15803d; }
+.exam-tag.level-tag { background: #f3f4f6; color: #4b5563; }
+
+.exam-footer {
+    padding: 0 20px 20px;
+    margin-top: auto;
 }
 
-.exam-card:hover .exam-badge {
-    border-color: var(--secondary-color);
-    background: white;
-}
-
-.exam-btn {
+.exam-action-btn {
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    width: 100%;
-    padding: 14px;
+    padding: 12px;
     background: linear-gradient(135deg, var(--secondary-color) 0%, #0ea5e9 100%);
     color: white;
-    text-align: center;
+    border: none;
     border-radius: 12px;
-    text-decoration: none;
+    font-size: 1.05rem;
     font-weight: 800;
-    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
-    margin-top: auto;
 }
 
-.exam-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
-    filter: brightness(1.1);
-}
-
-.exam-btn:hover {
+.exam-card:hover .exam-action-btn {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
     background: var(--primary-color);
 }
 
