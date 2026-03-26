@@ -155,6 +155,11 @@ function updateCustomSelect(selectElement) {
     options.forEach(optDiv => {
         optDiv.addEventListener('click', () => {
             selectElement.value = optDiv.dataset.value;
+            
+            trigger.textContent = optDiv.textContent;
+            options.forEach(o => o.classList.remove('selected'));
+            optDiv.classList.add('selected');
+            
             wrapper.classList.remove('open');
             selectElement.dispatchEvent(new Event('change'));
         });
