@@ -50,7 +50,8 @@
             <!-- سيتم إضافة بطاقات الاختبارات ديناميكياً من JavaScript -->
             <div class="ticker-card">
                 <div class="ticker-placeholder">
-                    <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="loop" delay="1500" colors="primary:#1e3a5f,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
+                    <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="loop" delay="1500"
+                        colors="primary:#1e3a5f,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
                 </div>
                 <div class="ticker-card-content">
                     <p class="ticker-text">اختبارات محاكية نهائية شاملة</p>
@@ -58,7 +59,8 @@
             </div>
             <div class="ticker-card">
                 <div class="ticker-placeholder">
-                    <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="loop" delay="2000" colors="primary:#1e3a5f,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
+                    <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="loop" delay="2000"
+                        colors="primary:#1e3a5f,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
                 </div>
                 <div class="ticker-card-content">
                     <p class="ticker-text">جميع المراحل الدراسية</p>
@@ -66,7 +68,8 @@
             </div>
             <div class="ticker-card">
                 <div class="ticker-placeholder">
-                    <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="loop" delay="2500" colors="primary:#1e3a5f,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
+                    <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="loop" delay="2500"
+                        colors="primary:#1e3a5f,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
                 </div>
                 <div class="ticker-card-content">
                     <p class="ticker-text">محدثة باستمرار</p>
@@ -78,7 +81,7 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h2 class="hero-title typing-animation" id="heroTitle">اختبارات محاكية نهائية احترافية لجميع المراحل الدراسية</h2>
+            <h2 class="hero-title typing-animation" id="heroTitle">اختبارات محاكية احترافية لجميع المراحل الدراسية</h2>
             <p class="hero-description">
                 نوفر لك اختبارات محاكية نهائية متميزة ومعدة بعناية فائقة لجميع المراحل والمواد الدراسية.
                 اختبارات شاملة تغطي المنهج بالكامل وتساعدك في تقييم طلابك بشكل احترافي.
@@ -98,7 +101,9 @@
             <!-- Horizontal Compact Filters -->
             <div class="compact-filters-container">
                 <div class="compact-filter-box">
-                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> المرحلة</label>
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/dxjqoygy.json"
+                            trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon>
+                        المرحلة</label>
                     <select id="gradeFilter" class="compact-select">
                         <option value="all">الكل</option>
                         <option value="ابتدائي">ابتدائي</option>
@@ -106,23 +111,29 @@
                         <option value="ثانوي">ثانوي</option>
                     </select>
                 </div>
-                
+
                 <div class="compact-filter-box" id="gradeLevelFilterGroup" style="display: none;">
-                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> الصف</label>
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/abfverha.json"
+                            trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon>
+                        الصف</label>
                     <select id="gradeLevelFilter" class="compact-select">
                         <option value="all">الكل</option>
                     </select>
                 </div>
 
                 <div class="compact-filter-box">
-                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> المادة</label>
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/kipaqhoz.json"
+                            trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon>
+                        المادة</label>
                     <select id="subjectFilter" class="compact-select">
                         <option value="all">الكل</option>
                     </select>
                 </div>
 
                 <div class="compact-filter-box">
-                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> نوع الاختبار</label>
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/gqzfzudq.json"
+                            trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> نوع
+                        الاختبار</label>
                     <select id="examTypeFilter" class="compact-select">
                         <option value="all">الكل</option>
                     </select>
@@ -140,7 +151,8 @@
             </div>
             <div id="noExams" class="no-exams" style="display: none;">
                 <div class="no-exams-icon">
-                    <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" delay="1000" colors="primary:#cbd5e1,secondary:#94a3b8" style="width:120px;height:120px;"></lord-icon>
+                    <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" delay="1000"
+                        colors="primary:#cbd5e1,secondary:#94a3b8" style="width:120px;height:120px;"></lord-icon>
                 </div>
                 <p class="no-exams-title">لا توجد اختبارات متوفرة حالياً</p>
                 <p class="no-exams-subtitle">تابعنا قريباً لإضافة اختبارات جديدة في هذه المادة</p>
@@ -153,12 +165,8 @@
         <div class="container">
             <div class="custom-requests-card">
                 <div class="custom-icon">
-                    <lord-icon
-                        src="https://cdn.lordicon.com/wloilxuq.json"
-                        trigger="loop"
-                        delay="2000"
-                        colors="primary:#ffffff,secondary:#0d9488"
-                        class="icon-xlarge">
+                    <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="loop" delay="2000"
+                        colors="primary:#ffffff,secondary:#0d9488" class="icon-xlarge">
                     </lord-icon>
                 </div>
                 <h3 class="custom-title">لم تجد الاختبار المطلوب؟</h3>
@@ -183,10 +191,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h4>
-                        <lord-icon
-                            src="https://cdn.lordicon.com/jdalicnn.json"
-                            trigger="hover"
-                            colors="primary:#0d9488"
+                        <lord-icon src="https://cdn.lordicon.com/jdalicnn.json" trigger="hover" colors="primary:#0d9488"
                             style="width:28px;height:28px;vertical-align:middle;margin-left:5px;">
                         </lord-icon>
                         متاجرنا
@@ -197,10 +202,7 @@
                 </div>
                 <div class="footer-section">
                     <h4>
-                        <lord-icon
-                            src="https://cdn.lordicon.com/aymdfcos.json"
-                            trigger="hover"
-                            colors="primary:#0d9488"
+                        <lord-icon src="https://cdn.lordicon.com/aymdfcos.json" trigger="hover" colors="primary:#0d9488"
                             style="width:28px;height:28px;vertical-align:middle;margin-left:5px;">
                         </lord-icon>
                         عن الموقع

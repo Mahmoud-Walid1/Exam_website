@@ -82,6 +82,62 @@ function setupFilters() {
 
     updateGradeLevelFilter();
     updateSubjectFilter();
+    
+    // Initial custom select for Grade
+    updateCustomSelect(document.getElementById('gradeFilter'));
+}
+
+// Custom Select Implementation
+function updateCustomSelect(selectElement) {
+    if (!selectElement) return;
+    
+    let wrapper = selectElement.nextElementSibling;
+    if (!wrapper || !wrapper.classList.contains('custom-select-wrapper')) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'custom-select-wrapper';
+        selectElement.parentNode.insertBefore(wrapper, selectElement.nextSibling);
+        selectElement.style.display = 'none';
+        
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) {
+                wrapper.classList.remove('open');
+            }
+        });
+    }
+
+    const selectedOption = selectElement.options[selectElement.selectedIndex] || selectElement.options[0];
+    
+    let html = `
+        <div class="custom-select-trigger">${selectedOption ? selectedOption.textContent : 'اختر...'}</div>
+        <div class="custom-options">
+    `;
+    
+    for (let opt of selectElement.options) {
+        const isSelected = opt.value === selectElement.value ? 'selected' : '';
+        html += `<div class="custom-option ${isSelected}" data-value="${opt.value}">${opt.textContent}</div>`;
+    }
+    html += `</div>`;
+    
+    wrapper.innerHTML = html;
+    
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+    const optionsGroup = wrapper.querySelector('.custom-options');
+    
+    trigger.addEventListener('click', () => {
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+            if (w !== wrapper) w.classList.remove('open');
+        });
+        wrapper.classList.toggle('open');
+    });
+    
+    const options = wrapper.querySelectorAll('.custom-option');
+    options.forEach(optDiv => {
+        optDiv.addEventListener('click', () => {
+            selectElement.value = optDiv.dataset.value;
+            wrapper.classList.remove('open');
+            selectElement.dispatchEvent(new Event('change'));
+        });
+    });
 }
 
 // Update grade level filter based on selected stage
@@ -106,6 +162,7 @@ function updateGradeLevelFilter() {
     });
     
     gradeLevelSelect.value = currentGradeLevel;
+    updateCustomSelect(gradeLevelSelect);
 }
 
 // Update subject filter based on selected grade
@@ -133,6 +190,7 @@ function updateSubjectFilter() {
         currentSubject = 'all';
         subjectSelect.value = 'all';
     }
+    updateCustomSelect(subjectSelect);
 }
 
 // Update exam type filter
@@ -146,6 +204,7 @@ function updateExamTypeFilter() {
         opt.textContent = type;
         typeSelect.appendChild(opt);
     });
+    updateCustomSelect(typeSelect);
 }
 
 // Setup real-time exams listener
@@ -231,7 +290,6 @@ function displayExams(exams) {
             <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
                 <div class="exam-header">
                     <div class="stage-chip stage-${exam.grade}">
-                        <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#ffffff" style="width:14px;height:14px;"></lord-icon>
                         ${exam.grade}
                     </div>
                     ${mediaContent}
