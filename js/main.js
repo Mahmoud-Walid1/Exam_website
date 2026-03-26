@@ -2,7 +2,7 @@
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes } from './firebase-data.js';
+import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings } from './firebase-data.js';
 
 let allExams = [];
 let currentTerm = 'الفصل الأول';
@@ -25,9 +25,85 @@ function normalizeText(text) {
 let allSubjects = {};
 let allExamTypes = [];
 
+// Advanced Arabic NLP Fuzzy Match for Typos
+function levenshteinDistance(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function fuzzyMatchWord(word, text) {
+    // 1. Direct match
+    if (text.includes(word)) return true;
+    
+    if (word.length <= 2) return false;
+
+    // 2. Common Arabic typo regex mapping
+    let regexPattern = word.split('').map(char => {
+        if (char === 'ت' || char === 'ث') return '[تث]';
+        if (char === 'ز' || char === 'ذ' || char === 'ظ' || char === 'ض') return '[ذزظض]';
+        if (char === 'س' || char === 'ص') return '[سص]';
+        if (char === 'ق' || char === 'ك') return '[قك]';
+        if (char === 'ط' || char === 'ت') return '[طت]';
+        return char;
+    }).join('');
+    
+    try {
+        if (new RegExp(regexPattern).test(text)) return true;
+    } catch(e) {}
+
+    // 3. Fallback to Levenshtein distance matching per word
+    const maxTypos = word.length <= 4 ? 1 : 2;
+    const wordsInText = text.split(/\s+/);
+    
+    for (let tWord of wordsInText) {
+        // Strip "ال" for fair distance comparison
+        let strippedTWord = tWord.startsWith('ال') ? tWord.slice(2) : tWord;
+        let strippedWord = word.startsWith('ال') ? word.slice(2) : word;
+        
+        if (strippedWord === strippedTWord && strippedWord.length > 0) return true;
+        
+        if (Math.abs(strippedTWord.length - strippedWord.length) <= 1) {
+            if (levenshteinDistance(strippedWord, strippedTWord) <= maxTypos) return true;
+        }
+        
+        if (Math.abs(tWord.length - word.length) <= 1) {
+            if (levenshteinDistance(word, tWord) <= maxTypos) return true;
+        }
+    }
+    return false;
+}
+
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const settings = await getGeneralSettings();
+        currentTerm = settings.defaultTerm || 'الفصل الأول';
+        
+        // Update the visual tabs based on default term
+        const termTabs = document.querySelectorAll('.term-tab');
+        termTabs.forEach(tab => {
+            if (tab.dataset.term === currentTerm) tab.classList.add('active');
+            else tab.classList.remove('active');
+        });
+    } catch(e) { console.error('Error loading default setting', e); }
+
     await initializeSubjects();
     await loadSubjects();
     await loadExamTypes();
@@ -269,14 +345,14 @@ function filterExams() {
         filteredExams = filteredExams.filter(exam => exam.examType === currentExamType);
     }
 
-    // Apply Smart Search (OmniSearch)
+    // Apply Smart Search (OmniSearch with Typo Tolerance)
     if (currentSearchQuery) {
         const queryWords = currentSearchQuery.split(/\s+/).filter(w => w);
         filteredExams = filteredExams.filter(exam => {
             const searchableText = normalizeText(
                 `${exam.name} ${exam.subject} ${exam.grade} ${exam.gradeLevel} ${exam.examType || ''} ${exam.term || 'الفصل الأول'}`
             );
-            return queryWords.every(word => searchableText.includes(word));
+            return queryWords.every(word => fuzzyMatchWord(word, searchableText));
         });
     }
 

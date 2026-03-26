@@ -376,6 +376,31 @@ export async function deleteAdminEmail(email) {
     }
 }
 
+// Get general settings
+export async function getGeneralSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'general');
+        const settingsDoc = await getDoc(settingsRef);
+        if (settingsDoc.exists()) return settingsDoc.data();
+        return { defaultTerm: 'الفصل الأول' };
+    } catch (error) {
+        console.error('Error getting general settings:', error);
+        return { defaultTerm: 'الفصل الأول' };
+    }
+}
+
+// Update general settings
+export async function updateGeneralSettings(settings) {
+    try {
+        const settingsRef = doc(db, 'settings', 'general');
+        await setDoc(settingsRef, settings, { merge: true });
+        return true;
+    } catch (error) {
+        console.error('Error updating general settings:', error);
+        return false;
+    }
+}
+
 // Export for global access
 window.firebaseData = {
     initializeSubjects,
@@ -395,5 +420,7 @@ window.firebaseData = {
     deleteTickerItem,
     getAdminEmails,
     addAdminEmail,
-    deleteAdminEmail
+    deleteAdminEmail,
+    getGeneralSettings,
+    updateGeneralSettings
 };

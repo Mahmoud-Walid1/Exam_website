@@ -3,7 +3,7 @@
 // ========================================
 
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS } from './firebase-data.js';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js';
 
 let allSubjects = {};
 let allExams = [];
@@ -120,7 +120,29 @@ async function initializeDashboard() {
     setupAdminManager();
     setupTabSwitching();
     setupMobileSidebar();
+    await setupGeneralSettings();
     await updateQuickStats();
+}
+
+// Setup General Settings
+async function setupGeneralSettings() {
+    const settings = await getGeneralSettings();
+    const termSelect = document.getElementById('adminDefaultTerm');
+    if (termSelect) termSelect.value = settings.defaultTerm || 'الفصل الأول';
+    
+    document.getElementById('saveGeneralSettingsBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('saveGeneralSettingsBtn');
+        const msg = document.getElementById('generalSettingsMsg');
+        btn.disabled = true;
+        btn.textContent = 'جاري الحفظ...';
+        
+        await updateGeneralSettings({ defaultTerm: termSelect.value });
+        
+        msg.style.display = 'inline-block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+        btn.disabled = false;
+        btn.textContent = 'حفظ الإعدادات';
+    });
 }
 
 // Setup Mobile Sidebar Toggle
