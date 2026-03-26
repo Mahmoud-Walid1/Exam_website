@@ -10,6 +10,18 @@ let currentGrade = 'all';
 let currentGradeLevel = 'all';
 let currentSubject = 'all';
 let currentExamType = 'all';
+let currentSearchQuery = '';
+
+// Smart Arabic Normalization for Search
+function normalizeText(text) {
+    if (!text) return '';
+    return text.toString()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\u064B-\u065F]/g, '') // remove tashkeel
+        .toLowerCase();
+}
 let allSubjects = {};
 let allExamTypes = [];
 
@@ -37,6 +49,15 @@ async function loadExamTypes() {
 
 // Setup filter inputs
 function setupFilters() {
+    // Smart Search Input
+    const searchInput = document.getElementById('smartSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            currentSearchQuery = normalizeText(e.target.value.trim());
+            filterExams();
+        });
+    }
+
     // Term Tabs
     const termTabs = document.querySelectorAll('.term-tab');
     termTabs.forEach(tab => {
@@ -241,6 +262,17 @@ function filterExams() {
     // Filter by exam type
     if (currentExamType !== 'all') {
         filteredExams = filteredExams.filter(exam => exam.examType === currentExamType);
+    }
+
+    // Apply Smart Search (OmniSearch)
+    if (currentSearchQuery) {
+        const queryWords = currentSearchQuery.split(/\s+/).filter(w => w);
+        filteredExams = filteredExams.filter(exam => {
+            const searchableText = normalizeText(
+                `${exam.name} ${exam.subject} ${exam.grade} ${exam.gradeLevel} ${exam.examType || ''} ${exam.term || 'الفصل الأول'}`
+            );
+            return queryWords.every(word => searchableText.includes(word));
+        });
     }
 
     displayExams(filteredExams);
