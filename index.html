@@ -89,43 +89,45 @@
     <!-- Filters Section -->
     <section class="filters-section">
         <div class="container">
-            <div class="filters-container">
-                <!-- Grade Filter -->
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="loop" delay="2000" colors="primary:#1e3a5f,secondary:#0d9488" style="width:24px;height:24px;vertical-align:middle;"></lord-icon>
-                        المرحلة الدراسية:
-                    </label>
-                    <div class="filter-buttons grade-filters">
-                        <button class="filter-btn active" data-grade="all">الكل</button>
-                        <button class="filter-btn" data-grade="ابتدائي">ابتدائي</button>
-                        <button class="filter-btn" data-grade="متوسط">متوسط</button>
-                        <button class="filter-btn" data-grade="ثانوي">ثانوي</button>
-                    </div>
+            <!-- Terms Tabs (Top Level) -->
+            <div class="terms-tabs-container">
+                <button class="term-tab active" data-term="all">الكل</button>
+                <button class="term-tab" data-term="الفصل الأول">الفصل الأول</button>
+                <button class="term-tab" data-term="الفصل الثاني">الفصل الثاني</button>
+                <button class="term-tab" data-term="الفصل الثالث">الفصل الثالث</button>
+            </div>
+
+            <!-- Horizontal Compact Filters -->
+            <div class="compact-filters-container">
+                <div class="compact-filter-box">
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> المرحلة</label>
+                    <select id="gradeFilter" class="compact-select">
+                        <option value="all">الكل</option>
+                        <option value="ابتدائي">ابتدائي</option>
+                        <option value="متوسط">متوسط</option>
+                        <option value="ثانوي">ثانوي</option>
+                    </select>
+                </div>
+                
+                <div class="compact-filter-box" id="gradeLevelFilterGroup" style="display: none;">
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> الصف</label>
+                    <select id="gradeLevelFilter" class="compact-select">
+                        <option value="all">الكل</option>
+                    </select>
                 </div>
 
-                <!-- Subject Filter -->
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="loop" delay="2500" colors="primary:#1e3a5f,secondary:#0d9488" style="width:24px;height:24px;vertical-align:middle;"></lord-icon>
-                        المادة الدراسية:
-                    </label>
-                    <div class="filter-buttons subject-filters">
-                        <button class="filter-btn active" data-subject="all">الكل</button>
-                        <!-- سيتم إضافة المواد ديناميكياً من JavaScript -->
-                    </div>
+                <div class="compact-filter-box">
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> المادة</label>
+                    <select id="subjectFilter" class="compact-select">
+                        <option value="all">الكل</option>
+                    </select>
                 </div>
 
-                <!-- Grade Level Filter -->
-                <div class="filter-group" id="gradeLevelFilterGroup" style="display: none;">
-                    <label class="filter-label">
-                        <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="loop" delay="3000" colors="primary:#1e3a5f,secondary:#0d9488" style="width:24px;height:24px;vertical-align:middle;"></lord-icon>
-                        الصف الدراسي:
-                    </label>
-                    <div class="filter-buttons grade-level-filters" id="gradeLevelFilters">
-                        <button class="filter-btn active" data-level="all">الكل</button>
-                        <!-- سيتم إضافة الصفوف ديناميكياً -->
-                    </div>
+                <div class="compact-filter-box">
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> نوع الاختبار</label>
+                    <select id="examTypeFilter" class="compact-select">
+                        <option value="all">الكل</option>
+                    </select>
                 </div>
             </div>
         </div>

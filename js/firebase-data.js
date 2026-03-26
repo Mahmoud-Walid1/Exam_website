@@ -18,6 +18,9 @@ const DEFAULT_SUBJECTS = {
     'ثانوي': ['لغة عربية', 'رياضيات', 'فيزياء', 'كيمياء', 'أحياء', 'لغة إنجليزية']
 };
 
+// Default exam types
+const DEFAULT_EXAM_TYPES = ['اختبار دوري', 'اختبار منتصف الفصل', 'اختبار نهائي', 'ورقة عمل'];
+
 // Standard grade levels for each stage
 export const GRADE_LEVELS = {
     'ابتدائي': ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'],
@@ -35,8 +38,17 @@ export async function initializeSubjects() {
             await setDoc(subjectsRef, DEFAULT_SUBJECTS);
             console.log('Default subjects initialized');
         }
+
+        // Also initialize exam types
+        const typesRef = doc(db, 'settings', 'examTypes');
+        const typesDoc = await getDoc(typesRef);
+        
+        if (!typesDoc.exists()) {
+            await setDoc(typesRef, { types: DEFAULT_EXAM_TYPES });
+            console.log('Default exam types initialized');
+        }
     } catch (error) {
-        console.error('Error initializing subjects:', error);
+        console.error('Error initializing settings:', error);
     }
 }
 
@@ -99,6 +111,65 @@ export async function deleteSubject(grade, subject) {
         return false;
     } catch (error) {
         console.error('Error deleting subject:', error);
+        return false;
+    }
+}
+
+// Get all exam types
+export async function getExamTypes() {
+    try {
+        const typesRef = doc(db, 'settings', 'examTypes');
+        const typesDoc = await getDoc(typesRef);
+
+        if (typesDoc.exists()) {
+            return typesDoc.data().types || [];
+        }
+
+        return [];
+    } catch (error) {
+        console.error('Error getting exam types:', error);
+        return [];
+    }
+}
+
+// Add an exam type
+export async function addExamType(type) {
+    try {
+        const typesRef = doc(db, 'settings', 'examTypes');
+        const typesDoc = await getDoc(typesRef);
+
+        let types = [];
+        if (typesDoc.exists()) {
+            types = typesDoc.data().types || [];
+        }
+
+        if (!types.includes(type)) {
+            types.push(type);
+            await setDoc(typesRef, { types });
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error adding exam type:', error);
+        return false;
+    }
+}
+
+// Delete an exam type
+export async function deleteExamType(type) {
+    try {
+        const typesRef = doc(db, 'settings', 'examTypes');
+        const typesDoc = await getDoc(typesRef);
+
+        if (typesDoc.exists()) {
+            let types = typesDoc.data().types || [];
+            types = types.filter(t => t !== type);
+            await setDoc(typesRef, { types });
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error deleting exam type:', error);
         return false;
     }
 }
@@ -311,6 +382,9 @@ window.firebaseData = {
     getSubjects,
     addSubject,
     deleteSubject,
+    getExamTypes,
+    addExamType,
+    deleteExamType,
     addExam,
     getExams,
     onExamsChange,

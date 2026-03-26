@@ -276,65 +276,90 @@ lord-icon.icon-xlarge {
     border-bottom: 1px solid var(--border-color);
 }
 
-.filters-container {
+/* Terms Tabs */
+.terms-tabs-container {
     display: flex;
-    flex-direction: column;
-    gap: 30px;
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-}
-
-.filter-label {
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Center the label content and icon */
-    gap: 10px;
-    font-weight: 800;
-    color: var(--primary-color);
-    font-size: 1.15rem;
-    margin-bottom: 5px;
-}
-
-.filter-buttons {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
     justify-content: center;
-}
-
-.filter-btn {
-    padding: 12px 28px;
-    border: 2px solid #e2e8f0;
+    gap: 15px;
+    margin-bottom: 30px;
     background: white;
-    color: #64748b;
-    border-radius: 30px;
-    font-family: 'Cairo', sans-serif;
+    padding: 8px;
+    border-radius: 50px;
+    box-shadow: var(--shadow-sm);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.term-tab {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 40px;
+    background: transparent;
+    color: var(--text-muted);
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: var(--transition);
 }
-
-.filter-btn:hover {
-    border-color: var(--secondary-color);
-    color: var(--secondary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+.term-tab:hover {
+    color: var(--primary-color);
 }
-
-.filter-btn.active {
+.term-tab.active {
     background: linear-gradient(135deg, var(--secondary-color) 0%, #0ea5e9 100%);
     color: white;
-    border-color: transparent;
-    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Compact Filters Container */
+.compact-filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+}
+.compact-filter-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 180px;
+    flex: 1;
+}
+.compact-filter-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    color: var(--primary-color);
+    font-size: 0.95rem;
+}
+.compact-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #475569;
+    background-color: #f8fafc;
+    cursor: pointer;
+    transition: var(--transition);
+    appearance: none; /* remove default arrow */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left 15px center;
+    background-size: 15px;
+}
+.compact-select:focus, .compact-select:hover {
+    border-color: var(--secondary-color);
+    outline: none;
+    background-color: white;
 }
 
 /* ========================================
@@ -713,33 +738,29 @@ lord-icon.icon-xlarge {
         padding: 20px 0;
     }
 
-    .filter-label {
-        font-size: 1rem;
-    }
-
-    .filter-buttons {
-        flex-wrap: nowrap;
+    .terms-tabs-container {
+        flex-direction: row;
         overflow-x: auto;
         justify-content: flex-start;
-        padding: 5px 5px 12px;
-        -webkit-overflow-scrolling: touch;
-        gap: 8px;
-        width: 100%;
-    }
-
-    /* Hide scrollbar but keep functionality */
-    .filter-buttons::-webkit-scrollbar {
-        display: none;
-    }
-    .filter-buttons {
+        padding: 5px;
+        border-radius: 12px;
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-
-    .filter-btn {
+    .terms-tabs-container::-webkit-scrollbar {
+        display: none;
+    }
+    .term-tab {
         flex: 0 0 auto;
-        font-size: 0.8rem;
-        padding: 8px 15px;
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    .compact-filters-container {
+        padding: 15px;
+        gap: 15px;
+    }
+    .compact-filter-box {
+        min-width: 100%;
     }
 
     .exams-section {

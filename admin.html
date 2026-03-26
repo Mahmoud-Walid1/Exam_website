@@ -183,6 +183,25 @@
                                     </div>
                                 </div>
 
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="examTerm">الفصل الدراسي *</label>
+                                        <select id="examTerm" required>
+                                            <option value="">اختر الفصل</option>
+                                            <option value="الفصل الأول">الفصل الأول</option>
+                                            <option value="الفصل الثاني">الفصل الثاني</option>
+                                            <option value="الفصل الثالث">الفصل الثالث</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="examType">نوع الاختبار *</label>
+                                        <select id="examType" required>
+                                            <option value="">اختر النوع</option>
+                                            <!-- سيتم إضافته ديناميكياً -->
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="form-group">
                                     <label>اختر أيقونة الاختبار *</label>
                                     <div class="icon-selector" id="iconSelector"></div>
@@ -211,6 +230,8 @@
                                             <th>المرحلة</th>
                                             <th>الصف الدراسي</th>
                                             <th>المادة</th>
+                                            <th>الفصل</th>
+                                            <th>النوع</th>
                                             <th>الصورة</th>
                                             <th>الرابط</th>
                                             <th>الإجراءات</th>
@@ -245,6 +266,23 @@
                                     </div>
                                 </div>
                                 <div id="subjectsList" class="subjects-list"></div>
+                            </div>
+                        </section>
+
+                        <!-- Exam Types Manager -->
+                        <section class="admin-section" style="margin-top: 30px;">
+                            <h2 class="section-title">إدارة أنواع الاختبارات</h2>
+                            <div class="subjects-manager">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="newExamType">اسم نوع الاختبار الجديد</label>
+                                        <input type="text" id="newExamType" placeholder="مثال: ورقة عمل تفاعلية">
+                                    </div>
+                                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                                        <button id="addExamTypeBtn" class="btn-primary" style="margin-bottom: 5px;">إضافة نوع</button>
+                                    </div>
+                                </div>
+                                <div id="examTypesList" class="subjects-list" style="margin-top: 20px;"></div>
                             </div>
                         </section>
                     </div>

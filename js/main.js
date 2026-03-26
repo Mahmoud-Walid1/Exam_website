@@ -2,19 +2,23 @@
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS } from './firebase-data.js';
+import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes } from './firebase-data.js';
 
 let allExams = [];
+let currentTerm = 'all';
 let currentGrade = 'all';
 let currentGradeLevel = 'all';
 let currentSubject = 'all';
+let currentExamType = 'all';
 let allSubjects = {};
+let allExamTypes = [];
 
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
     await initializeSubjects();
     await loadSubjects();
+    await loadExamTypes();
     setupFilters();
     setupExamsListener();
     await updateTicker(); // Load ticker items
@@ -26,24 +30,56 @@ async function loadSubjects() {
     allSubjects = await getSubjects();
 }
 
-// Setup filter buttons
+async function loadExamTypes() {
+    allExamTypes = await getExamTypes();
+    updateExamTypeFilter();
+}
+
+// Setup filter inputs
 function setupFilters() {
-    // Grade filter buttons
-    const gradeButtons = document.querySelectorAll('.grade-filters .filter-btn');
-    gradeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            gradeButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentGrade = btn.dataset.grade;
-            currentGradeLevel = 'all'; // Reset grade level
-            currentSubject = 'all'; // Reset subject too
-            updateGradeLevelFilter();
-            updateSubjectFilter();
+    // Term Tabs
+    const termTabs = document.querySelectorAll('.term-tab');
+    termTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            termTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentTerm = tab.dataset.term;
             filterExams();
         });
     });
 
-    // Subject filter buttons will be added dynamically
+    // Grade Select
+    const gradeSelect = document.getElementById('gradeFilter');
+    gradeSelect.addEventListener('change', (e) => {
+        currentGrade = e.target.value;
+        currentGradeLevel = 'all';
+        currentSubject = 'all';
+        updateGradeLevelFilter();
+        updateSubjectFilter();
+        filterExams();
+    });
+
+    // Grade Level Select
+    const gradeLevelSelect = document.getElementById('gradeLevelFilter');
+    gradeLevelSelect.addEventListener('change', (e) => {
+        currentGradeLevel = e.target.value;
+        filterExams();
+    });
+
+    // Subject Select
+    const subjectSelect = document.getElementById('subjectFilter');
+    subjectSelect.addEventListener('change', (e) => {
+        currentSubject = e.target.value;
+        filterExams();
+    });
+
+    // Exam Type Select
+    const typeSelect = document.getElementById('examTypeFilter');
+    typeSelect.addEventListener('change', (e) => {
+        currentExamType = e.target.value;
+        filterExams();
+    });
+
     updateGradeLevelFilter();
     updateSubjectFilter();
 }
@@ -51,93 +87,65 @@ function setupFilters() {
 // Update grade level filter based on selected stage
 function updateGradeLevelFilter() {
     const gradeLevelGroup = document.getElementById('gradeLevelFilterGroup');
-    const gradeLevelContainer = document.getElementById('gradeLevelFilters');
+    const gradeLevelSelect = document.getElementById('gradeLevelFilter');
 
     if (currentGrade === 'all') {
         gradeLevelGroup.style.display = 'none';
         return;
     }
 
-    gradeLevelGroup.style.display = 'block';
-    gradeLevelContainer.innerHTML = '<button class="filter-btn active" data-level="all">الكل</button>';
+    gradeLevelGroup.style.display = 'flex';
+    gradeLevelSelect.innerHTML = '<option value="all">الكل</option>';
 
     const levels = GRADE_LEVELS[currentGrade] || [];
     levels.forEach(level => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.dataset.level = level;
-        btn.textContent = `الصف ${level}`;
-        gradeLevelContainer.appendChild(btn);
+        const opt = document.createElement('option');
+        opt.value = level;
+        opt.textContent = `الصف ${level}`;
+        gradeLevelSelect.appendChild(opt);
     });
-
-    // Add event listeners to new buttons
-    const levelButtons = gradeLevelContainer.querySelectorAll('.filter-btn');
-    levelButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            levelButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentGradeLevel = btn.dataset.level;
-            filterExams();
-        });
-    });
+    
+    gradeLevelSelect.value = currentGradeLevel;
 }
 
 // Update subject filter based on selected grade
 function updateSubjectFilter() {
-    const subjectFiltersContainer = document.querySelector('.subject-filters');
+    const subjectSelect = document.getElementById('subjectFilter');
+    subjectSelect.innerHTML = '<option value="all">الكل</option>';
 
-    // Clear existing buttons
-    subjectFiltersContainer.innerHTML = '';
-
-    // Re-add "الكل" button
-    const allButton = document.createElement('button');
-    allButton.className = 'filter-btn';
-    if (currentSubject === 'all') {
-        allButton.classList.add('active');
-    }
-    allButton.dataset.subject = 'all';
-    allButton.textContent = 'الكل';
-    allButton.addEventListener('click', () => {
-        document.querySelectorAll('.subject-filters .filter-btn').forEach(b => b.classList.remove('active'));
-        allButton.classList.add('active');
-        currentSubject = 'all';
-        filterExams();
-    });
-    subjectFiltersContainer.appendChild(allButton);
-
-    // Add subject buttons based on grade
     let subjects = [];
     if (currentGrade === 'all') {
-        // Show all subjects from all grades
         subjects = [...new Set(Object.values(allSubjects).flat())];
     } else {
         subjects = allSubjects[currentGrade] || [];
     }
 
     subjects.forEach(subject => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        // Check if this subject is currently selected
-        if (currentSubject === subject) {
-            btn.classList.add('active');
-        }
-        btn.dataset.subject = subject;
-        btn.textContent = subject;
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.subject-filters .filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentSubject = subject;
-            filterExams();
-        });
-        subjectFiltersContainer.appendChild(btn);
+        const opt = document.createElement('option');
+        opt.value = subject;
+        opt.textContent = subject;
+        subjectSelect.appendChild(opt);
     });
 
-    // If current subject is not in the new list, reset to 'all'
-    if (currentSubject !== 'all' && !subjects.includes(currentSubject)) {
+    if (subjects.includes(currentSubject)) {
+        subjectSelect.value = currentSubject;
+    } else {
         currentSubject = 'all';
-        allButton.classList.add('active');
-        filterExams();
+        subjectSelect.value = 'all';
     }
+}
+
+// Update exam type filter
+function updateExamTypeFilter() {
+    const typeSelect = document.getElementById('examTypeFilter');
+    typeSelect.innerHTML = '<option value="all">الكل</option>';
+    
+    allExamTypes.forEach(type => {
+        const opt = document.createElement('option');
+        opt.value = type;
+        opt.textContent = type;
+        typeSelect.appendChild(opt);
+    });
 }
 
 // Setup real-time exams listener
@@ -150,14 +158,11 @@ function setupExamsListener() {
 
 // Filter and display exams
 function filterExams() {
-    console.log('Filtering exams...', {
-        total: allExams.length,
-        currentGrade,
-        currentGradeLevel,
-        currentSubject
-    });
-
     let filteredExams = allExams;
+    
+    if (currentTerm !== 'all') {
+        filteredExams = filteredExams.filter(exam => exam.term === currentTerm);
+    }
 
     // Filter by grade
     if (currentGrade !== 'all') {
@@ -173,8 +178,12 @@ function filterExams() {
     if (currentSubject !== 'all') {
         filteredExams = filteredExams.filter(exam => exam.subject === currentSubject);
     }
+    
+    // Filter by exam type
+    if (currentExamType !== 'all') {
+        filteredExams = filteredExams.filter(exam => exam.examType === currentExamType);
+    }
 
-    console.log('Filtered exams:', filteredExams.length);
     displayExams(filteredExams);
 }
 
@@ -199,10 +208,7 @@ function displayExams(exams) {
         
         return `
             <div class="exam-card" 
-                 onclick="window.open('${exam.url}', '_blank')"
-                 data-grade="${exam.grade}"
-                 data-level="${exam.gradeLevel}"
-                 data-subject="${exam.subject}">
+                 onclick="window.open('${exam.url}', '_blank')">
                 <div class="exam-image-container">
                     <div class="stage-badge stage-${exam.grade}">
                         <lord-icon src="https://cdn.lordicon.com/dxjqoygy.json" trigger="hover" colors="primary:#ffffff" style="width:16px;height:16px;"></lord-icon>
@@ -216,11 +222,19 @@ function displayExams(exams) {
                 <div class="exam-content">
                     <h3 class="exam-title">${exam.name}</h3>
                     <div class="exam-meta">
-                        <div class="exam-badge">
+                        <div class="exam-badge" title="الفصل الدراسي">
+                            <lord-icon src="https://cdn.lordicon.com/qzwudxuv.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
+                            ${exam.term || 'الفصل الأول'}
+                        </div>
+                        <div class="exam-badge" title="نوع الاختبار">
+                            <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
+                            ${exam.examType || 'اختبار نهائي'}
+                        </div>
+                        <div class="exam-badge" title="المادة">
                             <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
                             ${exam.subject}
                         </div>
-                        <div class="exam-badge">
+                        <div class="exam-badge" title="الصف">
                             <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#475569" style="width:16px;height:16px;"></lord-icon>
                             الصف ${exam.gradeLevel}
                         </div>

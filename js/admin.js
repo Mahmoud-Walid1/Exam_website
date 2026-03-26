@@ -3,10 +3,11 @@
 // ========================================
 
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS } from './firebase-data.js';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS } from './firebase-data.js';
 
 let allSubjects = {};
 let allExams = [];
+let allExamTypes = [];
 let selectedIcon = null;
 
 // Available icons
@@ -108,10 +109,12 @@ async function initializeDashboard() {
     console.log('Initializing dashboard...');
     await initializeSubjects();
     await loadSubjects();
+    await loadExamTypes();
     await loadExams();
     setupLogout();
     setupAddExamForm();
     setupSubjectsManager();
+    setupExamTypesManager();
     setupIconSelector();
     setupTickerManager();
     setupAdminManager();
@@ -441,9 +444,11 @@ function setupAddExamForm() {
 
         const name = document.getElementById('examName').value;
         const url = document.getElementById('examUrl').value;
+        const term = document.getElementById('examTerm').value;
         const grade = document.getElementById('examGrade').value;
         const gradeLevel = document.getElementById('examGradeLevel').value;
         const subject = document.getElementById('examSubject').value;
+        const examType = document.getElementById('examType').value;
         const icon = selectedIcon;
         const imageUrl = document.getElementById('examImageUrl').value.trim();
         const editingId = document.getElementById('editingExamId').value;
@@ -457,7 +462,7 @@ function setupAddExamForm() {
             submitBtn.textContent = editingId ? 'جاري التحديث...' : 'جاري الإضافة...';
             submitBtn.disabled = true;
 
-            const examData = { name, url, grade, gradeLevel, subject, icon, imageUrl };
+            const examData = { name, url, term, grade, gradeLevel, subject, examType, icon, imageUrl };
 
             if (editingId) {
                 await updateExam(editingId, examData);
@@ -495,7 +500,9 @@ window.editExam = function (examId) {
 
     document.getElementById('examName').value = exam.name;
     document.getElementById('examUrl').value = exam.url;
+    document.getElementById('examTerm').value = exam.term || '';
     document.getElementById('examGrade').value = exam.grade;
+    document.getElementById('examType').value = exam.examType || '';
 
     // Trigger grade change
     document.getElementById('examGrade').dispatchEvent(new Event('change'));
@@ -528,6 +535,8 @@ function cancelEdit() {
     document.getElementById('selectedIcon').value = '';
     document.getElementById('editingExamId').value = '';
     document.getElementById('examImageUrl').value = '';
+    document.getElementById('examTerm').value = '';
+    document.getElementById('examType').value = '';
     document.getElementById('submitExamBtn').textContent = 'إضافة الاختبار';
     document.getElementById('cancelEditBtn').style.display = 'none';
 }
@@ -610,6 +619,62 @@ window.handleDeleteSubject = async (grade, subject) => {
     }
 };
 
+// Load Exam Types
+async function loadExamTypes() {
+    allExamTypes = await getExamTypes();
+    updateExamTypesDisplay();
+    updateExamTypeDropdown();
+}
+
+// Setup Exam Types Manager
+function setupExamTypesManager() {
+    const addExamTypeBtn = document.getElementById('addExamTypeBtn');
+    addExamTypeBtn.addEventListener('click', async () => {
+        const typeStr = document.getElementById('newExamType').value.trim();
+        if (!typeStr) { alert('من فضلك أدخل اسم النوع'); return; }
+        const success = await addExamType(typeStr);
+        if (success) {
+            document.getElementById('newExamType').value = '';
+            await loadExamTypes();
+            alert('تم إضافة النوع بنجاح! ✅');
+        } else { alert('النوع موجود بالفعل'); }
+    });
+}
+
+// Update Exam Types Display
+function updateExamTypesDisplay() {
+    const examTypesList = document.getElementById('examTypesList');
+    examTypesList.innerHTML = `
+        <div class="subject-tags">
+            ${allExamTypes.map(type => `
+                <div class="subject-tag" style="background-color: #fce7f3; color: #be185d; border-color: #fbcfe8;">
+                    <span>${type}</span>
+                    <button style="color: #be185d;" onclick="handleDeleteExamType('${type}')">×</button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Update Exam Type Dropdown
+function updateExamTypeDropdown() {
+    const typeSelect = document.getElementById('examType');
+    typeSelect.innerHTML = '<option value="">اختر النوع</option>';
+    allExamTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type; option.textContent = type;
+        typeSelect.appendChild(option);
+    });
+}
+
+// Handle delete exam type
+window.handleDeleteExamType = async (type) => {
+    if (confirm(`هل تريد حذف نوع الاختبار "${type}"؟`)) {
+        await deleteExamType(type);
+        await loadExamTypes();
+    }
+};
+
 // Display exams table
 function displayExamsTable() {
     const tableBody = document.getElementById('examsTableBody');
@@ -625,6 +690,8 @@ function displayExamsTable() {
             <td><span class="exam-badge" style="background:#f1f5f9;">${exam.grade}</span></td>
             <td>الصف ${exam.gradeLevel}</td>
             <td>${exam.subject}</td>
+            <td><span class="exam-badge" style="background:#e0e7ff; color:#4338ca;">${exam.term || 'غير محدد'}</span></td>
+            <td><span class="exam-badge" style="background:#fce7f3; color:#be185d;">${exam.examType || 'غير محدد'}</span></td>
             <td><img src="${exam.imageUrl || 'icons/default.png'}" class="table-image" onerror="this.src='icons/default.png'"></td>
             <td><a href="${exam.url}" target="_blank" class="table-link">رابط المنتج</a></td>
             <td class="table-actions">
