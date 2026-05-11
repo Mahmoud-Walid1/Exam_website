@@ -471,6 +471,7 @@ function setupAddExamForm() {
         const gradeLevel = document.getElementById('examGradeLevel').value;
         const subject = document.getElementById('examSubject').value;
         const examType = document.getElementById('examType').value;
+        const examModel = document.getElementById('examModel').value.trim();
         const icon = selectedIcon;
         const imageUrl = document.getElementById('examImageUrl').value.trim();
         const editingId = document.getElementById('editingExamId').value;
@@ -484,7 +485,7 @@ function setupAddExamForm() {
             submitBtn.textContent = editingId ? 'جاري التحديث...' : 'جاري الإضافة...';
             submitBtn.disabled = true;
 
-            const examData = { name, url, term, grade, gradeLevel, subject, examType, icon, imageUrl };
+            const examData = { name, url, term, grade, gradeLevel, subject, examType, examModel, icon, imageUrl };
 
             if (editingId) {
                 await updateExam(editingId, examData);
@@ -525,6 +526,7 @@ window.editExam = function (examId) {
     document.getElementById('examTerm').value = exam.term || '';
     document.getElementById('examGrade').value = exam.grade;
     document.getElementById('examType').value = exam.examType || '';
+    document.getElementById('examModel').value = exam.examModel || '';
 
     // Trigger grade change
     document.getElementById('examGrade').dispatchEvent(new Event('change'));
@@ -559,6 +561,7 @@ function cancelEdit() {
     document.getElementById('examImageUrl').value = '';
     document.getElementById('examTerm').value = '';
     document.getElementById('examType').value = '';
+    document.getElementById('examModel').value = '';
     document.getElementById('submitExamBtn').textContent = 'إضافة الاختبار';
     document.getElementById('cancelEditBtn').style.display = 'none';
 }
@@ -701,7 +704,7 @@ window.handleDeleteExamType = async (type) => {
 function displayExamsTable() {
     const tableBody = document.getElementById('examsTableBody');
     if (allExams.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد اختبارات</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">لا توجد اختبارات</td></tr>';
         return;
     }
 
@@ -712,6 +715,7 @@ function displayExamsTable() {
             <td><span class="exam-badge" style="background:#f1f5f9;">${exam.grade}</span></td>
             <td>الصف ${exam.gradeLevel}</td>
             <td>${exam.subject}</td>
+            <td><span class="exam-badge" style="background:#e2e8f0; color:#475569;">${exam.examModel || '-'}</span></td>
             <td><span class="exam-badge" style="background:#e0e7ff; color:#4338ca;">${exam.term || 'غير محدد'}</span></td>
             <td><span class="exam-badge" style="background:#fce7f3; color:#be185d;">${exam.examType || 'غير محدد'}</span></td>
             <td><img src="${exam.imageUrl || 'icons/default.png'}" class="table-image" onerror="this.src='icons/default.png'"></td>

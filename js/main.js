@@ -410,9 +410,11 @@ function displayExams(exams) {
         return `
             <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
                 <div class="exam-header">
+                    ${exam.examModel ? `
                     <div class="stage-chip stage-${exam.grade}">
-                        ${exam.grade}
+                        ${exam.examModel}
                     </div>
+                    ` : ''}
                     ${mediaContent}
                 </div>
                 <div class="exam-body">
