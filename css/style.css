@@ -640,17 +640,18 @@ lord-icon.icon-xlarge {
 /* Standard (Golden) Corner Ribbon */
 .standard-badge {
     position: absolute;
-    top: 20px;
-    left: -35px;
+    top: 14px;
+    left: -38px;
+    width: 140px;
     z-index: 10;
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
     color: white;
-    padding: 6px 40px;
-    font-size: 0.7rem;
+    padding: 5px 0;
+    font-size: 0.65rem;
     font-weight: 800;
     text-align: center;
     transform: rotate(-45deg);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
     white-space: nowrap;
     pointer-events: none;
