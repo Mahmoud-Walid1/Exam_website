@@ -399,11 +399,17 @@ function displayExams(exams) {
             mediaContent = iconHtml;
         }
 
+        let formattedGrade = exam.grade;
+        if (exam.gradeLevel && exam.grade) {
+            let gradeDefinite = exam.grade.startsWith('ال') ? exam.grade : 'ال' + exam.grade;
+            formattedGrade = `الصف ${exam.gradeLevel} ${gradeDefinite}`;
+        }
+
         return `
             <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
                 <div class="exam-header">
                     <div class="stage-chip stage-${exam.grade}">
-                        ${exam.grade}
+                        ${formattedGrade}
                     </div>
                     ${mediaContent}
                 </div>
