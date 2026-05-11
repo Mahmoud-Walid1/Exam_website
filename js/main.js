@@ -415,6 +415,12 @@ function displayExams(exams) {
                         ${exam.examModel}
                     </div>
                     ` : ''}
+                    ${exam.examIsStandard ? `
+                    <div class="standard-badge">
+                        <lord-icon src="https://cdn.lordicon.com/hbwbeoul.json" trigger="loop" delay="2000" colors="primary:#ffffff,secondary:#ffffff" style="width:22px;height:22px;"></lord-icon>
+                        <span>وفق جدول المواصفات</span>
+                    </div>
+                    ` : ''}
                     ${mediaContent}
                 </div>
                 <div class="exam-body">

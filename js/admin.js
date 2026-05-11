@@ -472,6 +472,7 @@ function setupAddExamForm() {
         const subject = document.getElementById('examSubject').value;
         const examType = document.getElementById('examType').value;
         const examModel = document.getElementById('examModel').value.trim();
+        const examIsStandard = document.getElementById('examIsStandard').checked;
         const icon = selectedIcon;
         const imageUrl = document.getElementById('examImageUrl').value.trim();
         const editingId = document.getElementById('editingExamId').value;
@@ -485,7 +486,7 @@ function setupAddExamForm() {
             submitBtn.textContent = editingId ? 'جاري التحديث...' : 'جاري الإضافة...';
             submitBtn.disabled = true;
 
-            const examData = { name, url, term, grade, gradeLevel, subject, examType, examModel, icon, imageUrl };
+            const examData = { name, url, term, grade, gradeLevel, subject, examType, examModel, examIsStandard, icon, imageUrl };
 
             if (editingId) {
                 await updateExam(editingId, examData);
@@ -527,6 +528,7 @@ window.editExam = function (examId) {
     document.getElementById('examGrade').value = exam.grade;
     document.getElementById('examType').value = exam.examType || '';
     document.getElementById('examModel').value = exam.examModel || '';
+    document.getElementById('examIsStandard').checked = exam.examIsStandard || false;
 
     // Trigger grade change
     document.getElementById('examGrade').dispatchEvent(new Event('change'));
@@ -562,6 +564,7 @@ function cancelEdit() {
     document.getElementById('examTerm').value = '';
     document.getElementById('examType').value = '';
     document.getElementById('examModel').value = '';
+    document.getElementById('examIsStandard').checked = false;
     document.getElementById('submitExamBtn').textContent = 'إضافة الاختبار';
     document.getElementById('cancelEditBtn').style.display = 'none';
 }
@@ -716,6 +719,7 @@ function displayExamsTable() {
             <td>الصف ${exam.gradeLevel}</td>
             <td>${exam.subject}</td>
             <td><span class="exam-badge" style="background:#e2e8f0; color:#475569;">${exam.examModel || '-'}</span></td>
+            <td>${exam.examIsStandard ? '✅' : '❌'}</td>
             <td><span class="exam-badge" style="background:#e0e7ff; color:#4338ca;">${exam.term || 'غير محدد'}</span></td>
             <td><span class="exam-badge" style="background:#fce7f3; color:#be185d;">${exam.examType || 'غير محدد'}</span></td>
             <td><img src="${exam.imageUrl || 'icons/default.png'}" class="table-image" onerror="this.src='icons/default.png'"></td>
