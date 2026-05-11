@@ -125,13 +125,189 @@ async function loadExamTypes() {
 
 // Setup filter inputs
 function setupFilters() {
-    // Smart Search Input
+    // Smart Search Input with Suggestions
     const searchInput = document.getElementById('smartSearchInput');
+    const suggestionsBox = document.getElementById('searchSuggestions');
+    let activeSuggestionIndex = -1;
+    let debounceTimer = null;
+
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             currentSearchQuery = normalizeText(e.target.value.trim());
+            
+            // Debounce suggestions for performance
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                showSuggestions(e.target.value.trim());
+            }, 150);
+            
             filterExams();
         });
+
+        // Keyboard navigation for suggestions
+        searchInput.addEventListener('keydown', (e) => {
+            const items = suggestionsBox.querySelectorAll('.suggestion-item');
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeSuggestionIndex = Math.min(activeSuggestionIndex + 1, items.length - 1);
+                updateActiveSuggestion(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeSuggestionIndex = Math.max(activeSuggestionIndex - 1, 0);
+                updateActiveSuggestion(items);
+            } else if (e.key === 'Enter' && activeSuggestionIndex >= 0) {
+                e.preventDefault();
+                items[activeSuggestionIndex].click();
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.smart-search-container')) {
+                hideSuggestions();
+            }
+        });
+
+        // Show suggestions on focus if there's text
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.trim().length > 0) {
+                showSuggestions(searchInput.value.trim());
+            }
+        });
+    }
+
+    function updateActiveSuggestion(items) {
+        items.forEach((item, i) => {
+            item.classList.toggle('active', i === activeSuggestionIndex);
+        });
+        if (items[activeSuggestionIndex]) {
+            items[activeSuggestionIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    function hideSuggestions() {
+        suggestionsBox.classList.remove('active');
+        activeSuggestionIndex = -1;
+    }
+
+    function scoreExam(exam, query) {
+        const normalizedQuery = normalizeText(query);
+        const queryWords = normalizedQuery.split(/\s+/).filter(w => w);
+        if (!queryWords.length) return 0;
+
+        const fields = {
+            name: { text: normalizeText(exam.name), weight: 5 },
+            subject: { text: normalizeText(exam.subject), weight: 4 },
+            grade: { text: normalizeText(exam.grade), weight: 3 },
+            gradeLevel: { text: normalizeText(exam.gradeLevel), weight: 3 },
+            examType: { text: normalizeText(exam.examType || ''), weight: 2 },
+            term: { text: normalizeText(exam.term || ''), weight: 1 }
+        };
+
+        let totalScore = 0;
+        let matchedWords = 0;
+
+        for (const word of queryWords) {
+            let bestWordScore = 0;
+            for (const field of Object.values(fields)) {
+                if (!field.text) continue;
+                // Exact contains
+                if (field.text.includes(word)) {
+                    let score = field.weight * 10;
+                    // Bonus: starts with
+                    if (field.text.startsWith(word)) score += field.weight * 5;
+                    // Bonus: exact match
+                    if (field.text === word) score += field.weight * 8;
+                    bestWordScore = Math.max(bestWordScore, score);
+                }
+                // Fuzzy match
+                else if (fuzzyMatchWord(word, field.text)) {
+                    bestWordScore = Math.max(bestWordScore, field.weight * 4);
+                }
+            }
+            if (bestWordScore > 0) matchedWords++;
+            totalScore += bestWordScore;
+        }
+
+        // Bonus for matching ALL query words
+        if (matchedWords === queryWords.length) {
+            totalScore *= 1.5;
+        }
+        // Penalize if not all words match
+        else if (matchedWords === 0) {
+            return 0;
+        }
+
+        return totalScore;
+    }
+
+    function showSuggestions(query) {
+        if (!query || query.length < 1) {
+            hideSuggestions();
+            return;
+        }
+
+        // Score all exams
+        const scored = allExams
+            .map(exam => ({ exam, score: scoreExam(exam, query) }))
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 7);
+
+        if (scored.length === 0) {
+            suggestionsBox.innerHTML = `
+                <div class="suggestions-header">😕 لا توجد نتائج مطابقة لـ "${query}"</div>
+            `;
+            suggestionsBox.classList.add('active');
+            return;
+        }
+
+        let html = `<div class="suggestions-header">🔍 نتائج البحث (${scored.length})</div>`;
+        
+        scored.forEach((item, index) => {
+            const exam = item.exam;
+            const gradeLevelText = exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '';
+            html += `
+                <div class="suggestion-item" data-index="${index}" data-exam-url="${exam.url}" data-exam-name="${exam.name}">
+                    <img class="suggestion-icon" src="${exam.icon}" alt="${exam.subject}" onerror="this.src='icons/default.png'">
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">${highlightMatch(exam.name, query)}</div>
+                        <div class="suggestion-meta">${exam.subject} • ${gradeLevelText} • ${exam.term || ''}</div>
+                    </div>
+                    <span class="suggestion-badge ${exam.grade}">${exam.grade}</span>
+                </div>
+            `;
+        });
+
+        suggestionsBox.innerHTML = html;
+        suggestionsBox.classList.add('active');
+        activeSuggestionIndex = -1;
+
+        // Click handlers for suggestions
+        suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const examName = item.dataset.examName;
+                searchInput.value = examName;
+                currentSearchQuery = normalizeText(examName);
+                filterExams();
+                hideSuggestions();
+            });
+        });
+    }
+
+    function highlightMatch(text, query) {
+        if (!query) return text;
+        const words = query.split(/\s+/).filter(w => w);
+        let result = text;
+        words.forEach(word => {
+            const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            result = result.replace(regex, '<span class="suggestion-highlight">$1</span>');
+        });
+        return result;
     }
 
     // Term Tabs
