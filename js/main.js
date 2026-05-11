@@ -399,17 +399,19 @@ function displayExams(exams) {
             mediaContent = iconHtml;
         }
 
-        let formattedGrade = exam.grade;
+        let formattedGrade = exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '';
         if (exam.gradeLevel && exam.grade) {
             let gradeDefinite = exam.grade.startsWith('ال') ? exam.grade : 'ال' + exam.grade;
             formattedGrade = `الصف ${exam.gradeLevel} ${gradeDefinite}`;
+        } else if (!exam.gradeLevel && exam.grade) {
+            formattedGrade = exam.grade;
         }
 
         return `
             <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
                 <div class="exam-header">
                     <div class="stage-chip stage-${exam.grade}">
-                        ${formattedGrade}
+                        ${exam.grade}
                     </div>
                     ${mediaContent}
                 </div>
@@ -430,7 +432,7 @@ function displayExams(exams) {
                         </span>
                         <span class="exam-tag level-tag">
                             <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#4b5563" style="width:16px;height:16px;"></lord-icon>
-                            الصف ${exam.gradeLevel}
+                            ${formattedGrade}
                         </span>
                     </div>
                 </div>
