@@ -12,6 +12,101 @@ let currentSubject = 'all';
 let currentExamType = 'all';
 let currentSearchQuery = '';
 
+// ========================================
+// English → Arabic Keyboard Layout Mapping
+// ========================================
+const EN_TO_AR_MAP = {
+    'q': 'ض', 'w': 'ص', 'e': 'ث', 'r': 'ق', 't': 'ف', 'y': 'غ',
+    'u': 'ع', 'i': 'ه', 'o': 'خ', 'p': 'ح', '[': 'ج', ']': 'د',
+    'a': 'ش', 's': 'س', 'd': 'ي', 'f': 'ب', 'g': 'ل', 'h': 'ا',
+    'j': 'ت', 'k': 'ن', 'l': 'م', ';': 'ك', "'": 'ط',
+    'z': 'ئ', 'x': 'ء', 'c': 'ؤ', 'v': 'ر', 'b': 'لا', 'n': 'ى',
+    'm': 'ة', ',': 'و', '.': 'ز', '/': 'ظ', '`': 'ذ',
+    '~': 'ّ', '1': '١', '2': '٢', '3': '٣', '4': '٤', '5': '٥',
+    '6': '٦', '7': '٧', '8': '٨', '9': '٩', '0': '٠'
+};
+
+function convertEnglishToArabic(text) {
+    if (!text) return '';
+    return text.split('').map(ch => EN_TO_AR_MAP[ch.toLowerCase()] || ch).join('');
+}
+
+function isEnglishText(text) {
+    const englishCount = (text.match(/[a-zA-Z]/g) || []).length;
+    return englishCount > text.length * 0.5;
+}
+
+// ========================================
+// Arabic Synonyms & Abbreviations Dictionary
+// ========================================
+const ARABIC_SYNONYMS = {
+    // Subject abbreviations & variations
+    'رياضه': ['رياضيات'],
+    'رياضة': ['رياضيات'],
+    'رياضي': ['رياضيات'],
+    'حساب': ['رياضيات'],
+    'عربي': ['لغة عربية', 'عربية'],
+    'انجليزي': ['لغة إنجليزية', 'إنجليزية', 'انجليزية'],
+    'انقليزي': ['لغة إنجليزية', 'إنجليزية', 'انجليزية'],
+    'انكليزي': ['لغة إنجليزية', 'إنجليزية', 'انجليزية'],
+    'لغه': ['لغة'],
+    'علم': ['علوم'],
+    'فيزيا': ['فيزياء'],
+    'فيزيه': ['فيزياء'],
+    'كيميا': ['كيمياء'],
+    'كيميه': ['كيمياء'],
+    'احياء': ['أحياء'],
+    'احيا': ['أحياء'],
+    'دراسات': ['دراسات اجتماعية', 'دراسات إسلامية'],
+    'اجتماعي': ['دراسات اجتماعية', 'اجتماعية'],
+    'اجتماعيه': ['دراسات اجتماعية', 'اجتماعية'],
+    'اسلامي': ['دراسات إسلامية', 'إسلامية'],
+    'اسلاميه': ['دراسات إسلامية', 'إسلامية'],
+    'تربيه': ['تربية'],
+    // Grade abbreviations
+    'ابتدائي': ['ابتدائي'],
+    'ابتدائيه': ['ابتدائي'],
+    'متوسط': ['متوسط'],
+    'متوسطه': ['متوسط'],
+    'ثانوي': ['ثانوي'],
+    'ثانويه': ['ثانوي'],
+    // Exam type abbreviations
+    'نهائي': ['اختبار نهائي', 'نهائي'],
+    'فتري': ['اختبار فتري', 'فتري'],
+    'فترى': ['اختبار فتري', 'فتري'],
+    'شهري': ['اختبار شهري', 'شهري'],
+    'تجريبي': ['اختبار تجريبي', 'تجريبي'],
+    'محاكي': ['محاكي'],
+    'مراجعه': ['مراجعة'],
+    'مراجعة': ['مراجعة'],
+    'نموذج': ['نموذج'],
+    'اجابه': ['إجابة', 'اجابة'],
+    'اجابة': ['إجابة', 'اجابة'],
+    // Numbers
+    'اول': ['الأول'],
+    'تاني': ['الثاني'],
+    'ثاني': ['الثاني'],
+    'ثالث': ['الثالث'],
+    'رابع': ['الرابع'],
+    'خامس': ['الخامس'],
+    'سادس': ['السادس'],
+};
+
+function expandSynonyms(word) {
+    const normalized = normalizeText(word);
+    const expansions = [normalized];
+    
+    // Check direct synonym match
+    for (const [key, values] of Object.entries(ARABIC_SYNONYMS)) {
+        const normalizedKey = normalizeText(key);
+        if (normalizedKey === normalized) {
+            values.forEach(v => expansions.push(normalizeText(v)));
+        }
+    }
+    
+    return [...new Set(expansions)];
+}
+
 // Smart Arabic Normalization for Search
 function normalizeText(text) {
     if (!text) return '';
@@ -22,6 +117,20 @@ function normalizeText(text) {
         .replace(/[\u064B-\u065F]/g, '') // remove tashkeel
         .toLowerCase();
 }
+
+// Smart query preprocessor: handles English keyboard + synonyms
+function preprocessQuery(rawQuery) {
+    if (!rawQuery) return '';
+    
+    // If user typed English letters, convert to Arabic keyboard layout
+    if (isEnglishText(rawQuery)) {
+        const converted = convertEnglishToArabic(rawQuery);
+        return normalizeText(converted);
+    }
+    
+    return normalizeText(rawQuery);
+}
+
 let allSubjects = {};
 let allExamTypes = [];
 
@@ -51,15 +160,37 @@ function fuzzyMatchWord(word, text) {
     // 1. Direct match
     if (text.includes(word)) return true;
     
+    // 2. Prefix match (e.g. "رياض" matches "رياضيات")
+    const wordsInText = text.split(/\s+/);
+    for (let tWord of wordsInText) {
+        if (tWord.startsWith(word) && word.length >= 2) return true;
+        let stripped = tWord.startsWith('ال') ? tWord.slice(2) : tWord;
+        if (stripped.startsWith(word) && word.length >= 2) return true;
+    }
+
+    // 3. Synonym expansion
+    const synonyms = expandSynonyms(word);
+    for (const syn of synonyms) {
+        if (syn !== word && text.includes(syn)) return true;
+        // Also check prefix of synonyms
+        for (let tWord of wordsInText) {
+            let stripped = tWord.startsWith('ال') ? tWord.slice(2) : tWord;
+            if (stripped.startsWith(syn) && syn.length >= 2) return true;
+            if (tWord.startsWith(syn) && syn.length >= 2) return true;
+        }
+    }
+
     if (word.length <= 2) return false;
 
-    // 2. Common Arabic typo regex mapping
+    // 4. Common Arabic typo regex mapping
     let regexPattern = word.split('').map(char => {
         if (char === 'ت' || char === 'ث') return '[تث]';
         if (char === 'ز' || char === 'ذ' || char === 'ظ' || char === 'ض') return '[ذزظض]';
         if (char === 'س' || char === 'ص') return '[سص]';
         if (char === 'ق' || char === 'ك') return '[قك]';
         if (char === 'ط' || char === 'ت') return '[طت]';
+        if (char === 'د' || char === 'ذ') return '[دذ]';
+        if (char === 'ه' || char === 'ح') return '[هح]';
         return char;
     }).join('');
     
@@ -67,9 +198,8 @@ function fuzzyMatchWord(word, text) {
         if (new RegExp(regexPattern).test(text)) return true;
     } catch(e) {}
 
-    // 3. Fallback to Levenshtein distance matching per word
+    // 5. Fallback to Levenshtein distance matching per word
     const maxTypos = word.length <= 4 ? 1 : 2;
-    const wordsInText = text.split(/\s+/);
     
     for (let tWord of wordsInText) {
         // Strip "ال" for fair distance comparison
@@ -78,11 +208,11 @@ function fuzzyMatchWord(word, text) {
         
         if (strippedWord === strippedTWord && strippedWord.length > 0) return true;
         
-        if (Math.abs(strippedTWord.length - strippedWord.length) <= 1) {
+        if (Math.abs(strippedTWord.length - strippedWord.length) <= 2) {
             if (levenshteinDistance(strippedWord, strippedTWord) <= maxTypos) return true;
         }
         
-        if (Math.abs(tWord.length - word.length) <= 1) {
+        if (Math.abs(tWord.length - word.length) <= 2) {
             if (levenshteinDistance(word, tWord) <= maxTypos) return true;
         }
     }
@@ -111,6 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupExamsListener();
     await updateTicker(); // Load ticker items
     initTypingAnimation(); // Start typing animation
+    initWhatsAppWidget(); // Start WhatsApp widget logic
 });
 
 // Load subjects from Firebase
@@ -133,7 +264,7 @@ function setupFilters() {
 
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            currentSearchQuery = normalizeText(e.target.value.trim());
+            currentSearchQuery = preprocessQuery(e.target.value.trim());
             
             // Debounce suggestions for performance
             clearTimeout(debounceTimer);
@@ -195,7 +326,7 @@ function setupFilters() {
     }
 
     function scoreExam(exam, query) {
-        const normalizedQuery = normalizeText(query);
+        const normalizedQuery = preprocessQuery(query);
         const queryWords = normalizedQuery.split(/\s+/).filter(w => w);
         if (!queryWords.length) return 0;
 
@@ -251,6 +382,10 @@ function setupFilters() {
             return;
         }
 
+        // Detect if user typed with wrong keyboard
+        const wasEnglishKeyboard = isEnglishText(query);
+        const processedQuery = wasEnglishKeyboard ? convertEnglishToArabic(query) : query;
+
         // Score all exams
         const scored = allExams
             .map(exam => ({ exam, score: scoreExam(exam, query) }))
@@ -266,7 +401,16 @@ function setupFilters() {
             return;
         }
 
-        let html = `<div class="suggestions-header">🔍 نتائج البحث (${scored.length})</div>`;
+        let html = '';
+        
+        // Show keyboard conversion notice
+        if (wasEnglishKeyboard) {
+            html += `<div class="suggestions-header" style="background: #eff6ff; color: #2563eb; border-color: #bfdbfe;">
+                ⌨️ تم تحويل الكيبورد تلقائياً: <strong>"${processedQuery}"</strong>
+            </div>`;
+        }
+        
+        html += `<div class="suggestions-header">🔍 نتائج البحث (${scored.length})</div>`;
         
         scored.forEach((item, index) => {
             const exam = item.exam;
@@ -743,4 +887,33 @@ function initTypingAnimation() {
     }, { threshold: 0.5 });
 
     observer.observe(heroTitle);
+}
+
+// ========================================
+// WhatsApp Popup Logic
+// ========================================
+function initWhatsAppWidget() {
+    const waPopup = document.getElementById('waPopup');
+    const waPopupClose = document.getElementById('waPopupClose');
+    
+    if (!waPopup || !waPopupClose) return;
+
+    const showPopup = () => {
+        waPopup.classList.add('show');
+        // Hide after 6 seconds
+        setTimeout(() => {
+            waPopup.classList.remove('show');
+        }, 6000);
+    };
+
+    // Initial show after 5 seconds
+    setTimeout(() => {
+        showPopup();
+        // Repeat every 25 seconds
+        setInterval(showPopup, 25000);
+    }, 5000);
+
+    waPopupClose.addEventListener('click', () => {
+        waPopup.classList.remove('show');
+    });
 }
