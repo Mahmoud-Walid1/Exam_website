@@ -1130,7 +1130,7 @@ lord-icon.icon-xlarge {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: flex-end; /* flex-end is Left in RTL */
     gap: 15px;
 }
 
@@ -1159,7 +1159,7 @@ lord-icon.icon-xlarge {
     content: '';
     position: absolute;
     bottom: -8px;
-    left: 25px;
+    left: 22px;
     width: 15px;
     height: 15px;
     background: white;
@@ -1256,5 +1256,8 @@ lord-icon.icon-xlarge {
     .wa-popup-close {
         top: 4px;
         left: 6px;
+    }
+    .wa-popup::after {
+        left: 17px;
     }
 }
