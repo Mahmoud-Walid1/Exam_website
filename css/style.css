@@ -952,39 +952,51 @@ lord-icon.icon-xlarge {
 ======================================== */
 
 @media (max-width: 768px) {
+    body, html {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    .container {
+        padding: 0 15px;
+    }
+
     .header {
         padding: 20px 0 15px;
     }
 
     .header-content {
-        flex-direction: row; /* Keep side by side but smaller */
-        gap: 20px;
-        flex-wrap: wrap;
+        flex-direction: row; /* Keep side by side */
+        gap: 15px;
+        flex-wrap: nowrap;
+        justify-content: center;
     }
 
     .logo-block {
         gap: 5px;
-        flex: 1; /* Equal space */
-        min-width: 120px;
+        flex: 1;
+        min-width: 0;
+        align-items: center;
     }
 
     .logo-img {
-        width: 65px;
-        height: 65px;
+        width: 60px;
+        height: 60px;
         border-radius: 12px;
     }
 
     .logo-name {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         line-height: 1.2;
+        text-align: center;
     }
 
     .header-tagline {
-        margin-top: 10px;
+        margin-top: 15px;
     }
 
     .site-tagline {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         padding: 4px 15px;
     }
 
@@ -994,16 +1006,18 @@ lord-icon.icon-xlarge {
 
     .hero-title {
         font-size: 1.4rem;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        line-height: 1.4;
     }
 
     /* Fix typing animation on mobile — allow text wrapping */
     .hero-title.typing-animation {
         white-space: normal;
-        border-right: none;
+        border-left: none; /* Removing caret on mobile for better wrapping */
         animation: fadeInUp 1s ease forwards;
         max-width: 100%;
         overflow: visible;
+        display: block;
     }
 
     @keyframes fadeInUp {
@@ -1019,6 +1033,19 @@ lord-icon.icon-xlarge {
 
     .hero-description {
         font-size: 0.95rem;
+        padding: 0 10px;
+    }
+
+    .smart-search-container {
+        margin-bottom: 20px;
+    }
+
+    .search-input-wrapper {
+        padding: 10px 15px;
+    }
+
+    #smartSearchInput {
+        font-size: 1rem;
     }
 
     .filters-section {
@@ -1028,23 +1055,27 @@ lord-icon.icon-xlarge {
     .terms-tabs-container {
         flex-direction: row;
         justify-content: space-between;
-        padding: 6px;
+        padding: 5px;
         border-radius: 50px;
-        gap: 8px;
+        gap: 5px;
         width: 100%;
         overflow: hidden;
     }
+
     .term-tab {
         flex: 1;
-        padding: 12px 5px;
+        padding: 10px 5px;
         font-size: 0.95rem;
         text-align: center;
         white-space: nowrap;
     }
+
     .compact-filters-container {
         padding: 15px;
-        gap: 15px;
+        gap: 12px;
+        border-radius: 15px;
     }
+
     .compact-filter-box {
         min-width: 100%;
     }
@@ -1054,8 +1085,8 @@ lord-icon.icon-xlarge {
     }
 
     .section-title {
-        font-size: 1.6rem;
-        margin-bottom: 30px;
+        font-size: 1.5rem;
+        margin-bottom: 25px;
     }
 
     .exams-grid {
@@ -1063,16 +1094,20 @@ lord-icon.icon-xlarge {
         gap: 20px;
     }
 
+    .exam-card {
+        max-width: 100%;
+    }
+
     .custom-requests {
         padding: 40px 0;
     }
 
     .custom-requests-card {
-        padding: 30px 20px;
+        padding: 30px 15px;
     }
 
     .custom-title {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
 
     .custom-description {
@@ -1090,17 +1125,17 @@ lord-icon.icon-xlarge {
     .ticker-placeholder {
         height: 90px;
     }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 25px;
+    }
 }
 
 @media (max-width: 480px) {
     .header-content {
         gap: 10px;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .logo-block {
-        width: 100%;
     }
 
     .logo-img {
@@ -1109,12 +1144,15 @@ lord-icon.icon-xlarge {
     }
 
     .logo-name {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
     }
 
     .hero-title {
-        font-size: 1.15rem;
-        line-height: 1.4;
+        font-size: 1.2rem;
+    }
+
+    .hero-description {
+        font-size: 0.9rem;
     }
 
     .no-exams-title {
@@ -1129,14 +1167,23 @@ lord-icon.icon-xlarge {
         font-size: 0.9rem;
     }
 
+    .search-input-wrapper lord-icon {
+        margin-left: 10px;
+    }
+
     .term-tab {
         font-size: 0.85rem;
-        padding: 10px 5px;
+        padding: 8px 5px;
     }
 
     .compact-filters-container {
         padding: 12px;
         gap: 10px;
+    }
+
+    .compact-select {
+        padding: 10px 12px;
+        font-size: 0.9rem;
     }
 
     .custom-title {
