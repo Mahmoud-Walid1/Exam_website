@@ -1094,27 +1094,61 @@ lord-icon.icon-xlarge {
 
 @media (max-width: 480px) {
     .header-content {
-        gap: 15px;
+        gap: 10px;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .logo-block {
+        width: 100%;
     }
 
     .logo-img {
-        width: 55px;
-        height: 55px;
+        width: 50px;
+        height: 50px;
     }
 
     .logo-name {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .hero-title {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
+        line-height: 1.4;
     }
 
     .no-exams-title {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .no-exams-subtitle {
+        font-size: 0.85rem;
+    }
+
+    #smartSearchInput {
+        font-size: 0.9rem;
+    }
+
+    .term-tab {
+        font-size: 0.85rem;
+        padding: 10px 5px;
+    }
+
+    .compact-filters-container {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .custom-title {
+        font-size: 1.2rem;
+    }
+
+    .custom-description {
+        font-size: 0.85rem;
+    }
+
+    .custom-btn {
+        padding: 12px 15px;
         font-size: 0.9rem;
     }
 }

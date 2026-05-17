@@ -797,4 +797,57 @@
     .admin-table td {
         padding: 10px;
     }
+
+    .stats-grid,
+    .coverage-subjects-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-section {
+        padding: 15px;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+    }
+
+    .top-bar {
+        padding: 0 10px;
+    }
+
+    .top-bar-left h2 {
+        font-size: 1.1rem;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .stat-card p {
+        font-size: 0.85rem;
+    }
+
+    .coverage-subject-card {
+        padding: 12px;
+    }
+
+    .coverage-grade-title {
+        font-size: 1.1rem;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    .btn-warning {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        width: 100%;
+        margin-bottom: 5px;
+    }
 }
