@@ -216,7 +216,8 @@ function fuzzyMatchWord(word, text) {
             if (levenshteinDistance(word, tWord) <= maxTypos) return true;
         }
     }
-    return false;
+}
+
 // Map subject name to matching local icon path
 function getSubjectIcon(subjectName) {
     if (!subjectName) return 'icons/default.png';
