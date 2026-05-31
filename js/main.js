@@ -217,6 +217,36 @@ function fuzzyMatchWord(word, text) {
         }
     }
     return false;
+// Map subject name to matching local icon path
+function getSubjectIcon(subjectName) {
+    if (!subjectName) return 'icons/default.png';
+    const name = subjectName.trim().toLowerCase();
+    if (name.includes('رياض') || name.includes('حساب')) return 'icons/math.png';
+    if (name.includes('عرب') || name.includes('لغتي')) return 'icons/arabic.png';
+    if (name.includes('علم') || name.includes('سائنس')) return 'icons/science.png';
+    if (name.includes('إنجليز') || name.includes('انجليز')) return 'icons/english.png';
+    if (name.includes('اجتماع') || name.includes('جغراف') || name.includes('تاريخ')) return 'icons/social_studies.png';
+    if (name.includes('إسلام') || name.includes('اسلام') || name.includes('قرآن') || name.includes('توحيد') || name.includes('فقه') || name.includes('حديث') || name.includes('تفسير') || name.includes('سيرة') || name.includes('تجويد')) return 'icons/islamic_studies.png';
+    if (name.includes('فيزيا')) return 'icons/Physics.png';
+    if (name.includes('كيميا')) return 'icons/chemistry.png';
+    if (name.includes('أحياء') || name.includes('احياء')) return 'icons/احياء.png';
+    return 'icons/default.png';
+}
+
+// Map subject name to modern background gradients
+function getSubjectGradient(subjectName) {
+    if (!subjectName) return 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)';
+    const name = subjectName.trim().toLowerCase();
+    if (name.includes('رياض') || name.includes('حساب')) return 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)'; // Indigo-blue
+    if (name.includes('عرب') || name.includes('لغتي')) return 'linear-gradient(135deg, #0d9488 0%, #115e59 100%)'; // Teal
+    if (name.includes('علم') || name.includes('سائنس')) return 'linear-gradient(135deg, #059669 0%, #047857 100%)'; // Emerald
+    if (name.includes('إنجليز') || name.includes('انجليز')) return 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)'; // Violet-indigo
+    if (name.includes('اجتماع') || name.includes('جغراف') || name.includes('تاريخ')) return 'linear-gradient(135deg, #ea580c 0%, #ca8a04 100%)'; // Orange-yellow
+    if (name.includes('إسلام') || name.includes('اسلام') || name.includes('قرآن') || name.includes('توحيد') || name.includes('فقه') || name.includes('حديث') || name.includes('تفسير') || name.includes('سيرة') || name.includes('تجويد')) return 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'; // Green
+    if (name.includes('فيزيا')) return 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)'; // Blue-cyan
+    if (name.includes('كيميا')) return 'linear-gradient(135deg, #db2777 0%, #7c3aed 100%)'; // Pink-purple
+    if (name.includes('أحياء') || name.includes('احياء')) return 'linear-gradient(135deg, #84cc16 0%, #22c55e 100%)'; // Lime-green
+    return 'linear-gradient(135deg, #475569 0%, #1e293b 100%)'; // Slate
 }
 
 
@@ -417,7 +447,7 @@ function setupFilters() {
             const gradeLevelText = exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '';
             html += `
                 <div class="suggestion-item" data-index="${index}" data-exam-url="${exam.url}" data-exam-name="${exam.name}">
-                    <img class="suggestion-icon" src="${exam.icon}" alt="${exam.subject}" onerror="this.src='icons/default.png'">
+                    <img class="suggestion-icon" src="${exam.icon || getSubjectIcon(exam.subject)}" alt="${exam.subject}" onerror="this.src='icons/default.png'">
                     <div class="suggestion-info">
                         <div class="suggestion-name">${highlightMatch(exam.name, query)}</div>
                         <div class="suggestion-meta">${exam.subject} • ${gradeLevelText} • ${exam.term || ''}</div>
@@ -699,10 +729,10 @@ function displayExams(exams) {
         const hasImage = exam.imageUrl && exam.imageUrl.trim() !== '';
         
         // Define media content: Fallback icon is always ready
-        const iconSrc = exam.icon || 'https://cdn.lordicon.com/dxjqoygy.json';
+        const iconSrc = exam.icon && exam.icon !== 'icons/default.png' ? exam.icon : getSubjectIcon(exam.subject);
         const iconHtml = `
-            <div class="exam-icon-wrapper">
-                <lord-icon src="${iconSrc}" trigger="loop" delay="2000" colors="primary:#ffffff,secondary:#ffffff" style="width:80px;height:80px;"></lord-icon>
+            <div class="exam-icon-wrapper" style="background: ${getSubjectGradient(exam.subject)};">
+                <img src="${iconSrc}" alt="${exam.subject}" class="exam-fallback-icon">
             </div>
         `;
 
@@ -710,10 +740,10 @@ function displayExams(exams) {
         if (hasImage) {
             mediaContent = `
                 ${iconHtml}
-                <div class="exam-cover-image" style="background-image: url('${exam.imageUrl}')"></div>
-                <img src="${exam.imageUrl}" alt="${exam.name}" class="exam-image-contain" 
-                     onload="this.parentElement.querySelector('.exam-icon-wrapper').style.display='none';" 
-                     onerror="this.style.display='none'; this.previousElementSibling.style.display='none'; this.parentElement.querySelector('.exam-icon-wrapper').style.display='flex';">
+                <div class="exam-cover-image lazy-bg" data-bg="${exam.imageUrl}"></div>
+                <img data-src="${exam.imageUrl}" alt="${exam.name}" class="exam-image-contain lazy-image" 
+                     onload="this.classList.add('loaded'); const cov = this.parentElement.querySelector('.exam-cover-image'); if(cov) cov.classList.add('loaded'); const wrp = this.parentElement.querySelector('.exam-icon-wrapper'); if(wrp) { wrp.style.opacity='0'; wrp.style.visibility='hidden'; }" 
+                     onerror="this.style.display='none'; const cov = this.parentElement.querySelector('.exam-cover-image'); if(cov) cov.style.display='none'; const wrp = this.parentElement.querySelector('.exam-icon-wrapper'); if(wrp) { wrp.style.opacity='1'; wrp.style.visibility='visible'; wrp.style.display='flex'; }">
             `;
         } else {
             mediaContent = iconHtml;
@@ -772,6 +802,68 @@ function displayExams(exams) {
             </div>
         `;
     }).join('');
+
+    // Initialize lazy loading for the newly rendered cards
+    initLazyLoading();
+}
+
+// Lazy loading for images and backgrounds based on IntersectionObserver
+function initLazyLoading() {
+    const lazyImages = document.querySelectorAll('.lazy-image');
+    const lazyBackgrounds = document.querySelectorAll('.lazy-bg');
+
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                    }
+                    img.classList.remove('lazy-image');
+                    observer.unobserve(img);
+                }
+            });
+        }, {
+            rootMargin: '250px 0px', // Load images 250px before they enter the screen
+            threshold: 0.01
+        });
+
+        const bgObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const div = entry.target;
+                    if (div.dataset.bg) {
+                        div.style.backgroundImage = `url('${div.dataset.bg}')`;
+                        div.removeAttribute('data-bg');
+                    }
+                    div.classList.remove('lazy-bg');
+                    observer.unobserve(div);
+                }
+            });
+        }, {
+            rootMargin: '250px 0px',
+            threshold: 0.01
+        });
+
+        lazyImages.forEach(img => imageObserver.observe(img));
+        lazyBackgrounds.forEach(bg => bgObserver.observe(bg));
+    } else {
+        // Fallback for older browsers
+        lazyImages.forEach(img => {
+            if (img.dataset.src) {
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+            }
+        });
+        lazyBackgrounds.forEach(div => {
+            if (div.dataset.bg) {
+                div.style.backgroundImage = `url('${div.dataset.bg}')`;
+                div.removeAttribute('data-bg');
+            }
+        });
+    }
 }
 
 // Update announcement ticker from Firebase ticker items

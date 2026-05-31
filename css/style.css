@@ -694,8 +694,13 @@ lord-icon.icon-xlarge {
     background-size: cover;
     background-position: center top;
     filter: blur(20px);
-    opacity: 0.4;
+    opacity: 0;
     z-index: 2;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.exam-cover-image.loaded {
+    opacity: 0.4;
 }
 
 /* The actual image */
@@ -707,7 +712,17 @@ lord-icon.icon-xlarge {
     object-fit: contain;
     padding: 10px;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    opacity: 0;
     z-index: 3;
+    transition: opacity 0.5s ease-in-out, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+}
+
+.exam-image-contain.loaded {
+    opacity: 1;
+}
+
+.exam-card:hover .exam-image-contain {
+    transform: scale(1.04);
 }
 
 /* Gradient wrapper for icon when no image */
@@ -718,7 +733,20 @@ lord-icon.icon-xlarge {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1;
+    z-index: 4;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.exam-fallback-icon {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.exam-card:hover .exam-fallback-icon {
+    transform: scale(1.12) rotate(3deg);
 }
 
 /* Floating Stage Badge */
