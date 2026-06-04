@@ -151,108 +151,116 @@
 
                     <!-- Exams Tab -->
                     <div id="exams-tab" class="tab-content">
-                        <!-- Add Exam Section -->
-                        <section class="admin-section">
-                            <h2 class="section-title">إضافة اختبار جديد</h2>
-                            <form id="addExamForm" class="admin-form">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="examName">اسم الاختبار *</label>
-                                        <input type="text" id="examName" required placeholder="مثال: اختبار نهائي لغتي - الصف الأول">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="examUrl">رابط المنتج على سلة *</label>
-                                        <input type="url" id="examUrl" required placeholder="https://sabir5-1-1.com/...">
-                                    </div>
-                                </div>
+                        <!-- Header Toolbar -->
+                        <div class="tab-header-toolbar">
+                            <h2>إدارة الاختبارات</h2>
+                            <button id="openAddExamModalBtn" class="btn-primary">+ إضافة اختبار جديد</button>
+                        </div>
 
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="examGrade">المرحلة الدراسية *</label>
-                                        <select id="examGrade" required>
-                                            <option value="">اختر المرحلة</option>
-                                            <option value="ابتدائي">ابتدائي</option>
-                                            <option value="متوسط">متوسط</option>
-                                            <option value="ثانوي">ثانوي</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="examGradeLevel">الصف الدراسي *</label>
-                                        <select id="examGradeLevel" required disabled>
-                                            <option value="">اختر المرحلة أولاً</option>
-                                        </select>
-                                    </div>
-                                </div>
+                        <!-- Stats Tag Toolbar -->
+                        <div class="filtered-stats-toolbar" id="filteredStatsToolbar">
+                            <div class="filtered-stat-tag">إجمالي الاختبارات:<span id="filteredTotalCount">0</span></div>
+                            <div class="filtered-stat-tag">ابتدائي:<span id="filteredPrimaryCount">0</span></div>
+                            <div class="filtered-stat-tag">متوسط:<span id="filteredMiddleCount">0</span></div>
+                            <div class="filtered-stat-tag">ثانوي:<span id="filteredSecondaryCount">0</span></div>
+                        </div>
 
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="examSubject">المادة الدراسية *</label>
-                                        <select id="examSubject" required>
-                                            <option value="">اختر المادة</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="examImageUrl">رابط صورة الاختبار (اختياري)</label>
-                                        <input type="url" id="examImageUrl" placeholder="https://example.com/image.jpg">
-                                    </div>
+                        <!-- Advanced Search and Filter Section -->
+                        <div class="exams-control-panel">
+                            <div class="search-filter-grid">
+                                <!-- Search Input -->
+                                <div class="search-box-wrapper">
+                                    <input type="text" id="adminSearchInput" placeholder="البحث باسم الاختبار أو المادة...">
+                                    <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="hover" colors="primary:#94a3b8" class="search-icon" style="width:20px;height:20px;"></lord-icon>
                                 </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="examTerm">الفصل الدراسي *</label>
-                                        <select id="examTerm" required>
-                                            <option value="">اختر الفصل</option>
-                                            <option value="الفصل الأول">الفصل الأول</option>
-                                            <option value="الفصل الثاني">الفصل الثاني</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="examType">نوع الاختبار *</label>
-                                        <select id="examType" required>
-                                            <option value="">اختر النوع</option>
-                                            <!-- سيتم إضافته ديناميكياً -->
-                                        </select>
-                                    </div>
+                                
+                                <!-- Stage Filter -->
+                                <div class="filter-group">
+                                    <label for="filterGrade">المرحلة الدراسية</label>
+                                    <select id="filterGrade" class="filter-select">
+                                        <option value="">الكل</option>
+                                        <option value="ابتدائي">ابتدائي</option>
+                                        <option value="متوسط">متوسط</option>
+                                        <option value="ثانوي">ثانوي</option>
+                                    </select>
                                 </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="examModel">النموذج (اختياري)</label>
-                                        <input type="text" id="examModel" placeholder="مثال: نموذج 1">
-                                    </div>
-                                    <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 30px; background: #fffbeb; padding: 10px; border-radius: 8px; border: 1px solid #fde68a;">
-                                        <input type="checkbox" id="examIsStandard" style="width: 20px; height: 20px; cursor: pointer;">
-                                        <label for="examIsStandard" style="cursor: pointer; font-weight: 700; color: #92400e;">وفق جدول المواصفات ✨</label>
-                                    </div>
+                                
+                                <!-- Grade Level Filter -->
+                                <div class="filter-group">
+                                    <label for="filterGradeLevel">الصف الدراسي</label>
+                                    <select id="filterGradeLevel" class="filter-select" disabled>
+                                        <option value="">اختر المرحلة أولاً</option>
+                                    </select>
                                 </div>
-
-                                <div class="form-group">
-                                    <label>اختر أيقونة الاختبار *</label>
-                                    <div class="icon-selector" id="iconSelector"></div>
-                                    <input type="hidden" id="selectedIcon" required>
-                                    <input type="hidden" id="editingExamId">
+                                
+                                <!-- Subject Filter -->
+                                <div class="filter-group">
+                                    <label for="filterSubject">المادة الدراسية</label>
+                                    <select id="filterSubject" class="filter-select">
+                                        <option value="">الكل</option>
+                                    </select>
                                 </div>
-
-                                <div class="form-actions">
-                                    <button type="submit" class="btn-primary" id="submitExamBtn">إضافة الاختبار</button>
-                                    <button type="button" class="btn-secondary" id="cancelEditBtn" style="display: none;">إلغاء التعديل</button>
-                                    <button type="reset" class="btn-secondary">إعادة تعيين</button>
+                                
+                                <!-- Term Filter -->
+                                <div class="filter-group">
+                                    <label for="filterTerm">الفصل الدراسي</label>
+                                    <select id="filterTerm" class="filter-select">
+                                        <option value="">الكل</option>
+                                        <option value="الفصل الأول">الفصل الأول</option>
+                                        <option value="الفصل الثاني">الفصل الثاني</option>
+                                    </select>
                                 </div>
-                                <div id="addExamMessage" class="success-message" style="display: none;"></div>
-                            </form>
-                        </section>
+                                
+                                <!-- Exam Type Filter -->
+                                <div class="filter-group">
+                                    <label for="filterExamType">نوع الاختبار</label>
+                                    <select id="filterExamType" class="filter-select">
+                                        <option value="">الكل</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Specifications Filter -->
+                                <div class="filter-group">
+                                    <label for="filterIsStandard">جدول المواصفات</label>
+                                    <select id="filterIsStandard" class="filter-select">
+                                        <option value="">الكل</option>
+                                        <option value="yes">وفق جدول المواصفات ✨</option>
+                                        <option value="no">بدون جدول المواصفات</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions & Toggles -->
+                            <div class="control-actions-row">
+                                <div class="active-filters-info" id="activeFiltersInfo" style="display: none;">
+                                    الفلاتر النشطة: <span id="activeFiltersCount" class="active-filters-count">0</span>
+                                    <button id="btnResetFilters" class="btn-reset-filters">إعادة تعيين الفلاتر</button>
+                                </div>
+                                <div style="flex: 1;" id="spacerFilters"></div>
+                                <div class="view-controls">
+                                    <button id="viewGridBtn" class="view-btn active">
+                                        <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#64748b" style="width:16px;height:16px;vertical-align:middle;"></lord-icon>
+                                        عرض بطاقات
+                                    </button>
+                                    <button id="viewTableBtn" class="view-btn">
+                                        <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#64748b" style="width:16px;height:16px;vertical-align:middle;"></lord-icon>
+                                        عرض جدول
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
-                        <!-- Exams List Section -->
-                        <section class="admin-section">
-                            <h2 class="section-title">الاختبارات الحالية</h2>
-                            <div class="table-responsive">
+                        <!-- Exams Display Container -->
+                        <section class="admin-section" style="padding: 20px;">
+                            <!-- Table View -->
+                            <div id="tableContainer" class="table-responsive" style="display: none;">
                                 <table class="admin-table">
                                     <thead>
                                         <tr>
                                             <th>الأيقونة</th>
                                             <th>اسم الاختبار</th>
                                             <th>المرحلة</th>
-                                            <th>الصف الدراسي</th>
+                                            <th>الصف</th>
                                             <th>المادة</th>
                                             <th>النموذج</th>
                                             <th>المواصفات</th>
@@ -266,7 +274,117 @@
                                     <tbody id="examsTableBody"></tbody>
                                 </table>
                             </div>
+
+                            <!-- Grid/Card View -->
+                            <div id="gridContainer" class="exams-admin-grid"></div>
+
+                            <!-- No Results State -->
+                            <div id="adminNoExams" class="no-exams" style="display: none; padding: 40px 20px; margin-top: 20px;">
+                                <div class="no-exams-icon">
+                                    <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" delay="1000" colors="primary:#cbd5e1,secondary:#94a3b8" style="width:80px;height:80px;"></lord-icon>
+                                </div>
+                                <p class="no-exams-title" style="font-size: 1.2rem;">لا توجد اختبارات تطابق البحث أو الفلاتر المحددة</p>
+                                <p class="no-exams-subtitle" style="font-size: 0.9rem;">جرب كتابة كلمات مختلفة أو إعادة تعيين الفلاتر.</p>
+                            </div>
                         </section>
+
+                        <!-- Add/Edit Exam Modal Overlay -->
+                        <div id="examModalOverlay" class="modal-overlay">
+                            <div class="modal-card">
+                                <div class="modal-card-header">
+                                    <h3 id="modalTitle">إضافة اختبار جديد</h3>
+                                    <button id="closeModalBtn" class="modal-close-btn">&times;</button>
+                                </div>
+                                <div class="modal-card-body">
+                                    <form id="addExamForm" class="admin-form">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="examName">اسم الاختبار *</label>
+                                                <input type="text" id="examName" required placeholder="مثال: اختبار نهائي لغتي - الصف الأول">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="examUrl">رابط المنتج على سلة *</label>
+                                                <input type="url" id="examUrl" required placeholder="https://sabir5-1-1.com/...">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="examGrade">المرحلة الدراسية *</label>
+                                                <select id="examGrade" required>
+                                                    <option value="">اختر المرحلة</option>
+                                                    <option value="ابتدائي">ابتدائي</option>
+                                                    <option value="متوسط">متوسط</option>
+                                                    <option value="ثانوي">ثانوي</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="examGradeLevel">الصف الدراسي *</label>
+                                                <select id="examGradeLevel" required disabled>
+                                                    <option value="">اختر المرحلة أولاً</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="examSubject">المادة الدراسية *</label>
+                                                <select id="examSubject" required>
+                                                    <option value="">اختر المادة</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="examImageUrl">رابط صورة الاختبار (اختياري)</label>
+                                                <input type="url" id="examImageUrl" placeholder="https://example.com/image.jpg">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="examTerm">الفصل الدراسي *</label>
+                                                <select id="examTerm" required>
+                                                    <option value="">اختر الفصل</option>
+                                                    <option value="الفصل الأول">الفصل الأول</option>
+                                                    <option value="الفصل الثاني">الفصل الثاني</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="examType">نوع الاختبار *</label>
+                                                <select id="examType" required>
+                                                    <option value="">اختر النوع</option>
+                                                    <!-- سيتم إضافته ديناميكياً -->
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="examModel">النموذج (اختياري)</label>
+                                                <input type="text" id="examModel" placeholder="مثال: نموذج 1">
+                                            </div>
+                                            <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 30px; background: #fffbeb; padding: 10px; border-radius: 8px; border: 1px solid #fde68a;">
+                                                <input type="checkbox" id="examIsStandard" style="width: 20px; height: 20px; cursor: pointer;">
+                                                <label for="examIsStandard" style="cursor: pointer; font-weight: 700; color: #92400e;">وفق جدول المواصفات ✨</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>اختر أيقونة الاختبار *</label>
+                                            <div class="icon-selector" id="iconSelector"></div>
+                                            <input type="hidden" id="selectedIcon" required>
+                                            <input type="hidden" id="editingExamId">
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-primary" id="submitExamBtn">إضافة الاختبار</button>
+                                            <button type="button" class="btn-secondary" id="cancelEditBtn" style="display: none;">إلغاء التعديل</button>
+                                            <button type="reset" class="btn-secondary">إعادة تعيين</button>
+                                        </div>
+                                    </form>
+                                    <div id="addExamMessage" class="success-message" style="display: none;"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Subjects Tab -->

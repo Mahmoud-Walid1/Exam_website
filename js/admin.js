@@ -10,6 +10,18 @@ let allExams = [];
 let allExamTypes = [];
 let selectedIcon = null;
 
+// Filtering and view state
+let activeViewMode = 'grid'; // 'grid' or 'table'
+let currentFilters = {
+    search: '',
+    grade: '',
+    gradeLevel: '',
+    subject: '',
+    term: '',
+    examType: '',
+    isStandard: ''
+};
+
 // Available icons
 const AVAILABLE_ICONS = [
     { name: 'math.png', label: 'رياضيات' },
@@ -110,6 +122,7 @@ async function initializeDashboard() {
     await initializeSubjects();
     await loadSubjects();
     await loadExamTypes();
+    setupExamsControlPanel();
     await loadExams();
     setupLogout();
     setupAddExamForm();
@@ -435,12 +448,13 @@ async function loadSubjects() {
     allSubjects = await getSubjects();
     updateSubjectsDisplay();
     updateExamSubjectDropdown();
+    updateFilterSubjectDropdown();
 }
 
 // Load exams
 async function loadExams() {
     allExams = await getExams();
-    displayExamsTable();
+    applyExamsFiltering();
     updateQuickStats();
 }
 
@@ -549,24 +563,42 @@ window.editExam = function (examId) {
     document.getElementById('submitExamBtn').textContent = 'حفظ التعديلات ✅';
     document.getElementById('cancelEditBtn').style.display = 'inline-block';
     document.getElementById('editingExamId').value = examId;
-    document.getElementById('addExamForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    openModal(true, exam.name);
 };
 
 // Cancel edit
 function cancelEdit() {
     const form = document.getElementById('addExamForm');
-    form.reset();
+    if (form) form.reset();
     selectedIcon = null;
     document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
-    document.getElementById('selectedIcon').value = '';
-    document.getElementById('editingExamId').value = '';
-    document.getElementById('examImageUrl').value = '';
-    document.getElementById('examTerm').value = '';
-    document.getElementById('examType').value = '';
-    document.getElementById('examModel').value = '';
-    document.getElementById('examIsStandard').checked = false;
-    document.getElementById('submitExamBtn').textContent = 'إضافة الاختبار';
-    document.getElementById('cancelEditBtn').style.display = 'none';
+    const selectedIconInput = document.getElementById('selectedIcon');
+    if (selectedIconInput) selectedIconInput.value = '';
+    const editingExamIdInput = document.getElementById('editingExamId');
+    if (editingExamIdInput) editingExamIdInput.value = '';
+    const examImageUrlInput = document.getElementById('examImageUrl');
+    if (examImageUrlInput) examImageUrlInput.value = '';
+
+    // Clear dropdowns dynamically
+    const examGradeLevel = document.getElementById('examGradeLevel');
+    if (examGradeLevel) {
+        examGradeLevel.disabled = true;
+        examGradeLevel.innerHTML = '<option value="">اختر المرحلة أولاً</option>';
+    }
+    const examSubject = document.getElementById('examSubject');
+    if (examSubject) {
+        examSubject.innerHTML = '<option value="">اختر المادة</option>';
+    }
+
+    // Also reset checkboxes and buttons
+    const submitBtn = document.getElementById('submitExamBtn');
+    if (submitBtn) submitBtn.textContent = 'إضافة الاختبار';
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+
+    // Close modal
+    const modalOverlay = document.getElementById('examModalOverlay');
+    if (modalOverlay) modalOverlay.classList.remove('active');
 }
 
 // Update exam grade level dropdown
@@ -652,6 +684,7 @@ async function loadExamTypes() {
     allExamTypes = await getExamTypes();
     updateExamTypesDisplay();
     updateExamTypeDropdown();
+    updateFilterExamTypeDropdown();
 }
 
 // Setup Exam Types Manager
@@ -705,13 +738,14 @@ window.handleDeleteExamType = async (type) => {
 
 // Display exams table
 function displayExamsTable() {
-    const tableBody = document.getElementById('examsTableBody');
-    if (allExams.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">لا توجد اختبارات</td></tr>';
-        return;
-    }
+    applyExamsFiltering();
+}
 
-    tableBody.innerHTML = allExams.map(exam => `
+function renderExamsTable(exams) {
+    const tableBody = document.getElementById('examsTableBody');
+    if (!tableBody) return;
+    
+    tableBody.innerHTML = exams.map(exam => `
         <tr>
             <td><img src="${exam.icon}" alt="${exam.name}" class="table-image" onerror="this.src='icons/default.png'"></td>
             <td style="font-weight: 700;">${exam.name}</td>
@@ -736,6 +770,414 @@ function displayExamsTable() {
             </td>
         </tr>
     `).join('');
+}
+
+function renderExamsGrid(exams) {
+    const gridContainer = document.getElementById('gridContainer');
+    if (!gridContainer) return;
+    
+    gridContainer.innerHTML = exams.map(exam => {
+        const fallbackIcon = exam.icon || 'icons/default.png';
+        const imageHtml = exam.imageUrl 
+            ? `<img src="${exam.imageUrl}" alt="${exam.name}" class="admin-card-image" onerror="this.style.display='none'">`
+            : '';
+            
+        return `
+            <div class="admin-exam-card" data-id="${exam.id}">
+                <div class="admin-card-header">
+                    <img src="${fallbackIcon}" alt="${exam.subject}" class="admin-card-icon" onerror="this.src='icons/default.png'">
+                    <div class="admin-card-title-block">
+                        <h4 class="admin-card-title" title="${exam.name}">${exam.name}</h4>
+                        <div class="admin-card-subtitle">${exam.subject} - الصف ${exam.gradeLevel}</div>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <div class="admin-card-badges">
+                        <span class="admin-card-badge grade">${exam.grade}</span>
+                        <span class="admin-card-badge level">الصف ${exam.gradeLevel}</span>
+                        <span class="admin-card-badge term">${exam.term || 'غير محدد'}</span>
+                        <span class="admin-card-badge type">${exam.examType || 'غير محدد'}</span>
+                        ${exam.examIsStandard ? `<span class="admin-card-badge standard">وفق المواصفات ✨</span>` : ''}
+                        ${exam.examModel ? `<span class="admin-card-badge level" style="background:#f1f5f9; color:#475569;">نموذج: ${exam.examModel}</span>` : ''}
+                    </div>
+                    ${imageHtml}
+                    <div class="admin-card-meta">
+                        <span>الرابط:</span>
+                        <a href="${exam.url}" target="_blank">رابط المنتج على سلة</a>
+                    </div>
+                </div>
+                <div class="admin-card-footer">
+                    <button class="btn-edit" onclick="editExam('${exam.id}')">
+                        <lord-icon src="https://cdn.lordicon.com/pnavxiaz.json" trigger="hover" colors="primary:#ffffff" style="width:16px;height:16px;vertical-align:middle;"></lord-icon>
+                        تعديل
+                    </button>
+                    <button class="btn-delete" onclick="handleDeleteExam('${exam.id}')">
+                        <lord-icon src="https://cdn.lordicon.com/kfzoxerb.json" trigger="hover" colors="primary:#ffffff" style="width:16px;height:16px;vertical-align:middle;"></lord-icon>
+                        حذف
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function applyExamsFiltering() {
+    const filteredExams = allExams.filter(exam => {
+        if (currentFilters.search) {
+            const term = currentFilters.search.toLowerCase().trim();
+            const nameMatch = exam.name && exam.name.toLowerCase().includes(term);
+            const subjectMatch = exam.subject && exam.subject.toLowerCase().includes(term);
+            if (!nameMatch && !subjectMatch) return false;
+        }
+        
+        if (currentFilters.grade && exam.grade !== currentFilters.grade) {
+            return false;
+        }
+        
+        if (currentFilters.gradeLevel && exam.gradeLevel !== currentFilters.gradeLevel) {
+            return false;
+        }
+        
+        if (currentFilters.subject && exam.subject !== currentFilters.subject) {
+            return false;
+        }
+        
+        if (currentFilters.term && exam.term !== currentFilters.term) {
+            return false;
+        }
+        
+        if (currentFilters.examType && exam.examType !== currentFilters.examType) {
+            return false;
+        }
+        
+        if (currentFilters.isStandard) {
+            const needsStandard = currentFilters.isStandard === 'yes';
+            const isStandard = !!exam.examIsStandard;
+            if (needsStandard !== isStandard) return false;
+        }
+        
+        return true;
+    });
+    
+    updateFilteredStats(filteredExams);
+    updateActiveFiltersBadge();
+    
+    const gridContainer = document.getElementById('gridContainer');
+    const tableContainer = document.getElementById('tableContainer');
+    const noExamsEl = document.getElementById('adminNoExams');
+    
+    if (filteredExams.length === 0) {
+        if (gridContainer) gridContainer.style.display = 'none';
+        if (tableContainer) tableContainer.style.display = 'none';
+        if (noExamsEl) noExamsEl.style.display = 'block';
+    } else {
+        if (noExamsEl) noExamsEl.style.display = 'none';
+        
+        if (activeViewMode === 'grid') {
+            if (tableContainer) tableContainer.style.display = 'none';
+            if (gridContainer) {
+                gridContainer.style.display = 'grid';
+                renderExamsGrid(filteredExams);
+            }
+        } else {
+            if (gridContainer) gridContainer.style.display = 'none';
+            if (tableContainer) {
+                tableContainer.style.display = 'block';
+                renderExamsTable(filteredExams);
+            }
+        }
+    }
+}
+
+function updateFilteredStats(exams) {
+    const totalCountEl = document.getElementById('filteredTotalCount');
+    const primaryCountEl = document.getElementById('filteredPrimaryCount');
+    const middleCountEl = document.getElementById('filteredMiddleCount');
+    const secondaryCountEl = document.getElementById('filteredSecondaryCount');
+    
+    if (totalCountEl) totalCountEl.textContent = exams.length;
+    
+    let primaryCount = 0;
+    let middleCount = 0;
+    let secondaryCount = 0;
+    
+    exams.forEach(exam => {
+        if (exam.grade === 'ابتدائي') primaryCount++;
+        else if (exam.grade === 'متوسط') middleCount++;
+        else if (exam.grade === 'ثانوي') secondaryCount++;
+    });
+    
+    if (primaryCountEl) primaryCountEl.textContent = primaryCount;
+    if (middleCountEl) middleCountEl.textContent = middleCount;
+    if (secondaryCountEl) secondaryCountEl.textContent = secondaryCount;
+}
+
+function updateActiveFiltersBadge() {
+    const badgeContainer = document.getElementById('activeFiltersInfo');
+    const badgeCount = document.getElementById('activeFiltersCount');
+    const spacerFilters = document.getElementById('spacerFilters');
+    
+    if (!badgeContainer || !badgeCount) return;
+    
+    let count = 0;
+    if (currentFilters.search) count++;
+    if (currentFilters.grade) count++;
+    if (currentFilters.gradeLevel) count++;
+    if (currentFilters.subject) count++;
+    if (currentFilters.term) count++;
+    if (currentFilters.examType) count++;
+    if (currentFilters.isStandard) count++;
+    
+    if (count > 0) {
+        badgeCount.textContent = count;
+        badgeContainer.style.display = 'flex';
+        if (spacerFilters) spacerFilters.style.display = 'none';
+    } else {
+        badgeContainer.style.display = 'none';
+        if (spacerFilters) spacerFilters.style.display = 'block';
+    }
+}
+
+function setupExamsControlPanel() {
+    const searchInput = document.getElementById('adminSearchInput');
+    const filterGrade = document.getElementById('filterGrade');
+    const filterGradeLevel = document.getElementById('filterGradeLevel');
+    const filterSubject = document.getElementById('filterSubject');
+    const filterTerm = document.getElementById('filterTerm');
+    const filterExamType = document.getElementById('filterExamType');
+    const filterIsStandard = document.getElementById('filterIsStandard');
+    
+    const openAddBtn = document.getElementById('openAddExamModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalOverlay = document.getElementById('examModalOverlay');
+    
+    const viewGridBtn = document.getElementById('viewGridBtn');
+    const viewTableBtn = document.getElementById('viewTableBtn');
+    const btnResetFilters = document.getElementById('btnResetFilters');
+    
+    if (openAddBtn) {
+        openAddBtn.addEventListener('click', () => {
+            openModal(false);
+        });
+    }
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            closeModal();
+        });
+    }
+    
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+    }
+    
+    if (viewGridBtn) {
+        viewGridBtn.addEventListener('click', () => {
+            activeViewMode = 'grid';
+            viewGridBtn.classList.add('active');
+            if (viewTableBtn) viewTableBtn.classList.remove('active');
+            applyExamsFiltering();
+        });
+    }
+    
+    if (viewTableBtn) {
+        viewTableBtn.addEventListener('click', () => {
+            activeViewMode = 'table';
+            viewTableBtn.classList.add('active');
+            if (viewGridBtn) viewGridBtn.classList.remove('active');
+            applyExamsFiltering();
+        });
+    }
+    
+    if (btnResetFilters) {
+        btnResetFilters.addEventListener('click', () => {
+            currentFilters = {
+                search: '',
+                grade: '',
+                gradeLevel: '',
+                subject: '',
+                term: '',
+                examType: '',
+                isStandard: ''
+            };
+            
+            if (searchInput) searchInput.value = '';
+            if (filterGrade) filterGrade.value = '';
+            if (filterGradeLevel) {
+                filterGradeLevel.value = '';
+                filterGradeLevel.disabled = true;
+                filterGradeLevel.innerHTML = '<option value="">اختر المرحلة أولاً</option>';
+            }
+            if (filterSubject) filterSubject.value = '';
+            if (filterTerm) filterTerm.value = '';
+            if (filterExamType) filterExamType.value = '';
+            if (filterIsStandard) filterIsStandard.value = '';
+            
+            updateFilterSubjectDropdown();
+            applyExamsFiltering();
+        });
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            currentFilters.search = searchInput.value;
+            applyExamsFiltering();
+        });
+    }
+    
+    if (filterGrade) {
+        filterGrade.addEventListener('change', () => {
+            currentFilters.grade = filterGrade.value;
+            currentFilters.gradeLevel = '';
+            
+            updateFilterGradeLevelDropdown();
+            updateFilterSubjectDropdown();
+            applyExamsFiltering();
+        });
+    }
+    
+    if (filterGradeLevel) {
+        filterGradeLevel.addEventListener('change', () => {
+            currentFilters.gradeLevel = filterGradeLevel.value;
+            applyExamsFiltering();
+        });
+    }
+    
+    if (filterSubject) {
+        filterSubject.addEventListener('change', () => {
+            currentFilters.subject = filterSubject.value;
+            applyExamsFiltering();
+        });
+    }
+    
+    if (filterTerm) {
+        filterTerm.addEventListener('change', () => {
+            currentFilters.term = filterTerm.value;
+            applyExamsFiltering();
+        });
+    }
+    
+    if (filterExamType) {
+        filterExamType.addEventListener('change', () => {
+            currentFilters.examType = filterExamType.value;
+            applyExamsFiltering();
+        });
+    }
+    
+    if (filterIsStandard) {
+        filterIsStandard.addEventListener('change', () => {
+            currentFilters.isStandard = filterIsStandard.value;
+            applyExamsFiltering();
+        });
+    }
+}
+
+function updateFilterSubjectDropdown() {
+    const filterSubjectSelect = document.getElementById('filterSubject');
+    if (!filterSubjectSelect) return;
+    
+    filterSubjectSelect.innerHTML = '<option value="">الكل</option>';
+    
+    let subjectsList = [];
+    const selectedGrade = currentFilters.grade;
+    
+    if (selectedGrade && allSubjects[selectedGrade]) {
+        subjectsList = allSubjects[selectedGrade];
+    } else {
+        const allSet = new Set();
+        Object.values(allSubjects).forEach(subs => {
+            subs.forEach(s => allSet.add(s));
+        });
+        subjectsList = Array.from(allSet);
+    }
+    
+    subjectsList.forEach(subject => {
+        const option = document.createElement('option');
+        option.value = subject;
+        option.textContent = subject;
+        if (currentFilters.subject === subject) {
+            option.selected = true;
+        }
+        filterSubjectSelect.appendChild(option);
+    });
+}
+
+function updateFilterExamTypeDropdown() {
+    const filterTypeSelect = document.getElementById('filterExamType');
+    if (!filterTypeSelect) return;
+    
+    filterTypeSelect.innerHTML = '<option value="">الكل</option>';
+    allExamTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        if (currentFilters.examType === type) {
+            option.selected = true;
+        }
+        filterTypeSelect.appendChild(option);
+    });
+}
+
+function updateFilterGradeLevelDropdown() {
+    const filterGradeLevelSelect = document.getElementById('filterGradeLevel');
+    if (!filterGradeLevelSelect) return;
+    
+    const selectedGrade = currentFilters.grade;
+    filterGradeLevelSelect.innerHTML = '<option value="">الكل</option>';
+    
+    if (selectedGrade && GRADE_LEVELS[selectedGrade]) {
+        filterGradeLevelSelect.disabled = false;
+        GRADE_LEVELS[selectedGrade].forEach(level => {
+            const option = document.createElement('option');
+            option.value = level;
+            option.textContent = `الصف ${level}`;
+            if (currentFilters.gradeLevel === level) {
+                option.selected = true;
+            }
+            filterGradeLevelSelect.appendChild(option);
+        });
+    } else {
+        filterGradeLevelSelect.disabled = true;
+        filterGradeLevelSelect.innerHTML = '<option value="">اختر المرحلة أولاً</option>';
+    }
+}
+
+function openModal(isEdit = false, examName = '') {
+    const modalOverlay = document.getElementById('examModalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    
+    if (!modalOverlay) return;
+    
+    if (isEdit) {
+        if (modalTitle) modalTitle.textContent = `تعديل الاختبار: ${examName}`;
+        if (cancelEditBtn) cancelEditBtn.style.display = 'inline-block';
+    } else {
+        if (modalTitle) modalTitle.textContent = 'إضافة اختبار جديد';
+        if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+        
+        // Reset form for fresh addition
+        const form = document.getElementById('addExamForm');
+        if (form) form.reset();
+        selectedIcon = null;
+        document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+        const selectedIconInput = document.getElementById('selectedIcon');
+        if (selectedIconInput) selectedIconInput.value = '';
+        const editingExamIdInput = document.getElementById('editingExamId');
+        if (editingExamIdInput) editingExamIdInput.value = '';
+        const examImageUrlInput = document.getElementById('examImageUrl');
+        if (examImageUrlInput) examImageUrlInput.value = '';
+    }
+    
+    modalOverlay.classList.add('active');
+}
+
+function closeModal() {
+    cancelEdit();
 }
 
 // Handle delete exam
