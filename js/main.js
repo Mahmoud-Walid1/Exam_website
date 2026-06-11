@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const visitsEl = document.getElementById('statVisitsCount');
         if (visitsEl) {
-            animateNumber(visitsEl, visits);
+            animateNumber(visitsEl, visits + 465);
         }
     } catch (e) {
         console.error('Error handling visitor counter:', e);
