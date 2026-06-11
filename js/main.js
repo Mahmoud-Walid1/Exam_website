@@ -344,6 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await updateTicker(); // Load ticker items
     initTypingAnimation(); // Start typing animation
     initWhatsAppWidget(); // Start WhatsApp widget logic
+    initScrollToTop(); // Start Scroll-to-top logic
 });
 
 // Load subjects from Firebase
@@ -1080,5 +1081,26 @@ function initWhatsAppWidget() {
 
     waPopupClose.addEventListener('click', () => {
         waPopup.classList.remove('show');
+    });
+}
+
+// Scroll to Top Logic
+function initScrollToTop() {
+    const scrollBtn = document.getElementById('scrollToTopBtn');
+    if (!scrollBtn) return;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            scrollBtn.classList.add('show');
+        } else {
+            scrollBtn.classList.remove('show');
+        }
+    });
+
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     });
 }

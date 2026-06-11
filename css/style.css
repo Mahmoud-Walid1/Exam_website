@@ -1469,6 +1469,53 @@ lord-icon.icon-xlarge {
     100% { transform: scale(1.5); opacity: 0; }
 }
 
+/* ========================================
+   Scroll To Top Button
+======================================== */
+.scroll-to-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #0ea5e9 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.9);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.scroll-to-top-btn.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.scroll-to-top-btn:hover {
+    background: var(--primary-color);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(30, 58, 95, 0.4);
+}
+
+.scroll-to-top-btn .arrow-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.scroll-to-top-btn:hover .arrow-icon {
+    transform: translateY(-2px);
+}
+
 @media (max-width: 768px) {
     .whatsapp-widget {
         bottom: 20px;
@@ -1496,5 +1543,16 @@ lord-icon.icon-xlarge {
     }
     .wa-popup::after {
         left: 17px;
+    }
+
+    .scroll-to-top-btn {
+        bottom: 20px;
+        right: 15px;
+        width: 44px;
+        height: 44px;
+    }
+    .scroll-to-top-btn .arrow-icon {
+        width: 18px;
+        height: 18px;
     }
 }
