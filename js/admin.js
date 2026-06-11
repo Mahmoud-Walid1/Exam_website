@@ -1307,6 +1307,107 @@ function cleanProductName(name) {
         .trim();
 }
 
+function isLocalFilePath(url) {
+    if (!url) return false;
+    return url.includes('_files/') || url.startsWith('./') || url.startsWith('../') || (!url.startsWith('http') && !url.startsWith('//'));
+}
+
+function findImageInJsonLd(doc, productName, productUrl) {
+    const jsonLdScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+    let foundImage = '';
+    
+    jsonLdScripts.forEach(script => {
+        try {
+            const data = JSON.parse(script.textContent);
+            
+            function searchForProduct(obj) {
+                if (foundImage) return; // Stop if already found
+                if (!obj || typeof obj !== 'object') return;
+                
+                if (obj['@type'] === 'Product') {
+                    const nameMatch = obj.name && productName && (
+                        obj.name.trim().toLowerCase() === productName.trim().toLowerCase() ||
+                        obj.name.trim().toLowerCase().includes(productName.trim().toLowerCase()) ||
+                        productName.trim().toLowerCase().includes(obj.name.trim().toLowerCase())
+                    );
+                    const urlMatch = obj.url && productUrl && (
+                        normalizeUrl(obj.url) === normalizeUrl(productUrl)
+                    );
+                    
+                    if (nameMatch || urlMatch) {
+                        let imgUrl = obj.image || '';
+                        if (Array.isArray(imgUrl)) imgUrl = imgUrl[0] || '';
+                        if (imgUrl && !isLocalFilePath(imgUrl)) {
+                            foundImage = imgUrl;
+                            return;
+                        }
+                    }
+                }
+                
+                if (obj['@type'] === 'ItemList' && Array.isArray(obj.itemListElement)) {
+                    obj.itemListElement.forEach(item => {
+                        searchForProduct(item);
+                        searchForProduct(item.item);
+                    });
+                }
+                
+                for (const key in obj) {
+                    if (typeof obj[key] === 'object') {
+                        searchForProduct(obj[key]);
+                    }
+                }
+            }
+            
+            searchForProduct(data);
+        } catch (e) {}
+    });
+    
+    return foundImage;
+}
+
+function findImageInNoscript(card) {
+    const noscript = card.querySelector('noscript');
+    if (noscript) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = noscript.textContent || noscript.innerHTML;
+        const img = tempDiv.querySelector('img');
+        if (img) {
+            let url = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || img.getAttribute('data-lazy');
+            if (url && !isLocalFilePath(url)) {
+                return url;
+            }
+        }
+    }
+    return '';
+}
+
+function resolveOriginalImage(img, card, doc, productName, productUrl) {
+    if (!img) return '';
+
+    // 1. Try noscript fallback first (very high chance of absolute URL in Chrome saved pages)
+    if (card) {
+        const noscriptImg = findImageInNoscript(card);
+        if (noscriptImg) return noscriptImg;
+    }
+
+    // 2. Try to get original data attributes
+    let url = img.getAttribute('data-src') || 
+              img.getAttribute('data-lazy-src') || 
+              img.getAttribute('data-lazy') || 
+              img.getAttribute('data-bg') || 
+              img.getAttribute('src') || '';
+
+    // 3. If it is a local relative path, find it in JSON-LD
+    if (isLocalFilePath(url)) {
+        const originalLdImage = findImageInJsonLd(doc, productName, productUrl);
+        if (originalLdImage) {
+            return originalLdImage;
+        }
+    }
+
+    return url;
+}
+
 function extractProductsFromHtml(html, baseUrl) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -1327,7 +1428,7 @@ function extractProductsFromHtml(html, baseUrl) {
 
             // Get image
             const img = card.querySelector('img');
-            let imageUrl = img ? (img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || '') : '';
+            let imageUrl = resolveOriginalImage(img, card, doc, '', url);
             if (imageUrl && imageUrl.startsWith('/')) {
                 imageUrl = new URL(imageUrl, baseUrl).toString();
             }
@@ -1340,6 +1441,11 @@ function extractProductsFromHtml(html, baseUrl) {
                 if (!name) name = a.textContent.trim();
             }
             name = cleanProductName(name);
+
+            // Re-resolve image with name if it was not resolved
+            if (isLocalFilePath(imageUrl)) {
+                imageUrl = resolveOriginalImage(img, card, doc, name, url);
+            }
 
             if (name && url) {
                 products.push({ name, imageUrl, url });
@@ -1365,11 +1471,6 @@ function extractProductsFromHtml(html, baseUrl) {
             if (!container) container = a;
 
             const img = container.querySelector('img');
-            let imageUrl = img ? (img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || '') : '';
-            if (imageUrl && imageUrl.startsWith('/')) {
-                imageUrl = new URL(imageUrl, baseUrl).toString();
-            }
-
             let name = a.textContent.trim();
             if (!name && img) {
                 name = (img.getAttribute('alt') || '').trim();
@@ -1379,6 +1480,11 @@ function extractProductsFromHtml(html, baseUrl) {
                 name = titleEl ? titleEl.textContent.trim() : '';
             }
             name = cleanProductName(name);
+
+            let imageUrl = resolveOriginalImage(img, container, doc, name, url);
+            if (imageUrl && imageUrl.startsWith('/')) {
+                imageUrl = new URL(imageUrl, baseUrl).toString();
+            }
 
             if (name && url) {
                 products.push({ name, imageUrl, url });
