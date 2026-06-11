@@ -2,7 +2,7 @@
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings } from './firebase-data.js';
+import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js';
 
 let allExams = [];
 let currentTerm = 'الفصل الأول';
@@ -251,6 +251,59 @@ function getSubjectGradient(subjectName) {
 }
 
 
+// Helper to animate visitor count and stats numbers
+function animateNumber(element, targetValue) {
+    if (!element) return;
+    let start = 0;
+    const duration = 1500; // 1.5 seconds for a smooth count-up
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease out quad
+        const easeProgress = progress * (2 - progress);
+        const currentValue = Math.floor(easeProgress * targetValue);
+        
+        element.textContent = currentValue.toLocaleString();
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = targetValue.toLocaleString();
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+// Calculate and animate exam counters
+function updateExamStats(exams) {
+    const finalExamsCount = exams.filter(exam => {
+        const type = exam.examType || '';
+        const name = exam.name || '';
+        return type === 'اختبار نهائي' || (type === '' && name.includes('نهائي'));
+    }).length;
+
+    const centralExamsCount = exams.filter(exam => {
+        const type = exam.examType || '';
+        const name = exam.name || '';
+        return type === 'اختبار مركزي' || 
+               type === 'اختبار منتصف الفصل' || 
+               type === 'اختبار دوري' || 
+               type === 'اختبار فتري' || 
+               name.includes('مركزي') || 
+               name.includes('منتصف');
+    }).length;
+    
+    const finalEl = document.getElementById('statFinalExamsCount');
+    const centralEl = document.getElementById('statCentralExamsCount');
+    
+    if (finalEl) animateNumber(finalEl, finalExamsCount);
+    if (centralEl) animateNumber(centralEl, centralExamsCount);
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -264,6 +317,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             else tab.classList.remove('active');
         });
     } catch(e) { console.error('Error loading default setting', e); }
+
+    // Increment and fetch visits count
+    try {
+        const hasVisited = sessionStorage.getItem('site_visited');
+        let visits = 0;
+        if (!hasVisited) {
+            sessionStorage.setItem('site_visited', 'true');
+            visits = await incrementVisits(true);
+        } else {
+            visits = await incrementVisits(false);
+        }
+        const visitsEl = document.getElementById('statVisitsCount');
+        if (visitsEl) {
+            animateNumber(visitsEl, visits);
+        }
+    } catch (e) {
+        console.error('Error handling visitor counter:', e);
+    }
 
     await initializeSubjects();
     await loadSubjects();
@@ -664,6 +735,7 @@ function updateExamTypeFilter() {
 function setupExamsListener() {
     onExamsChange((exams) => {
         allExams = exams;
+        updateExamStats(exams);
         filterExams();
     });
 }

@@ -8,7 +8,8 @@ import {
     deleteDoc,
     onSnapshot,
     setDoc,
-    getDoc
+    getDoc,
+    increment
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Default subjects for each grade
@@ -401,6 +402,32 @@ export async function updateGeneralSettings(settings) {
     }
 }
 
+// Increment site visits counter
+export async function incrementVisits(shouldIncrement = true) {
+    try {
+        const counterRef = doc(db, 'settings', 'counters');
+        const counterDoc = await getDoc(counterRef);
+        
+        if (!counterDoc.exists()) {
+            await setDoc(counterRef, { visits: 1 });
+            return 1;
+        }
+        
+        if (shouldIncrement) {
+            await updateDoc(counterRef, {
+                visits: increment(1)
+            });
+            const updatedDoc = await getDoc(counterRef);
+            return updatedDoc.data().visits || 0;
+        } else {
+            return counterDoc.data().visits || 0;
+        }
+    } catch (error) {
+        console.error('Error in incrementVisits:', error);
+        return 0;
+    }
+}
+
 // Export for global access
 window.firebaseData = {
     initializeSubjects,
@@ -422,5 +449,6 @@ window.firebaseData = {
     addAdminEmail,
     deleteAdminEmail,
     getGeneralSettings,
-    updateGeneralSettings
+    updateGeneralSettings,
+    incrementVisits
 };
