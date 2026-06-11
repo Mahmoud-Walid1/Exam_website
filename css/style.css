@@ -1214,26 +1214,44 @@ lord-icon.icon-xlarge {
     }
 
     .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
 
     .stat-card {
-        padding: 15px 20px;
-        gap: 15px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 12px 6px;
+        gap: 6px;
+        border-radius: 12px;
     }
 
     .stat-card-icon {
-        width: 60px;
-        height: 60px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .stat-card-icon lord-icon {
+        width: 26px !important;
+        height: 26px !important;
+    }
+
+    .stat-card-content {
+        align-items: center;
+        gap: 2px;
     }
 
     .stat-card-number {
-        font-size: 1.7rem;
+        font-size: 1.15rem;
     }
 
     .stat-card-label {
-        font-size: 0.85rem;
+        font-size: 0.65rem;
+        line-height: 1.2;
+        text-align: center;
     }
 
     .exams-section {
