@@ -1737,7 +1737,7 @@ function renderScannedProductsTable(products) {
                     <input type="checkbox" class="import-row-checkbox" data-index="${index}" ${isChecked} style="width:18px; height:18px; cursor:pointer;">
                 </td>
                 <td style="text-align: center; vertical-align: middle;">
-                    <img src="${prod.imageUrl || 'icons/default.png'}" alt="Preview" class="table-image" onerror="this.src='icons/default.png'">
+                    <img src="${prod.imageUrl || 'icons/default.png'}" alt="Preview" class="import-table-image" onerror="this.src='icons/default.png'" title="اضغط لمعاينة الصورة بالحجم الكامل 🔍" onclick="window.open(this.src, '_blank')">
                     <input type="hidden" class="import-row-image-url" value="${prod.imageUrl || ''}">
                 </td>
                 <td>
