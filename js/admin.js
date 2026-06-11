@@ -1243,13 +1243,31 @@ async function setupAdminManager() {
 let scannedProductsList = [];
 
 async function fetchCategoryPage(url) {
+    // Auto-normalize URL (add https:// if missing)
+    let targetUrl = url.trim();
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+        targetUrl = 'https://' + targetUrl;
+    }
+
     // Attempt 1: AllOrigins proxy (returns JSON)
     try {
-        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
         if (response.ok) {
-            const data = await response.json();
-            if (data.contents) {
-                return { html: data.contents, success: true };
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const data = await response.json();
+                if (data.contents) {
+                    return { html: data.contents, success: true };
+                }
+            } else {
+                const text = await response.text();
+                if (text && text.includes("contents")) {
+                    // Sometimes it is json but headers say text/html
+                    try {
+                        const parsed = JSON.parse(text);
+                        if (parsed.contents) return { html: parsed.contents, success: true };
+                    } catch(jsonErr) {}
+                }
             }
         }
     } catch (e) {
@@ -1258,7 +1276,7 @@ async function fetchCategoryPage(url) {
 
     // Attempt 2: CorsProxy.io (returns raw text directly)
     try {
-        const response = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(url)}`);
+        const response = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`);
         if (response.ok) {
             const text = await response.text();
             return { html: text, success: true };
@@ -1269,7 +1287,7 @@ async function fetchCategoryPage(url) {
 
     // Attempt 3: Codetabs (returns raw text)
     try {
-        const response = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`);
+        const response = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
         if (response.ok) {
             const text = await response.text();
             return { html: text, success: true };
@@ -1715,6 +1733,150 @@ function setupSallaImporter() {
     const confirmSaveBtn = document.getElementById('confirmImportSaveBtn');
     const saveLoader = document.getElementById('importSaveLoader');
     const statusMessage = document.getElementById('importStatusMessage');
+
+    // Offline HTML Paste / Drag & Drop support
+    const pasteHtmlTextarea = document.getElementById('sallaPasteHtml');
+    const dropzone = document.getElementById('htmlDropzone');
+    const fileInput = document.getElementById('sallaHtmlFile');
+    const dropzoneText = document.getElementById('dropzoneText');
+    const processHtmlBtn = document.getElementById('processHtmlBtn');
+
+    let loadedHtmlContent = '';
+
+    // File input trigger
+    if (dropzone && fileInput) {
+        dropzone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleHtmlFile(file);
+            }
+        });
+    }
+
+    // Drag and drop event listeners
+    if (dropzone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.style.background = '#e2e8f0';
+                dropzone.style.borderColor = 'var(--secondary-color)';
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.style.background = '#f8fafc';
+                dropzone.style.borderColor = '#cbd5e1';
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            if (file && file.name.endsWith('.html')) {
+                handleHtmlFile(file);
+            } else {
+                alert('يرجى سحب ملف HTML صالح فقط (.html)');
+            }
+        });
+    }
+
+    function handleHtmlFile(file) {
+        if (dropzoneText) dropzoneText.textContent = `تم تحميل: ${file.name}`;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            loadedHtmlContent = e.target.result;
+        };
+        reader.onerror = () => {
+            alert('فشل قراءة الملف المرفق.');
+            loadedHtmlContent = '';
+            if (dropzoneText) dropzoneText.textContent = 'اسحب ملف .html هنا أو اضغط للاختيار';
+        };
+        reader.readAsText(file);
+    }
+
+    // Process attached HTML / Paste
+    if (processHtmlBtn) {
+        processHtmlBtn.addEventListener('click', () => {
+            let htmlToParse = '';
+
+            // Prioritize pasted HTML if uploader is empty
+            if (pasteHtmlTextarea && pasteHtmlTextarea.value.trim()) {
+                htmlToParse = pasteHtmlTextarea.value.trim();
+            } else if (loadedHtmlContent) {
+                htmlToParse = loadedHtmlContent;
+            }
+
+            if (!htmlToParse) {
+                alert('يرجى لصق كود HTML للصفحة أو سحب/اختيار ملف .html أولاً');
+                return;
+            }
+
+            // Reset UI states
+            bulkSettingsSection.style.display = 'none';
+            scannedResultsWrapper.style.display = 'none';
+            emptyState.style.display = 'none';
+            statusMessage.style.display = 'none';
+            
+            // Show scanning state
+            processHtmlBtn.disabled = true;
+            processHtmlBtn.textContent = 'جاري التحليل...';
+
+            setTimeout(() => {
+                try {
+                    // Try to guess a fallback base URL from URL input if possible
+                    let baseUrl = '';
+                    const urlVal = sallaUrlInput ? sallaUrlInput.value.trim() : '';
+                    if (urlVal) {
+                        try {
+                            const urlObj = new URL(urlVal);
+                            baseUrl = urlObj.origin;
+                        } catch(e) {}
+                    }
+                    if (!baseUrl) {
+                        baseUrl = 'https://salla.sa';
+                    }
+
+                    const products = extractProductsFromHtml(htmlToParse, baseUrl);
+                    scannedProductsList = products;
+
+                    processHtmlBtn.disabled = false;
+                    processHtmlBtn.textContent = '⚙️ تحليل كود / ملف HTML';
+
+                    if (products.length === 0) {
+                        emptyState.style.display = 'block';
+                        return;
+                    }
+
+                    document.getElementById('scannedCountLabel').textContent = `المنتجات المستخرجة (${products.length})`;
+                    renderScannedProductsTable(products);
+                    
+                    bulkSettingsSection.style.display = 'block';
+                    scannedResultsWrapper.style.display = 'block';
+
+                    // Clear inputs
+                    if (pasteHtmlTextarea) pasteHtmlTextarea.value = '';
+                    loadedHtmlContent = '';
+                    if (dropzoneText) dropzoneText.textContent = 'اسحب ملف .html هنا أو اضغط للاختيار';
+                    if (fileInput) fileInput.value = '';
+
+                } catch (error) {
+                    console.error(error);
+                    processHtmlBtn.disabled = false;
+                    processHtmlBtn.textContent = '⚙️ تحليل كود / ملف HTML';
+                    alert('حدث خطأ أثناء تحليل كود الـ HTML المرفق. تأكد من أن الكود يحتوي على عناصر منتجات سلة.');
+                }
+            }, 500);
+        });
+    }
 
     if (bulkIcon) {
         bulkIcon.innerHTML = '<option value="">اختر أيقونة</option>' + AVAILABLE_ICONS.map(icon => 

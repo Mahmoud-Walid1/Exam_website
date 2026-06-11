@@ -55,6 +55,7 @@
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <h2>لوحة التحكم</h2>
+                    <span class="app-version" style="font-size: 0.75rem; color: #f1f5f9; display: block; margin-top: 6px; font-weight: 700; background: rgba(13, 148, 136, 0.25); border: 1px solid rgba(13, 148, 136, 0.4); padding: 3px 12px; border-radius: 20px; width: fit-content; margin: 6px auto 0;">النسخة v2.0.0</span>
                 </div>
                 <nav class="sidebar-nav">
                     <div class="nav-item active" data-tab="dashboard">
@@ -523,6 +524,38 @@
                                             ابدأ الفحص والاستيراد
                                         </button>
                                     </div>
+                                </div>
+
+                                <!-- Separator -->
+                                <div style="display: flex; align-items: center; text-align: center; margin: 20px 0; color: #94a3b8; font-weight: 600;">
+                                    <div style="flex: 1; border-bottom: 1px solid #cbd5e1;"></div>
+                                    <span style="padding: 0 15px; font-size: 0.85rem; background: white; z-index: 2;">أو (في حال حظر الموقع أو حماية Cloudflare)</span>
+                                    <div style="flex: 1; border-bottom: 1px solid #cbd5e1;"></div>
+                                </div>
+
+                                <!-- File Dropzone & Paste Section -->
+                                <div class="form-row" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <!-- Paste HTML Code -->
+                                    <div class="form-group" style="margin: 0;">
+                                        <label for="sallaPasteHtml" style="font-weight: 700; color: var(--primary-color);">الصق كود HTML الخاص بالصفحة</label>
+                                        <textarea id="sallaPasteHtml" placeholder="افتح الصفحة في المتصفح، اضغط Ctrl+U ثم انسخ الكود بالكامل والصقه هنا..." style="width: 100%; height: 110px; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 0.85rem; resize: none; box-sizing: border-box;"></textarea>
+                                    </div>
+                                    <!-- Drag & Drop HTML file -->
+                                    <div class="form-group" style="margin: 0;">
+                                        <label style="font-weight: 700; color: var(--primary-color);">اسحب ملف HTML المحفوظ للصفحة</label>
+                                        <div id="htmlDropzone" style="border: 2px dashed #cbd5e1; border-radius: 8px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box; text-align: center;">
+                                            <lord-icon src="https://cdn.lordicon.com/hgbzryoa.json" trigger="hover" colors="primary:#64748b" style="width:36px;height:36px;"></lord-icon>
+                                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 700; margin-top: 5px; padding: 0 10px;" id="dropzoneText">اسحب ملف .html هنا أو اضغط للاختيار</span>
+                                            <input type="file" id="sallaHtmlFile" accept=".html" style="display: none;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Process Attached Code Button -->
+                                <div id="processHtmlWrapper" style="margin-top: 15px; display: flex; justify-content: flex-end;">
+                                    <button id="processHtmlBtn" class="btn-primary" style="background: #475569; padding: 10px 25px; font-size: 0.95rem; font-weight: 700; width: fit-content; display: inline-flex; align-items: center; gap: 8px; border: none; border-radius: 8px; cursor: pointer;">
+                                        ⚙️ تحليل كود / ملف HTML
+                                    </button>
                                 </div>
 
                                 <!-- Loader -->
