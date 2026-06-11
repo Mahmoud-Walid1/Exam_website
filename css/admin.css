@@ -1305,3 +1305,137 @@
         justify-content: space-between;
     }
 }
+
+/* ========================================
+   Salla Import Specific Styles
+   ======================================== */
+.import-manager {
+    display: flex;
+    flex-direction: column;
+}
+
+.import-name-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #1e293b;
+    box-sizing: border-box;
+}
+
+.import-name-input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.1);
+}
+
+.row-metadata-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 320px;
+}
+
+.row-selectors-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.row-selectors-grid select {
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    background: white;
+    color: #334155;
+    cursor: pointer;
+}
+
+.row-selectors-grid select:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.row-selectors-extra {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.row-selectors-extra select,
+.row-selectors-extra input[type="text"] {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    background: white;
+    color: #334155;
+}
+
+.row-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #92400e;
+    background: #fffbeb;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #fde68a;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.import-row-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+.import-row-badge.duplicate {
+    background: #fee2e2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.import-row-badge.new-item {
+    background: #d1fae5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.import-row-icon-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    background: white;
+    cursor: pointer;
+}
+
+.import-row-link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.import-row-link:hover {
+    text-decoration: underline;
+}

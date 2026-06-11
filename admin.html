@@ -65,6 +65,10 @@
                         <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
                         <span>الاختبارات</span>
                     </div>
+                    <div class="nav-item" data-tab="import-salla">
+                        <lord-icon src="https://cdn.lordicon.com/hgbzryoa.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
+                        <span>استيراد من سلة</span>
+                    </div>
                     <div class="nav-item" data-tab="subjects">
                         <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#94a3b8"></lord-icon>
                         <span>المواد الدراسية</span>
@@ -498,6 +502,147 @@
                             <h2 class="section-title">📊 تقرير التغطية الشامل</h2>
                             <div id="fullCoverageContainer">
                                 <p style="color: #94a3b8; text-align: center;">جاري معالجة البيانات... ✨</p>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Import Salla Tab -->
+                    <div id="import-salla-tab" class="tab-content">
+                        <section class="admin-section">
+                            <h2 class="section-title">📦 استيراد الاختبارات من سلة</h2>
+                            <div class="import-manager">
+                                <!-- URL input and fetch button -->
+                                <div class="form-row" style="align-items: flex-end; gap: 15px; grid-template-columns: 2fr 1fr;">
+                                    <div class="form-group" style="margin: 0;">
+                                        <label for="sallaCategoryUrl" style="font-weight: 700; color: var(--primary-color);">رابط تصنيف متجر سلة (Category URL) *</label>
+                                        <input type="url" id="sallaCategoryUrl" placeholder="https://salla.sa/store-name/category-name أو نطاقك الخاص..." style="width: 100%; box-sizing: border-box;">
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <button id="startImportScanBtn" class="btn-primary" style="width: 100%; height: 49px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                                            <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="hover" colors="primary:#ffffff" style="width:20px;height:20px;"></lord-icon>
+                                            ابدأ الفحص والاستيراد
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Loader -->
+                                <div id="importLoader" style="display: none; text-align: center; padding: 40px 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                                    <lord-icon src="https://cdn.lordicon.com/xjovfskq.json" trigger="loop" colors="primary:#0d9488,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
+                                    <p style="color: #475569; margin: 15px 0 0; font-weight: 700; font-size: 1.1rem;">جاري فحص تصنيف سلة وسحب بيانات المنتجات... برجاء الانتظار</p>
+                                    <p style="color: #94a3b8; margin: 5px 0 0; font-size: 0.9rem;">قد يستغرق هذا بضع ثوانٍ</p>
+                                </div>
+
+                                <!-- Bulk Settings Section -->
+                                <div id="bulkSettingsSection" style="display: none; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; margin-top: 25px; animation: slideIn 0.3s ease-out;">
+                                    <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; font-weight: 800;">
+                                        ⚡ تطبيق تصنيف موحد على المنتجات المحددة بالجدول
+                                    </h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="bulkGrade">المرحلة الدراسية</label>
+                                            <select id="bulkGrade">
+                                                <option value="">اختر المرحلة</option>
+                                                <option value="ابتدائي">ابتدائي</option>
+                                                <option value="متوسط">متوسط</option>
+                                                <option value="ثانوي">ثانوي</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bulkGradeLevel">الصف الدراسي</label>
+                                            <select id="bulkGradeLevel" disabled>
+                                                <option value="">اختر المرحلة أولاً</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bulkSubject">المادة الدراسية</label>
+                                            <select id="bulkSubject">
+                                                <option value="">اختر المادة</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-row" style="margin-top: 15px;">
+                                        <div class="form-group">
+                                            <label for="bulkTerm">الفصل الدراسي</label>
+                                            <select id="bulkTerm">
+                                                <option value="">اختر الفصل</option>
+                                                <option value="الفصل الأول">الفصل الأول</option>
+                                                <option value="الفصل الثاني">الفصل الثاني</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bulkType">نوع الاختبار</label>
+                                            <select id="bulkType">
+                                                <option value="">اختر النوع</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bulkIcon">الأيقونة الافتراضية</label>
+                                            <select id="bulkIcon">
+                                                <option value="">اختر أيقونة</option>
+                                                <!-- سيتم تعبئتها ديناميكياً -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px; flex-wrap: wrap; gap: 15px;">
+                                        <div class="form-group" style="display: flex; align-items: center; gap: 10px; flex-direction: row; background: #fffbeb; padding: 10px 15px; border-radius: 8px; border: 1px solid #fde68a;">
+                                            <input type="checkbox" id="bulkIsStandard" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
+                                            <label for="bulkIsStandard" style="cursor: pointer; font-weight: 700; color: #92400e; margin: 0;">وفق جدول المواصفات ✨</label>
+                                        </div>
+                                        <button id="applyBulkSettingsBtn" class="btn-secondary" style="background: #475569; padding: 10px 20px; font-size: 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border: none; border-radius: 8px; cursor: pointer;">
+                                            🔄 تطبيق التصنيف على الكل المحدد
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Scanned Results Wrapper -->
+                                <div id="scannedResultsWrapper" style="display: none; margin-top: 30px; animation: slideIn 0.3s ease-out;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                                        <h3 style="margin: 0; font-size: 1.25rem; color: var(--primary-color); font-weight: 800;" id="scannedCountLabel">المنتجات المستخرجة (0)</h3>
+                                        <div style="display: flex; gap: 10px;">
+                                            <button id="selectAllImportBtn" class="btn-secondary" style="padding: 8px 15px; font-size: 0.85rem; font-weight: 700; background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer;">تحديد الكل</button>
+                                            <button id="deselectAllImportBtn" class="btn-secondary" style="padding: 8px 15px; font-size: 0.85rem; font-weight: 700; background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer;">إلغاء تحديد الكل</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: white;">
+                                        <table class="admin-table" style="margin: 0;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 40px; text-align: center; vertical-align: middle;"><input type="checkbox" id="masterImportCheckbox" checked style="width:18px; height:18px; cursor:pointer;"></th>
+                                                    <th style="width: 70px; text-align: center;">الصورة</th>
+                                                    <th>اسم الاختبار (قابل للتعديل) *</th>
+                                                    <th>بيانات الاختبار الأساسية *</th>
+                                                    <th style="width: 130px;">الأيقونة *</th>
+                                                    <th style="width: 80px; text-align: center;">الرابط</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="scannedProductsTableBody">
+                                                <!-- سيتم تعبئتها ديناميكياً -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Save Actions -->
+                                    <div class="form-actions" style="margin-top: 25px; display: flex; justify-content: flex-end; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                        <span id="importSaveLoader" style="display: none; color: #475569; font-weight: 700; align-items: center; gap: 8px;">
+                                            <lord-icon src="https://cdn.lordicon.com/xjovfskq.json" trigger="loop" colors="primary:#0d9488,secondary:#0d9488" style="width:24px;height:24px;"></lord-icon>
+                                            جاري حفظ الاختبارات المستوردة...
+                                        </span>
+                                        <div id="importStatusMessage" class="success-message" style="display: none; margin: 0; padding: 10px 20px;"></div>
+                                        <button id="confirmImportSaveBtn" class="btn-primary" style="padding: 12px 35px; font-size: 1.1rem; font-weight: 700; background: var(--secondary-color); color: white;">
+                                            💾 تأكيد حفظ الاختبارات المحددة
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="importEmptyState" class="no-exams" style="display: none; padding: 50px 20px; margin-top: 25px; border-radius: 12px; border: 1px solid #cbd5e1; background: white;">
+                                    <div class="no-exams-icon">
+                                        <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" delay="1000" colors="primary:#cbd5e1,secondary:#94a3b8" style="width:80px;height:80px;"></lord-icon>
+                                    </div>
+                                    <p class="no-exams-title" style="font-size: 1.25rem; font-weight: 700; color: #475569;">لم يتم العثور على أي منتجات في هذا الرابط</p>
+                                    <p class="no-exams-subtitle" style="font-size: 0.95rem; color: #94a3b8; max-width: 450px; margin: 8px auto 0;">يرجى التأكد من أن الرابط المعطى هو رابط تصنيف سلة صالح ومفتوح للعامة ويحتوي على منتجات بالفعل.</p>
+                                </div>
                             </div>
                         </section>
                     </div>

@@ -131,6 +131,7 @@ async function initializeDashboard() {
     setupIconSelector();
     setupTickerManager();
     setupAdminManager();
+    setupSallaImporter();
     setupTabSwitching();
     setupMobileSidebar();
     await setupGeneralSettings();
@@ -1235,3 +1236,726 @@ async function setupAdminManager() {
 
     await loadAdminEmails();
 }
+
+// ========================================
+// Salla Import Logic
+// ========================================
+let scannedProductsList = [];
+
+async function fetchCategoryPage(url) {
+    // Attempt 1: AllOrigins proxy (returns JSON)
+    try {
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.contents) {
+                return { html: data.contents, success: true };
+            }
+        }
+    } catch (e) {
+        console.error("AllOrigins failed, trying fallback...", e);
+    }
+
+    // Attempt 2: CorsProxy.io (returns raw text directly)
+    try {
+        const response = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(url)}`);
+        if (response.ok) {
+            const text = await response.text();
+            return { html: text, success: true };
+        }
+    } catch (e) {
+        console.error("CorsProxy.io failed...", e);
+    }
+
+    // Attempt 3: Codetabs (returns raw text)
+    try {
+        const response = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`);
+        if (response.ok) {
+            const text = await response.text();
+            return { html: text, success: true };
+        }
+    } catch (e) {
+        console.error("Codetabs proxy failed...", e);
+    }
+
+    return { html: '', success: false };
+}
+
+function cleanProductName(name) {
+    if (!name) return '';
+    return name
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function extractProductsFromHtml(html, baseUrl) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const products = [];
+    const seenUrls = new Set();
+
+    // 1. Try to find custom tags like <salla-product-card> or elements with class .s-product-card
+    const cards = doc.querySelectorAll('salla-product-card, .s-product-card, .product-card, .product-entry, .product-item');
+    if (cards.length > 0) {
+        cards.forEach(card => {
+            const a = card.querySelector('a[href*="/p"]');
+            if (!a) return;
+            let url = a.getAttribute('href');
+            if (url.startsWith('/')) {
+                url = new URL(url, baseUrl).toString();
+            }
+            if (seenUrls.has(url)) return;
+
+            // Get image
+            const img = card.querySelector('img');
+            let imageUrl = img ? (img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || '') : '';
+            if (imageUrl && imageUrl.startsWith('/')) {
+                imageUrl = new URL(imageUrl, baseUrl).toString();
+            }
+
+            // Get name
+            const titleEl = card.querySelector('.product-title, .title, h3, h4, .s-product-card-title');
+            let name = titleEl ? titleEl.textContent.trim() : '';
+            if (!name) {
+                name = img ? (img.getAttribute('alt') || '').trim() : '';
+                if (!name) name = a.textContent.trim();
+            }
+            name = cleanProductName(name);
+
+            if (name && url) {
+                products.push({ name, imageUrl, url });
+                seenUrls.add(url);
+            }
+        });
+    }
+
+    // 2. If no products were found, find all a tags that look like product links
+    if (products.length === 0) {
+        const productLinks = doc.querySelectorAll('a[href*="/p"]');
+        productLinks.forEach(a => {
+            let url = a.getAttribute('href');
+            if (!url) return;
+            if (url.startsWith('/')) {
+                url = new URL(url, baseUrl).toString();
+            }
+            const sallaProductRegex = /\/p[-_\d]*\d+$/i;
+            if (!sallaProductRegex.test(url) && !url.includes('/p/')) return;
+            if (seenUrls.has(url)) return;
+
+            let container = a.closest('div, li, article');
+            if (!container) container = a;
+
+            const img = container.querySelector('img');
+            let imageUrl = img ? (img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || '') : '';
+            if (imageUrl && imageUrl.startsWith('/')) {
+                imageUrl = new URL(imageUrl, baseUrl).toString();
+            }
+
+            let name = a.textContent.trim();
+            if (!name && img) {
+                name = (img.getAttribute('alt') || '').trim();
+            }
+            if (!name) {
+                const titleEl = container.querySelector('h3, h4, p, span');
+                name = titleEl ? titleEl.textContent.trim() : '';
+            }
+            name = cleanProductName(name);
+
+            if (name && url) {
+                products.push({ name, imageUrl, url });
+                seenUrls.add(url);
+            }
+        });
+    }
+
+    // 3. Fallback: JSON-LD schemas
+    if (products.length === 0) {
+        const jsonLdScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+        jsonLdScripts.forEach(script => {
+            try {
+                const data = JSON.parse(script.textContent);
+                if (data['@type'] === 'ItemList' && Array.isArray(data.itemListElement)) {
+                    data.itemListElement.forEach(item => {
+                        let url = item.url || (item.item && item.item.url);
+                        if (url && url.startsWith('/')) {
+                            url = new URL(url, baseUrl).toString();
+                        }
+                        if (url && !seenUrls.has(url)) {
+                            let name = item.name || (item.item && item.item.name) || '';
+                            let imageUrl = item.image || (item.item && item.item.image) || '';
+                            if (imageUrl && imageUrl.startsWith('/')) {
+                                imageUrl = new URL(imageUrl, baseUrl).toString();
+                            }
+                            name = cleanProductName(name);
+                            if (name) {
+                                products.push({ name, imageUrl, url });
+                                seenUrls.add(url);
+                            }
+                        }
+                    });
+                } else if (data['@type'] === 'Product') {
+                    let url = data.url;
+                    if (url && url.startsWith('/')) {
+                        url = new URL(url, baseUrl).toString();
+                    }
+                    if (url && !seenUrls.has(url)) {
+                        let name = data.name || '';
+                        let imageUrl = data.image || '';
+                        if (Array.isArray(imageUrl)) imageUrl = imageUrl[0] || '';
+                        if (imageUrl && imageUrl.startsWith('/')) {
+                            imageUrl = new URL(imageUrl, baseUrl).toString();
+                        }
+                        name = cleanProductName(name);
+                        if (name) {
+                            products.push({ name, imageUrl, url });
+                            seenUrls.add(url);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing JSON-LD:', e);
+            }
+        });
+    }
+
+    return products;
+}
+
+function guessExamDetails(name) {
+    const details = {
+        grade: '',
+        gradeLevel: '',
+        subject: '',
+        term: '',
+        examType: '',
+        icon: 'icons/default.png',
+        isStandard: false
+    };
+
+    const lowercaseName = name.toLowerCase();
+
+    // 1. Guess Stage
+    if (lowercaseName.includes('ابتدائي') || lowercaseName.includes('الابتدائي')) {
+        details.grade = 'ابتدائي';
+    } else if (lowercaseName.includes('متوسط') || lowercaseName.includes('المتوسط')) {
+        details.grade = 'متوسط';
+    } else if (lowercaseName.includes('ثانوي') || lowercaseName.includes('الثانوي') || lowercaseName.includes('مسارات')) {
+        details.grade = 'ثانوي';
+    }
+
+    // 2. Guess Grade Level
+    if (lowercaseName.includes('أول') || lowercaseName.includes('الاول') || lowercaseName.includes('صف أول') || lowercaseName.includes('الصف الأول') || lowercaseName.includes(' 1 ') || lowercaseName.includes('1-') || lowercaseName.includes(' 1-') || lowercaseName.includes('-1')) {
+        details.gradeLevel = 'الأول';
+    } else if (lowercaseName.includes('ثاني') || lowercaseName.includes('الثاني') || lowercaseName.includes('صف ثاني') || lowercaseName.includes('الصف الثاني') || lowercaseName.includes(' 2 ') || lowercaseName.includes('2-') || lowercaseName.includes(' 2-') || lowercaseName.includes('-2')) {
+        details.gradeLevel = 'الثاني';
+    } else if (lowercaseName.includes('ثالث') || lowercaseName.includes('الثالث') || lowercaseName.includes('صف ثالث') || lowercaseName.includes('الصف الثالث') || lowercaseName.includes(' 3 ') || lowercaseName.includes('3-') || lowercaseName.includes(' 3-') || lowercaseName.includes('-3')) {
+        details.gradeLevel = 'الثالث';
+    } else if (lowercaseName.includes('رابع') || lowercaseName.includes('الرابع') || lowercaseName.includes('صف رابع') || lowercaseName.includes('الصف الرابع') || lowercaseName.includes(' 4 ') || lowercaseName.includes('4-') || lowercaseName.includes(' 4-') || lowercaseName.includes('-4')) {
+        details.gradeLevel = 'الرابع';
+    } else if (lowercaseName.includes('خامس') || lowercaseName.includes('الخامس') || lowercaseName.includes('صف خامس') || lowercaseName.includes('الصف الخامس') || lowercaseName.includes(' 5 ') || lowercaseName.includes('5-') || lowercaseName.includes(' 5-') || lowercaseName.includes('-5')) {
+        details.gradeLevel = 'الخامس';
+    } else if (lowercaseName.includes('سادس') || lowercaseName.includes('السادس') || lowercaseName.includes('صف سادس') || lowercaseName.includes('الصف السادس') || lowercaseName.includes(' 6 ') || lowercaseName.includes('6-') || lowercaseName.includes(' 6-') || lowercaseName.includes('-6')) {
+        details.gradeLevel = 'السادس';
+    }
+
+    // 3. Guess Subject
+    let foundSubject = '';
+    const allKnownSubjects = new Set();
+    Object.values(allSubjects).forEach(list => list.forEach(s => allKnownSubjects.add(s)));
+
+    for (const sub of allKnownSubjects) {
+        if (lowercaseName.includes(sub.toLowerCase())) {
+            foundSubject = sub;
+            break;
+        }
+    }
+    
+    if (!foundSubject) {
+        if (lowercaseName.includes('رياضيات') || lowercaseName.includes('رياضه')) {
+            foundSubject = 'رياضيات';
+        } else if (lowercaseName.includes('علوم') || lowercaseName.includes('علم')) {
+            foundSubject = 'علوم';
+        } else if (lowercaseName.includes('لغتي') || lowercaseName.includes('اللغة العربية') || lowercaseName.includes('العربية') || lowercaseName.includes('عربي')) {
+            foundSubject = 'لغتي';
+        } else if (lowercaseName.includes('انجليزي') || lowercaseName.includes('إنجليزي') || lowercaseName.includes('اللغة الإنجليزية') || lowercaseName.includes('english')) {
+            foundSubject = 'لغة إنجليزية';
+        } else if (lowercaseName.includes('اجتماعيات') || lowercaseName.includes('الدراسات الاجتماعية') || lowercaseName.includes('تاريخ') || lowercaseName.includes('جغرافيا')) {
+            foundSubject = 'دراسات اجتماعية';
+        } else if (lowercaseName.includes('اسلامية') || lowercaseName.includes('إسلامية') || lowercaseName.includes('توحيد') || lowercaseName.includes('فقه') || lowercaseName.includes('حديث') || lowercaseName.includes('تفسير') || lowercaseName.includes('سيرة') || lowercaseName.includes('الدراسات الإسلامية')) {
+            foundSubject = 'دراسات إسلامية';
+        } else if (lowercaseName.includes('فيزياء') || lowercaseName.includes('فيزيا')) {
+            foundSubject = 'فيزياء';
+        } else if (lowercaseName.includes('كيمياء') || lowercaseName.includes('كيميا')) {
+            foundSubject = 'كيمياء';
+        } else if (lowercaseName.includes('أحياء') || lowercaseName.includes('احياء')) {
+            foundSubject = 'أحياء';
+        }
+    }
+
+    if (foundSubject) {
+        if (details.grade) {
+            const gradeSubs = allSubjects[details.grade] || [];
+            const exactMatch = gradeSubs.find(s => s.toLowerCase() === foundSubject.toLowerCase());
+            if (exactMatch) {
+                details.subject = exactMatch;
+            } else {
+                const fuzzyMatch = gradeSubs.find(s => lowercaseName.includes(s.toLowerCase()));
+                if (fuzzyMatch) {
+                    details.subject = fuzzyMatch;
+                } else {
+                    details.subject = foundSubject;
+                }
+            }
+        } else {
+            details.subject = foundSubject;
+        }
+    }
+
+    // 4. Guess Term
+    if (lowercaseName.includes('ف1') || lowercaseName.includes('فصل أول') || lowercaseName.includes('الفصل الأول') || lowercaseName.includes('الفصل الدراسي الأول') || lowercaseName.includes('الترم الأول')) {
+        details.term = 'الفصل الأول';
+    } else if (lowercaseName.includes('ف2') || lowercaseName.includes('فصل ثاني') || lowercaseName.includes('الفصل الثاني') || lowercaseName.includes('الفصل الدراسي الثاني') || lowercaseName.includes('الترم الثاني')) {
+        details.term = 'الفصل الثاني';
+    }
+
+    // 5. Guess Exam Type
+    if (lowercaseName.includes('نهائي') || lowercaseName.includes('النهائي')) {
+        details.examType = 'اختبار نهائي';
+    } else if (lowercaseName.includes('منتصف') || lowercaseName.includes('فترة') || lowercaseName.includes('الفترة') || lowercaseName.includes('شهري')) {
+        details.examType = 'اختبار منتصف الفصل';
+    } else if (lowercaseName.includes('دوري') || lowercaseName.includes('فتري')) {
+        details.examType = 'اختبار دوري';
+    } else if (lowercaseName.includes('ورقة عمل') || lowercaseName.includes('اوراق عمل') || lowercaseName.includes('أوراق عمل') || lowercaseName.includes('نشاط')) {
+        details.examType = 'ورقة عمل';
+    }
+
+    // 6. Guess if Standard
+    if (lowercaseName.includes('مواصفات') || lowercaseName.includes('جدول مواصفات') || lowercaseName.includes('جدول المواصفات')) {
+        details.isStandard = true;
+    }
+
+    // 7. Choose Icon
+    if (details.subject) {
+        const subLower = details.subject.toLowerCase();
+        if (subLower.includes('رياضيات')) details.icon = 'icons/math.png';
+        else if (subLower.includes('عرب') || subLower.includes('لغتي')) details.icon = 'icons/arabic.png';
+        else if (subLower.includes('علوم')) details.icon = 'icons/science.png';
+        else if (subLower.includes('انجليزي') || subLower.includes('english')) details.icon = 'icons/english.png';
+        else if (subLower.includes('اجتماع') || subLower.includes('تاريخ') || subLower.includes('جغراف')) details.icon = 'icons/social_studies.png';
+        else if (subLower.includes('إسلام') || subLower.includes('اسلام') || subLower.includes('توحيد') || subLower.includes('فقه') || subLower.includes('حديث') || subLower.includes('تفسير')) details.icon = 'icons/islamic_studies.png';
+        else if (subLower.includes('فيزيا')) details.icon = 'icons/Physics.png';
+        else if (subLower.includes('كيميا')) details.icon = 'icons/chemistry.png';
+        else if (subLower.includes('أحياء') || subLower.includes('احياء')) details.icon = 'icons/احياء.png';
+    }
+
+    return details;
+}
+
+function normalizeUrl(url) {
+    if (!url) return '';
+    try {
+        let clean = url.trim().toLowerCase();
+        clean = clean.replace(/^(https?:\/\/)?(www\.)?/, '');
+        if (clean.endsWith('/')) {
+            clean = clean.substring(0, clean.length - 1);
+        }
+        const qIdx = clean.indexOf('?');
+        if (qIdx !== -1) {
+            clean = clean.substring(0, qIdx);
+        }
+        return clean;
+    } catch(e) {
+        return url;
+    }
+}
+
+function updateRowGradeDropdowns(row, grade, activeLevel = '', activeSubject = '') {
+    const levelSelect = row.querySelector('.row-grade-level-select');
+    const subjectSelect = row.querySelector('.row-subject-select');
+
+    if (grade && GRADE_LEVELS[grade]) {
+        levelSelect.disabled = false;
+        levelSelect.innerHTML = '<option value="">الصف</option>' + GRADE_LEVELS[grade].map(level => 
+            `<option value="${level}" ${activeLevel === level ? 'selected' : ''}>الصف ${level}</option>`
+        ).join('');
+
+        subjectSelect.innerHTML = '<option value="">المادة</option>' + (allSubjects[grade] || []).map(sub => 
+            `<option value="${sub}" ${activeSubject === sub ? 'selected' : ''}>${sub}</option>`
+        ).join('');
+    } else {
+        levelSelect.disabled = true;
+        levelSelect.innerHTML = '<option value="">الصف</option>';
+        subjectSelect.innerHTML = '<option value="">المادة</option>';
+    }
+}
+
+function renderScannedProductsTable(products) {
+    const tableBody = document.getElementById('scannedProductsTableBody');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = products.map((prod, index) => {
+        const guessed = guessExamDetails(prod.name);
+
+        const isDuplicate = allExams.some(exam => {
+            if (!exam.url || !prod.url) return false;
+            return normalizeUrl(exam.url) === normalizeUrl(prod.url);
+        });
+
+        const isChecked = isDuplicate ? '' : 'checked';
+        const duplicateBadge = isDuplicate 
+            ? `<div class="import-row-badge duplicate">⚠️ مضاف مسبقاً</div>` 
+            : `<div class="import-row-badge new-item">✨ منتج جديد</div>`;
+
+        return `
+            <tr class="import-product-row" data-index="${index}">
+                <td style="text-align: center; vertical-align: middle;">
+                    <input type="checkbox" class="import-row-checkbox" data-index="${index}" ${isChecked} style="width:18px; height:18px; cursor:pointer;">
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <img src="${prod.imageUrl || 'icons/default.png'}" alt="Preview" class="table-image" onerror="this.src='icons/default.png'">
+                    <input type="hidden" class="import-row-image-url" value="${prod.imageUrl || ''}">
+                </td>
+                <td>
+                    <input type="text" class="import-name-input" value="${prod.name}" style="font-weight: 700;">
+                    ${duplicateBadge}
+                </td>
+                <td>
+                    <div class="row-metadata-container">
+                        <div class="row-selectors-grid">
+                            <select class="row-grade-select" data-index="${index}">
+                                <option value="">المرحلة</option>
+                                <option value="ابتدائي" ${guessed.grade === 'ابتدائي' ? 'selected' : ''}>ابتدائي</option>
+                                <option value="متوسط" ${guessed.grade === 'متوسط' ? 'selected' : ''}>متوسط</option>
+                                <option value="ثانوي" ${guessed.grade === 'ثانوي' ? 'selected' : ''}>ثانوي</option>
+                            </select>
+                            <select class="row-grade-level-select" data-index="${index}" disabled>
+                                <option value="">الصف</option>
+                            </select>
+                            <select class="row-subject-select" data-index="${index}">
+                                <option value="">المادة</option>
+                            </select>
+                        </div>
+                        <div class="row-selectors-extra">
+                            <select class="row-term-select" style="flex: 1;">
+                                <option value="">الفصل</option>
+                                <option value="الفصل الأول" ${guessed.term === 'الفصل الأول' ? 'selected' : ''}>الفصل الأول</option>
+                                <option value="الفصل الثاني" ${guessed.term === 'الفصل الثاني' ? 'selected' : ''}>الفصل الثاني</option>
+                            </select>
+                            <select class="row-type-select" style="flex: 1.2;">
+                                <option value="">النوع</option>
+                                ${allExamTypes.map(type => 
+                                    `<option value="${type}" ${guessed.examType === type ? 'selected' : ''}>${type}</option>`
+                                ).join('')}
+                            </select>
+                            <input type="text" class="row-model-input" placeholder="النموذج" style="flex: 0.8; width: 60px;" value="">
+                            <label class="row-checkbox-label">
+                                <input type="checkbox" class="row-standard-chk" ${guessed.isStandard ? 'checked' : ''} style="width: 14px; height: 14px; margin: 0;">
+                                مواصفات
+                            </label>
+                        </div>
+                    </div>
+                </td>
+                <td style="vertical-align: middle;">
+                    <select class="import-row-icon-select row-icon-select-el">
+                        <option value="">اختر أيقونة</option>
+                        ${AVAILABLE_ICONS.map(icon => 
+                            `<option value="icons/${icon.name}" ${guessed.icon === 'icons/' + icon.name ? 'selected' : ''}>${icon.label}</option>`
+                        ).join('')}
+                    </select>
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <a href="${prod.url}" target="_blank" class="import-row-link">
+                        معاينة
+                    </a>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    const rows = tableBody.querySelectorAll('.import-product-row');
+    rows.forEach((row, idx) => {
+        const gradeSelect = row.querySelector('.row-grade-select');
+        const guessed = guessExamDetails(products[idx].name);
+
+        gradeSelect.addEventListener('change', () => {
+            const selectedGrade = gradeSelect.value;
+            updateRowGradeDropdowns(row, selectedGrade);
+        });
+
+        if (guessed.grade) {
+            updateRowGradeDropdowns(row, guessed.grade, guessed.gradeLevel, guessed.subject);
+        }
+    });
+}
+
+function setupSallaImporter() {
+    console.log('Setting up Salla Importer...');
+
+    const startScanBtn = document.getElementById('startImportScanBtn');
+    const sallaUrlInput = document.getElementById('sallaCategoryUrl');
+    const importLoader = document.getElementById('importLoader');
+    const bulkSettingsSection = document.getElementById('bulkSettingsSection');
+    const scannedResultsWrapper = document.getElementById('scannedResultsWrapper');
+    const emptyState = document.getElementById('importEmptyState');
+    
+    const bulkGrade = document.getElementById('bulkGrade');
+    const bulkGradeLevel = document.getElementById('bulkGradeLevel');
+    const bulkSubject = document.getElementById('bulkSubject');
+    const bulkTerm = document.getElementById('bulkTerm');
+    const bulkType = document.getElementById('bulkType');
+    const bulkIcon = document.getElementById('bulkIcon');
+    const bulkIsStandard = document.getElementById('bulkIsStandard');
+    const applyBulkBtn = document.getElementById('applyBulkSettingsBtn');
+    
+    const selectAllBtn = document.getElementById('selectAllImportBtn');
+    const deselectAllBtn = document.getElementById('deselectAllImportBtn');
+    const masterCheckbox = document.getElementById('masterImportCheckbox');
+    
+    const confirmSaveBtn = document.getElementById('confirmImportSaveBtn');
+    const saveLoader = document.getElementById('importSaveLoader');
+    const statusMessage = document.getElementById('importStatusMessage');
+
+    if (bulkIcon) {
+        bulkIcon.innerHTML = '<option value="">اختر أيقونة</option>' + AVAILABLE_ICONS.map(icon => 
+            `<option value="icons/${icon.name}">${icon.label}</option>`
+        ).join('');
+    }
+
+    if (bulkType) {
+        bulkType.innerHTML = '<option value="">اختر النوع</option>' + allExamTypes.map(type => 
+            `<option value="${type}">${type}</option>`
+        ).join('');
+    }
+
+    if (bulkGrade) {
+        bulkGrade.addEventListener('change', () => {
+            const selectedGrade = bulkGrade.value;
+            if (selectedGrade && GRADE_LEVELS[selectedGrade]) {
+                bulkGradeLevel.disabled = false;
+                bulkGradeLevel.innerHTML = '<option value="">الكل</option>' + GRADE_LEVELS[selectedGrade].map(level => 
+                    `<option value="${level}">الصف ${level}</option>`
+                ).join('');
+
+                bulkSubject.innerHTML = '<option value="">اختر المادة</option>' + (allSubjects[selectedGrade] || []).map(sub => 
+                    `<option value="${sub}">${sub}</option>`
+                ).join('');
+            } else {
+                bulkGradeLevel.disabled = true;
+                bulkGradeLevel.innerHTML = '<option value="">اختر المرحلة أولاً</option>';
+                bulkSubject.innerHTML = '<option value="">اختر المادة</option>';
+            }
+        });
+    }
+
+    if (startScanBtn) {
+        startScanBtn.addEventListener('click', async () => {
+            const url = sallaUrlInput.value.trim();
+            if (!url) {
+                alert('يرجى إدخال رابط تصنيف سلة أولاً');
+                return;
+            }
+
+            bulkSettingsSection.style.display = 'none';
+            scannedResultsWrapper.style.display = 'none';
+            emptyState.style.display = 'none';
+            statusMessage.style.display = 'none';
+            
+            startScanBtn.disabled = true;
+            importLoader.style.display = 'block';
+
+            try {
+                let baseUrl = '';
+                try {
+                    const urlObj = new URL(url);
+                    baseUrl = urlObj.origin;
+                } catch(e) {
+                    baseUrl = '';
+                }
+
+                const fetchResult = await fetchCategoryPage(url);
+                if (!fetchResult.success || !fetchResult.html) {
+                    throw new Error('فشل جلب محتوى الرابط عبر البروكسي');
+                }
+
+                const products = extractProductsFromHtml(fetchResult.html, baseUrl);
+                scannedProductsList = products;
+
+                importLoader.style.display = 'none';
+                startScanBtn.disabled = false;
+
+                if (products.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('scannedCountLabel').textContent = `المنتجات المستخرجة (${products.length})`;
+                renderScannedProductsTable(products);
+                
+                bulkSettingsSection.style.display = 'block';
+                scannedResultsWrapper.style.display = 'block';
+
+            } catch (error) {
+                console.error(error);
+                importLoader.style.display = 'none';
+                startScanBtn.disabled = false;
+                alert('حدث خطأ أثناء فحص الرابط. يرجى التأكد من صحة الرابط أو المحاولة لاحقاً.');
+            }
+        });
+    }
+
+    if (applyBulkBtn) {
+        applyBulkBtn.addEventListener('click', () => {
+            const selectedGrade = bulkGrade.value;
+            const selectedGradeLevel = bulkGradeLevel.value;
+            const selectedSubject = bulkSubject.value;
+            const selectedTerm = bulkTerm.value;
+            const selectedType = bulkType.value;
+            const selectedIconVal = bulkIcon.value;
+            const selectedIsStandard = bulkIsStandard.checked;
+
+            const checkboxes = document.querySelectorAll('.import-row-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('يرجى تحديد صف واحد على الأقل في الجدول لتطبيق التعديل الجماعي.');
+                return;
+            }
+
+            checkboxes.forEach(chk => {
+                const index = chk.dataset.index;
+                const row = document.querySelector(`.import-product-row[data-index="${index}"]`);
+                if (!row) return;
+
+                if (selectedGrade) {
+                    const gradeSelect = row.querySelector('.row-grade-select');
+                    gradeSelect.value = selectedGrade;
+                    updateRowGradeDropdowns(row, selectedGrade, selectedGradeLevel, selectedSubject);
+                }
+                if (selectedTerm) {
+                    row.querySelector('.row-term-select').value = selectedTerm;
+                }
+                if (selectedType) {
+                    row.querySelector('.row-type-select').value = selectedType;
+                }
+                if (selectedIconVal) {
+                    row.querySelector('.row-icon-select-el').value = selectedIconVal;
+                }
+                row.querySelector('.row-standard-chk').checked = selectedIsStandard;
+            });
+            
+            alert('تم تطبيق التصنيف الجماعي على المنتجات المحددة بنجاح! ✅');
+        });
+    }
+
+    if (masterCheckbox) {
+        masterCheckbox.addEventListener('change', () => {
+            const checked = masterCheckbox.checked;
+            document.querySelectorAll('.import-row-checkbox').forEach(chk => {
+                chk.checked = checked;
+            });
+        });
+    }
+
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+            document.querySelectorAll('.import-row-checkbox').forEach(chk => chk.checked = true);
+            if (masterCheckbox) masterCheckbox.checked = true;
+        });
+    }
+
+    if (deselectAllBtn) {
+        deselectAllBtn.addEventListener('click', () => {
+            document.querySelectorAll('.import-row-checkbox').forEach(chk => chk.checked = false);
+            if (masterCheckbox) masterCheckbox.checked = false;
+        });
+    }
+
+    if (confirmSaveBtn) {
+        confirmSaveBtn.addEventListener('click', async () => {
+            const checkedBoxes = document.querySelectorAll('.import-row-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('يرجى تحديد منتج واحد على الأقل لحفظه');
+                return;
+            }
+
+            let validated = true;
+            const examsToSave = [];
+
+            checkedBoxes.forEach(chk => {
+                const index = chk.dataset.index;
+                const row = document.querySelector(`.import-product-row[data-index="${index}"]`);
+                if (!row) return;
+
+                const name = row.querySelector('.import-name-input').value.trim();
+                const url = row.querySelector('.import-row-link').href;
+                const imageUrl = row.querySelector('.import-row-image-url').value;
+                const grade = row.querySelector('.row-grade-select').value;
+                const gradeLevel = row.querySelector('.row-grade-level-select').value;
+                const subject = row.querySelector('.row-subject-select').value;
+                const term = row.querySelector('.row-term-select').value;
+                const examType = row.querySelector('.row-type-select').value;
+                const icon = row.querySelector('.row-icon-select-el').value;
+                const examModel = row.querySelector('.row-model-input').value.trim();
+                const examIsStandard = row.querySelector('.row-standard-chk').checked;
+
+                if (!name) {
+                    alert(`يرجى كتابة الاسم للمنتج في السطر رقم ${parseInt(index)+1}`);
+                    validated = false;
+                    return;
+                }
+                if (!grade || !gradeLevel || !subject || !term || !examType || !icon) {
+                    alert(`يرجى إكمال البيانات الأساسية للمنتج: "${name}" (المرحلة، الصف، المادة، الفصل، النوع، الأيقونة)`);
+                    validated = false;
+                    return;
+                }
+
+                examsToSave.push({
+                    name,
+                    url,
+                    imageUrl,
+                    grade,
+                    gradeLevel,
+                    subject,
+                    term,
+                    examType,
+                    icon,
+                    examModel,
+                    examIsStandard
+                });
+            });
+
+            if (!validated) return;
+
+            confirmSaveBtn.disabled = true;
+            if (saveLoader) saveLoader.style.display = 'inline-flex';
+            statusMessage.style.display = 'none';
+
+            let savedCount = 0;
+            try {
+                for (const examData of examsToSave) {
+                    await addExam(examData);
+                    savedCount++;
+                }
+
+                statusMessage.textContent = `تم حفظ عدد (${savedCount}) اختبارات بنجاح في قاعدة البيانات! ✅`;
+                statusMessage.style.display = 'block';
+                
+                setTimeout(async () => {
+                    bulkSettingsSection.style.display = 'none';
+                    scannedResultsWrapper.style.display = 'none';
+                    sallaUrlInput.value = '';
+                    statusMessage.style.display = 'none';
+                    
+                    await loadExams();
+                }, 3000);
+
+            } catch (err) {
+                console.error(err);
+                alert('حدث خطأ أثناء حفظ الاختبارات في قاعدة البيانات: ' + err.message);
+            } finally {
+                confirmSaveBtn.disabled = false;
+                if (saveLoader) saveLoader.style.display = 'none';
+            }
+        });
+    }
+}
+
