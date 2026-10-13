@@ -1,4 +1,5 @@
 import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getArchiveYears, isInAcademicScope } from './academic.js';
+import { enhanceSelect } from './select-menu.js';
 // ========================================
 // Main Page JavaScript - Firebase Version
 // ========================================
@@ -604,8 +605,7 @@ function setupFilters() {
 
 // Custom Select Implementation
 function updateCustomSelect(selectElement) {
-    // Native selects support mobile pickers, keyboard navigation and screen readers.
-    if (selectElement) selectElement.style.display = '';
+    enhanceSelect(selectElement);
 }
 
 // Update grade level filter based on selected stage
@@ -1065,6 +1065,7 @@ function updateAcademicView() {
     if (!years.length) select.add(new Option('لا توجد أعوام مؤرشفة بعد', selectedYear));
     select.value = selectedYear;
     select.disabled = !years.length;
+    updateCustomSelect(select);
     document.getElementById('archiveYearGroup').hidden = !archive;
     document.getElementById('academicHeading').textContent = archive ? 'أرشيف الاختبارات' : 'اختبارات عام ' + selectedYear + '\u00a0هـ';
     document.getElementById('academicBadge').textContent = archive ? 'الأرشيف' : 'العام الحالي';
@@ -1088,6 +1089,7 @@ function resetLibraryFilters() {
     document.getElementById('smartSearchInput').value = '';
     document.getElementById('searchSuggestions').classList.remove('active');
     document.getElementById('gradeFilter').value = 'all';
+    updateCustomSelect(document.getElementById('gradeFilter'));
     updateGradeLevelFilter();
     updateSubjectFilter();
     updateExamTypeFilter();
