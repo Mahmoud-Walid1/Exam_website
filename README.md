@@ -1,9 +1,8 @@
 <p align="center">
-  <img src="images/logo1.png" alt="مكتبة المعلمين" width="120" style="border-radius: 20px;">
-  <img src="images/logo2.png" alt="العلوم والتقنية للجميع" width="120" style="border-radius: 20px;">
+  <img src="images/logo2.png" alt="العلوم والتقنية للجميع" width="130" style="border-radius: 20px;">
 </p>
 
-<h1 align="center">📚 مكتبة المعلمين — اختبارات محاكية نهائية</h1>
+<h1 align="center">📚 العلوم والتقنية للجميع — اختبارات محاكية نهائية</h1>
 
 <p align="center">
   <strong>منصة متكاملة لعرض وإدارة الاختبارات المحاكية النهائية لجميع المراحل الدراسية</strong>
@@ -115,8 +114,7 @@ Exam_website/
 │   └── default.png             # الأيقونة الافتراضية
 │
 └── 📂 images/                  # شعارات الموقع
-    ├── logo1.png               # شعار مكتبة المعلمين
-    └── logo2.png               # شعار العلوم والتقنية
+    └── logo2.png               # شعار العلوم والتقنية للجميع
 ```
 
 ---
@@ -183,10 +181,10 @@ python -m http.server 8000
 
 ## 📄 الترخيص
 
-مشروع خاص بـ **مكتبة المعلمين — العلوم والتقنية للجميع** © 2024
+مشروع خاص بـ **العلوم والتقنية للجميع** © 2025
 
 ---
 
 <p align="center">
-  <strong>صُنع بـ ❤️ لخدمة المعلمين والطلاب</strong>
+  <strong>منصة العلوم والتقنية للجميع للاختبارات المحاكية</strong>
 </p>
