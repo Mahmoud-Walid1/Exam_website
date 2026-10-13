@@ -1,3 +1,4 @@
+import { CURRENT_EXAM_TYPES } from './academic.js';
 import { db, auth } from './firebase-config.js';
 import {
     collection,
@@ -20,7 +21,7 @@ const DEFAULT_SUBJECTS = {
 };
 
 // Default exam types
-const DEFAULT_EXAM_TYPES = ['اختبار دوري', 'اختبار منتصف الفصل', 'اختبار نهائي', 'ورقة عمل'];
+const DEFAULT_EXAM_TYPES = CURRENT_EXAM_TYPES;
 
 // Standard grade levels for each stage
 export const GRADE_LEVELS = {
@@ -123,13 +124,13 @@ export async function getExamTypes() {
         const typesDoc = await getDoc(typesRef);
 
         if (typesDoc.exists()) {
-            return typesDoc.data().types || [];
+            return [...new Set([...CURRENT_EXAM_TYPES, ...(typesDoc.data().types || [])])];
         }
 
-        return [];
+        return [...CURRENT_EXAM_TYPES];
     } catch (error) {
         console.error('Error getting exam types:', error);
-        return [];
+        return [...CURRENT_EXAM_TYPES];
     }
 }
 

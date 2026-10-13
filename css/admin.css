@@ -1485,3 +1485,7 @@
 .import-row-link:hover {
     text-decoration: underline;
 }
+.academic-help { display: block; color: #52657a; font-size: .85rem; line-height: 1.8; margin: 8px 0 16px; }
+.academic-toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 12px 0; }
+.academic-toggle input { width: 20px; height: 20px; }
+#adminCurrentYear, #examYear, #bulkYear { width: 100%; padding: 12px; min-height: 44px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; background: white; color: #1e3a5f; }

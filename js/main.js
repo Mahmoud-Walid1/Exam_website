@@ -1,3 +1,4 @@
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getArchiveYears, isInAcademicScope } from './academic.js';
 // ========================================
 // Main Page JavaScript - Firebase Version
 // ========================================
@@ -5,6 +6,9 @@
 import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js';
 
 let allExams = [];
+let academicSettings = resolveAcademicSettings();
+let libraryMode = 'current';
+let selectedYear = academicSettings.currentYear;
 let currentTerm = 'الفصل الأول';
 let currentGrade = 'all';
 let currentGradeLevel = 'all';
@@ -280,23 +284,9 @@ function animateNumber(element, targetValue) {
 
 // Calculate and animate exam counters
 function updateExamStats(exams) {
-    const finalExamsCount = exams.filter(exam => {
-        const type = exam.examType || '';
-        const name = exam.name || '';
-        return type === 'اختبار نهائي' || (type === '' && name.includes('نهائي'));
-    }).length;
+    const finalExamsCount = exams.filter(exam => exam.examType === 'اختبار فتري').length;
+    const centralExamsCount = exams.filter(exam => exam.examType === 'اختبار فتري مركزي').length;
 
-    const centralExamsCount = exams.filter(exam => {
-        const type = exam.examType || '';
-        const name = exam.name || '';
-        return type === 'اختبار مركزي' || 
-               type === 'اختبار منتصف الفصل' || 
-               type === 'اختبار دوري' || 
-               type === 'اختبار فتري' || 
-               name.includes('مركزي') || 
-               name.includes('منتصف');
-    }).length;
-    
     const finalEl = document.getElementById('statFinalExamsCount');
     const centralEl = document.getElementById('statCentralExamsCount');
     
@@ -308,7 +298,10 @@ function updateExamStats(exams) {
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const settings = await getGeneralSettings();
-        currentTerm = settings.defaultTerm || 'الفصل الأول';
+        academicSettings = resolveAcademicSettings(settings);
+        selectedYear = academicSettings.currentYear;
+        currentTerm = academicSettings.activeTerm;
+        updateAcademicView();
         
         // Update the visual tabs based on default term
         const termTabs = document.querySelectorAll('.term-tab');
@@ -340,6 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSubjects();
     await loadExamTypes();
     setupFilters();
+    setupAcademicLibrary();
     setupExamsListener();
     await updateTicker(); // Load ticker items
     initTypingAnimation(); // Start typing animation
@@ -480,6 +474,7 @@ function setupFilters() {
     }
 
     function showSuggestions(query) {
+        if (query !== searchInput.value.trim()) return;
         if (!query || query.length < 1) {
             hideSuggestions();
             return;
@@ -490,7 +485,7 @@ function setupFilters() {
         const processedQuery = wasEnglishKeyboard ? convertEnglishToArabic(query) : query;
 
         // Score all exams
-        const scored = allExams
+        const scored = allExams.filter(exam => isInAcademicScope(exam, selectedYear, currentTerm))
             .map(exam => ({ exam, score: scoreExam(exam, query) }))
             .filter(item => item.score > 0)
             .sort((a, b) => b.score - a.score)
@@ -523,7 +518,7 @@ function setupFilters() {
                     <img class="suggestion-icon" src="${exam.icon || getSubjectIcon(exam.subject)}" alt="${exam.subject}" onerror="this.src='icons/default.png'">
                     <div class="suggestion-info">
                         <div class="suggestion-name">${highlightMatch(exam.name, query)}</div>
-                        <div class="suggestion-meta">${exam.subject} • ${gradeLevelText} • ${exam.term || ''}</div>
+                        <div class="suggestion-meta">${exam.subject} • ${gradeLevelText} • ${getExamYear(exam)} هـ • ${exam.term || ''}</div>
                     </div>
                     <span class="suggestion-badge ${exam.grade}">${exam.grade}</span>
                 </div>
@@ -609,60 +604,8 @@ function setupFilters() {
 
 // Custom Select Implementation
 function updateCustomSelect(selectElement) {
-    if (!selectElement) return;
-    
-    let wrapper = selectElement.nextElementSibling;
-    if (!wrapper || !wrapper.classList.contains('custom-select-wrapper')) {
-        wrapper = document.createElement('div');
-        wrapper.className = 'custom-select-wrapper';
-        selectElement.parentNode.insertBefore(wrapper, selectElement.nextSibling);
-        selectElement.style.display = 'none';
-        
-        document.addEventListener('click', (e) => {
-            if (!wrapper.contains(e.target)) {
-                wrapper.classList.remove('open');
-            }
-        });
-    }
-
-    const selectedOption = selectElement.options[selectElement.selectedIndex] || selectElement.options[0];
-    
-    let html = `
-        <div class="custom-select-trigger">${selectedOption ? selectedOption.textContent : 'اختر...'}</div>
-        <div class="custom-options">
-    `;
-    
-    for (let opt of selectElement.options) {
-        const isSelected = opt.value === selectElement.value ? 'selected' : '';
-        html += `<div class="custom-option ${isSelected}" data-value="${opt.value}">${opt.textContent}</div>`;
-    }
-    html += `</div>`;
-    
-    wrapper.innerHTML = html;
-    
-    const trigger = wrapper.querySelector('.custom-select-trigger');
-    const optionsGroup = wrapper.querySelector('.custom-options');
-    
-    trigger.addEventListener('click', () => {
-        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
-            if (w !== wrapper) w.classList.remove('open');
-        });
-        wrapper.classList.toggle('open');
-    });
-    
-    const options = wrapper.querySelectorAll('.custom-option');
-    options.forEach(optDiv => {
-        optDiv.addEventListener('click', () => {
-            selectElement.value = optDiv.dataset.value;
-            
-            trigger.textContent = optDiv.textContent;
-            options.forEach(o => o.classList.remove('selected'));
-            optDiv.classList.add('selected');
-            
-            wrapper.classList.remove('open');
-            selectElement.dispatchEvent(new Event('change'));
-        });
-    });
+    // Native selects support mobile pickers, keyboard navigation and screen readers.
+    if (selectElement) selectElement.style.display = '';
 }
 
 // Update grade level filter based on selected stage
@@ -723,12 +666,14 @@ function updateExamTypeFilter() {
     const typeSelect = document.getElementById('examTypeFilter');
     typeSelect.innerHTML = '<option value="all">الكل</option>';
     
-    allExamTypes.forEach(type => {
+    const types = libraryMode === 'current' ? CURRENT_EXAM_TYPES : [...new Set([...allExamTypes, ...allExams.filter(exam => getExamYear(exam) === selectedYear).map(exam => exam.examType).filter(Boolean)])];
+    types.forEach(type => {
         const opt = document.createElement('option');
         opt.value = type;
         opt.textContent = type;
         typeSelect.appendChild(opt);
     });
+    typeSelect.value = currentExamType;
     updateCustomSelect(typeSelect);
 }
 
@@ -736,14 +681,16 @@ function updateExamTypeFilter() {
 function setupExamsListener() {
     onExamsChange((exams) => {
         allExams = exams;
-        updateExamStats(exams);
+        updateAcademicView();
+        updateExamTypeFilter();
         filterExams();
     });
 }
 
 // Filter and display exams
 function filterExams() {
-    let filteredExams = allExams;
+    let filteredExams = allExams.filter(exam => getExamYear(exam) === selectedYear);
+    updateExamStats(allExams.filter(exam => isInAcademicScope(exam, selectedYear, currentTerm)));
     
     if (currentTerm !== 'all') {
         filteredExams = filteredExams.filter(exam => (exam.term || 'الفصل الأول') === currentTerm);
@@ -780,6 +727,9 @@ function filterExams() {
         });
     }
 
+    document.getElementById('resultsCount').textContent = filteredExams.length + ' اختبار • ' + selectedYear + ' هـ • ' + currentTerm;
+    document.getElementById('noExamsSubtitle').textContent = libraryMode === 'archive' ? 'لا توجد اختبارات تطابق هذه الفلاتر في العام المحدد.' : (allExams.some(exam => isInAcademicScope(exam, selectedYear, currentTerm)) ? 'لا توجد نتائج مطابقة. جرّب مسح الفلاتر أو تغيير البحث.' : 'ستُضاف اختبارات العام الجديد قريبًا. يمكنك تصفح اختبارات الأعوام السابقة.');
+    document.getElementById('emptyArchiveBtn').hidden = libraryMode === 'archive';
     displayExams(filteredExams);
 }
 
@@ -849,13 +799,14 @@ function displayExams(exams) {
                 <div class="exam-body">
                     <h3 class="exam-title">${exam.name}</h3>
                     <div class="exam-tags">
+                        <span class="exam-tag year-tag">${getExamYear(exam)} هـ</span>
                         <span class="exam-tag term-tag">
                             <lord-icon src="https://cdn.lordicon.com/qzwudxuv.json" trigger="hover" colors="primary:#4338ca" style="width:16px;height:16px;"></lord-icon>
                             ${exam.term || 'الفصل الأول'}
                         </span>
                         <span class="exam-tag type-tag">
                             <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#be185d" style="width:16px;height:16px;"></lord-icon>
-                            ${exam.examType || 'اختبار نهائي'}
+                            ${exam.examType || 'نوع غير محدد'}
                         </span>
                         <span class="exam-tag subject-tag">
                             <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#15803d" style="width:16px;height:16px;"></lord-icon>
@@ -964,7 +915,7 @@ async function updateTicker() {
         // If no Firebase items, use default features/benefits
         if (itemsToUse.length === 0) {
             itemsToUse = [
-                { text: 'اختبارات محاكية نهائية شاملة', icon: '', url: '' },
+                { text: 'اختبارات فترية وفترية مركزية', icon: '', url: '' },
                 { text: 'جميع المراحل الدراسية', icon: '', url: '' },
                 { text: 'محدثة باستمرار', icon: '', url: '' },
                 { text: 'تغطية كاملة للمنهج', icon: '', url: '' },
@@ -1103,4 +1054,63 @@ function initScrollToTop() {
             behavior: 'smooth'
         });
     });
+}
+
+function updateAcademicView() {
+    const archive = libraryMode === 'archive';
+    const years = getArchiveYears(allExams, academicSettings.currentYear);
+    const select = document.getElementById('archiveYear');
+    if (archive && !years.includes(selectedYear)) selectedYear = years[0] || String(Number(academicSettings.currentYear) - 1);
+    select.replaceChildren(...years.map(year => new Option(year + ' هـ', year)));
+    if (!years.length) select.add(new Option('لا توجد أعوام مؤرشفة بعد', selectedYear));
+    select.value = selectedYear;
+    select.disabled = !years.length;
+    document.getElementById('archiveYearGroup').hidden = !archive;
+    document.getElementById('academicHeading').textContent = archive ? 'أرشيف الاختبارات' : 'اختبارات عام ' + selectedYear + '\u00a0هـ';
+    document.getElementById('academicBadge').textContent = archive ? 'الأرشيف' : 'العام الحالي';
+    document.getElementById('academicNote').textContent = archive ? 'أنت تتصفح اختبارات ' + selectedYear + ' هـ.' : currentTerm + ' • اختبارات فترية وفترية مركزية';
+    document.getElementById('currentLibraryBtn').textContent = 'اختبارات ' + academicSettings.currentYear;
+    for (const [id, active] of [['currentLibraryBtn', !archive], ['archiveLibraryBtn', archive]]) {
+        document.getElementById(id).classList.toggle('active', active);
+        document.getElementById(id).setAttribute('aria-pressed', String(active));
+    }
+    document.querySelectorAll('.term-tab').forEach(tab => {
+        tab.hidden = tab.dataset.term === 'الفصل الثاني' && !archive && !academicSettings.showSecondTerm;
+        tab.classList.toggle('active', tab.dataset.term === currentTerm);
+        tab.setAttribute('aria-pressed', String(tab.dataset.term === currentTerm));
+    });
+    document.getElementById('resultsHeading').textContent = archive ? 'اختبارات ' + selectedYear + ' هـ' : 'الاختبارات المتوفرة';
+}
+
+function resetLibraryFilters() {
+    currentGrade = currentGradeLevel = currentSubject = currentExamType = 'all';
+    currentSearchQuery = '';
+    document.getElementById('smartSearchInput').value = '';
+    document.getElementById('searchSuggestions').classList.remove('active');
+    document.getElementById('gradeFilter').value = 'all';
+    updateGradeLevelFilter();
+    updateSubjectFilter();
+    updateExamTypeFilter();
+    filterExams();
+}
+
+function setupAcademicLibrary() {
+    function switchLibrary(mode) {
+        libraryMode = mode;
+        selectedYear = mode === 'current' ? academicSettings.currentYear : (getArchiveYears(allExams, academicSettings.currentYear)[0] || String(Number(academicSettings.currentYear) - 1));
+        currentTerm = mode === 'current' ? academicSettings.activeTerm : 'الفصل الأول';
+        updateAcademicView();
+        resetLibraryFilters();
+    }
+    document.getElementById('currentLibraryBtn').addEventListener('click', () => switchLibrary('current'));
+    document.getElementById('archiveLibraryBtn').addEventListener('click', () => switchLibrary('archive'));
+    document.getElementById('emptyArchiveBtn').addEventListener('click', () => switchLibrary('archive'));
+    document.getElementById('archiveYear').addEventListener('change', event => {
+        selectedYear = event.target.value;
+        updateAcademicView();
+        resetLibraryFilters();
+    });
+    document.getElementById('resetFiltersBtn').addEventListener('click', resetLibraryFilters);
+    document.querySelectorAll('.term-tab').forEach(tab => tab.addEventListener('click', updateAcademicView));
+    updateAcademicView();
 }

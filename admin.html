@@ -143,6 +143,9 @@
                         <div class="admin-section">
                             <h2 class="section-title">⚙️ الإعدادات العامة للموقع</h2>
                             <div class="form-group" style="max-width: 400px;">
+                                <label for="adminCurrentYear">العام الدراسي الحالي</label><input id="adminCurrentYear" type="number" min="1400" max="1599" required value="1448">
+                                <p class="academic-help">الاختبارات القديمة التي لا تحمل عامًا دراسيًا تُعرض ضمن أرشيف 1447 تلقائيًا.</p>
+                                <label class="academic-toggle"><input type="checkbox" id="adminShowSecondTerm"> إظهار الفصل الثاني للعام الحالي</label>
                                 <label for="adminDefaultTerm">الفصل الدراسي الافتراضي للصفحة الرئيسية</label>
                                 <select id="adminDefaultTerm" style="padding:10px; border-radius:8px; border:1px solid #cbd5e1; width:100%; margin-bottom:15px; font-family:inherit; font-size:1rem; background: #fff;">
                                     <option value="الفصل الأول">الفصل الأول</option>
@@ -206,6 +209,7 @@
                                     </select>
                                 </div>
                                 
+                                <div class="filter-group"><label for="filterYear">العام الدراسي</label><select id="filterYear" class="filter-select"><option value="">جميع الأعوام</option></select></div>
                                 <!-- Term Filter -->
                                 <div class="filter-group">
                                     <label for="filterTerm">الفصل الدراسي</label>
@@ -346,6 +350,7 @@
 
                                         <div class="form-row">
                                             <div class="form-group">
+                                                <label for="examYear">العام الدراسي *</label><input id="examYear" type="number" min="1400" max="1599" required value="1448"><small class="academic-help">اختر 1447 عند إضافة اختبار من العام السابق.</small>
                                                 <label for="examTerm">الفصل الدراسي *</label>
                                                 <select id="examTerm" required>
                                                     <option value="">اختر الفصل</option>
@@ -595,6 +600,7 @@
                                     </div>
                                     <div class="form-row" style="margin-top: 15px;">
                                         <div class="form-group">
+                                            <label for="bulkYear">العام الدراسي</label><input id="bulkYear" type="number" min="1400" max="1599" placeholder="مثال: 1448">
                                             <label for="bulkTerm">الفصل الدراسي</label>
                                             <select id="bulkTerm">
                                                 <option value="">اختر الفصل</option>

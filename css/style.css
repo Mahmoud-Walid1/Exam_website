@@ -511,6 +511,39 @@ lord-icon.icon-xlarge {
     background-color: white;
 }
 
+.academic-panel { background: #fff; border: 1px solid #dbe8ed; border-radius: 22px; padding: 24px; margin-bottom: 24px; box-shadow: 0 8px 28px #1e3a5f08; }
+.academic-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.academic-heading h2 { color: var(--primary-color); font-size: clamp(1.15rem, 3vw, 1.6rem); margin: 6px 0 0; }
+.academic-eyebrow { font-size: .85rem; color: #52657a; }
+.academic-badge { flex-shrink: 0; border: 1px solid #b7e6dc; background: #ecfdf5; color: #0f766e; padding: 5px 12px; border-radius: 30px; font-size: .8rem; font-weight: 700; }
+.library-tabs { display: flex; gap: 8px; padding: 6px; border-radius: 15px; background: #f1f5f9; }
+.library-tab { flex: 1; min-height: 48px; font: inherit; font-weight: 700; font-size: .95rem; border: 1px solid transparent; border-radius: 11px; background: transparent; color: #475569; cursor: pointer; padding: 10px 12px; }
+.library-tab.active { background: #0f766e; color: #fff; box-shadow: 0 3px 8px #0f766e20; }
+.academic-note { margin: 14px 0 0; color: #52657a; font-size: .9rem; line-height: 1.8; }
+#archiveYearGroup { margin-top: 20px; }
+#archiveYearGroup label { display: block; margin-bottom: 8px; font-weight: 700; }
+.results-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -10px 0 24px; color: #52657a; font-size: .9rem; }
+.reset-filters { min-height: 44px; border: 1px solid #b7d9d6; background: #fff; border-radius: 12px; padding: 8px 14px; color: #0f766e; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+.reset-filters:hover { background: #ecfdf5; }
+.year-tag { background: #ecfdf5; color: #0f766e; font-weight: 800; }
+.compact-select { min-height: 48px; padding-left: 40px; font-size: 1rem; }
+.compact-filter-box { min-width: 0; }
+.term-tab { font-family: inherit; min-height: 44px; }
+.term-tab.active { background: #0f766e; }
+[hidden] { display: none !important; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid #0d9488; outline-offset: 3px; }
+@media (max-width: 600px) {
+    .academic-panel { padding: 18px 14px; border-radius: 18px; }
+    .academic-heading { align-items: flex-start; gap: 8px; }
+    .academic-badge { font-size: .7rem; padding: 4px 8px; }
+    .library-tab { font-size: .85rem; padding: 8px; }
+    .compact-filters-container { padding: 18px; gap: 18px; border: 1px solid #e2e8f0; }
+    .results-toolbar { align-items: flex-start; font-size: .85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
 /* Custom Select Wrapper */
 .custom-select-wrapper {
     position: relative;

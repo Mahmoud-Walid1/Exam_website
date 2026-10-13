@@ -1,3 +1,4 @@
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear } from './academic.js';
 // ========================================
 // Admin Panel JavaScript - Firebase with Icons
 // ========================================
@@ -5,6 +6,7 @@
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
 import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js';
 
+let academicSettings = resolveAcademicSettings();
 let allSubjects = {};
 let allExams = [];
 let allExamTypes = [];
@@ -13,6 +15,7 @@ let selectedIcon = null;
 // Filtering and view state
 let activeViewMode = 'grid'; // 'grid' or 'table'
 let currentFilters = {
+    academicYear: '',
     search: '',
     grade: '',
     gradeLevel: '',
@@ -119,6 +122,7 @@ function setupLoginForm() {
 // Initialize dashboard
 async function initializeDashboard() {
     console.log('Initializing dashboard...');
+    academicSettings = resolveAcademicSettings(await getGeneralSettings());
     await initializeSubjects();
     await loadSubjects();
     await loadExamTypes();
@@ -140,23 +144,38 @@ async function initializeDashboard() {
 
 // Setup General Settings
 async function setupGeneralSettings() {
-    const settings = await getGeneralSettings();
+    academicSettings = resolveAcademicSettings(await getGeneralSettings());
     const termSelect = document.getElementById('adminDefaultTerm');
-    if (termSelect) termSelect.value = settings.defaultTerm || 'الفصل الأول';
-    
-    document.getElementById('saveGeneralSettingsBtn').addEventListener('click', async () => {
+    const yearInput = document.getElementById('adminCurrentYear');
+    const secondTerm = document.getElementById('adminShowSecondTerm');
+    yearInput.value = academicSettings.currentYear;
+    termSelect.value = academicSettings.activeTerm;
+    secondTerm.checked = academicSettings.showSecondTerm;
+    const syncTerm = () => {
+        termSelect.querySelector('[value="الفصل الثاني"]').disabled = !secondTerm.checked;
+        if (!secondTerm.checked) termSelect.value = 'الفصل الأول';
+    };
+    secondTerm.addEventListener('change', syncTerm);
+    syncTerm();
+    document.getElementById('examYear').value = academicSettings.currentYear;
+    document.getElementById('saveGeneralSettingsBtn').onclick = async () => {
+        const currentYear = normalizeYear(yearInput.value);
+        if (!currentYear) { alert('أدخل عامًا هجريًا صحيحًا بين 1400 و1599'); return; }
         const btn = document.getElementById('saveGeneralSettingsBtn');
         const msg = document.getElementById('generalSettingsMsg');
         btn.disabled = true;
         btn.textContent = 'جاري الحفظ...';
-        
-        await updateGeneralSettings({ defaultTerm: termSelect.value });
-        
-        msg.style.display = 'inline-block';
-        setTimeout(() => msg.style.display = 'none', 3000);
-        btn.disabled = false;
-        btn.textContent = 'حفظ الإعدادات';
-    });
+        msg.style.display = 'none';
+        try {
+            const next = { currentYear, activeTerm: termSelect.value, defaultTerm: termSelect.value, showSecondTerm: secondTerm.checked };
+            const saved = await updateGeneralSettings(next);
+            if (!saved) throw new Error('تعذر حفظ الإعدادات. تحقق من الاتصال وصلاحيات الحساب.');
+            academicSettings = resolveAcademicSettings(next);
+            msg.style.display = 'inline-block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+        } catch (error) { alert(error.message); }
+        finally { btn.disabled = false; btn.textContent = 'حفظ الإعدادات'; }
+    };
 }
 
 // Setup Mobile Sidebar Toggle
@@ -455,6 +474,10 @@ async function loadSubjects() {
 // Load exams
 async function loadExams() {
     allExams = await getExams();
+    const yearSelect = document.getElementById('filterYear');
+    const years = [...new Set([academicSettings.currentYear, ...allExams.map(getExamYear)])].sort((a,b) => Number(b)-Number(a));
+    yearSelect.replaceChildren(new Option('جميع الأعوام', ''), ...years.map(year => new Option(year + ' هـ', year)));
+    yearSelect.value = currentFilters.academicYear || '';
     applyExamsFiltering();
     updateQuickStats();
 }
@@ -481,6 +504,8 @@ function setupAddExamForm() {
 
         const name = document.getElementById('examName').value;
         const url = document.getElementById('examUrl').value;
+        const academicYear = normalizeYear(document.getElementById('examYear').value);
+        if (!academicYear) { alert('أدخل العام الدراسي الصحيح'); return; }
         const term = document.getElementById('examTerm').value;
         const grade = document.getElementById('examGrade').value;
         const gradeLevel = document.getElementById('examGradeLevel').value;
@@ -501,7 +526,7 @@ function setupAddExamForm() {
             submitBtn.textContent = editingId ? 'جاري التحديث...' : 'جاري الإضافة...';
             submitBtn.disabled = true;
 
-            const examData = { name, url, term, grade, gradeLevel, subject, examType, examModel, examIsStandard, icon, imageUrl };
+            const examData = { academicYear, name, url, term, grade, gradeLevel, subject, examType, examModel, examIsStandard, icon, imageUrl };
 
             if (editingId) {
                 await updateExam(editingId, examData);
@@ -539,7 +564,10 @@ window.editExam = function (examId) {
 
     document.getElementById('examName').value = exam.name;
     document.getElementById('examUrl').value = exam.url;
-    document.getElementById('examTerm').value = exam.term || '';
+    document.getElementById('examYear').value = getExamYear(exam);
+    document.getElementById('examTerm').value = exam.term || 'الفصل الأول';
+    const typeSelect = document.getElementById('examType');
+    if (exam.examType && ![...typeSelect.options].some(option => option.value === exam.examType)) typeSelect.add(new Option(exam.examType, exam.examType));
     document.getElementById('examGrade').value = exam.grade;
     document.getElementById('examType').value = exam.examType || '';
     document.getElementById('examModel').value = exam.examModel || '';
@@ -570,7 +598,7 @@ window.editExam = function (examId) {
 // Cancel edit
 function cancelEdit() {
     const form = document.getElementById('addExamForm');
-    if (form) form.reset();
+    if (form) { form.reset(); document.getElementById('examYear').value = academicSettings.currentYear; document.getElementById('examTerm').value = academicSettings.activeTerm; }
     selectedIcon = null;
     document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
     const selectedIconInput = document.getElementById('selectedIcon');
@@ -711,7 +739,7 @@ function updateExamTypesDisplay() {
             ${allExamTypes.map(type => `
                 <div class="subject-tag" style="background-color: #fce7f3; color: #be185d; border-color: #fbcfe8;">
                     <span>${type}</span>
-                    <button style="color: #be185d;" onclick="handleDeleteExamType('${type}')">×</button>
+                    ${CURRENT_EXAM_TYPES.includes(type) ? '<small>نوع أساسي</small>' : `<button style="color: #be185d;" onclick="handleDeleteExamType('${type}')">×</button>`}
                 </div>
             `).join('')}
         </div>
@@ -731,6 +759,7 @@ function updateExamTypeDropdown() {
 
 // Handle delete exam type
 window.handleDeleteExamType = async (type) => {
+    if (CURRENT_EXAM_TYPES.includes(type)) return;
     if (confirm(`هل تريد حذف نوع الاختبار "${type}"؟`)) {
         await deleteExamType(type);
         await loadExamTypes();
@@ -755,7 +784,7 @@ function renderExamsTable(exams) {
             <td>${exam.subject}</td>
             <td><span class="exam-badge" style="background:#e2e8f0; color:#475569;">${exam.examModel || '-'}</span></td>
             <td>${exam.examIsStandard ? '✅' : '❌'}</td>
-            <td><span class="exam-badge" style="background:#e0e7ff; color:#4338ca;">${exam.term || 'غير محدد'}</span></td>
+            <td><span class="exam-badge" style="background:#e0e7ff; color:#4338ca;">${exam.term || 'غير محدد'} • ${getExamYear(exam)} هـ</span></td>
             <td><span class="exam-badge" style="background:#fce7f3; color:#be185d;">${exam.examType || 'غير محدد'}</span></td>
             <td><img src="${exam.imageUrl || 'icons/default.png'}" class="table-image" onerror="this.src='icons/default.png'"></td>
             <td><a href="${exam.url}" target="_blank" class="table-link">رابط المنتج</a></td>
@@ -796,7 +825,7 @@ function renderExamsGrid(exams) {
                     <div class="admin-card-badges">
                         <span class="admin-card-badge grade">${exam.grade}</span>
                         <span class="admin-card-badge level">الصف ${exam.gradeLevel}</span>
-                        <span class="admin-card-badge term">${exam.term || 'غير محدد'}</span>
+                        <span class="admin-card-badge term">${exam.term || 'غير محدد'} • ${getExamYear(exam)} هـ</span>
                         <span class="admin-card-badge type">${exam.examType || 'غير محدد'}</span>
                         ${exam.examIsStandard ? `<span class="admin-card-badge standard">وفق المواصفات ✨</span>` : ''}
                         ${exam.examModel ? `<span class="admin-card-badge level" style="background:#f1f5f9; color:#475569;">نموذج: ${exam.examModel}</span>` : ''}
@@ -824,6 +853,7 @@ function renderExamsGrid(exams) {
 
 function applyExamsFiltering() {
     const filteredExams = allExams.filter(exam => {
+        if (currentFilters.academicYear && getExamYear(exam) !== currentFilters.academicYear) return false;
         if (currentFilters.search) {
             const term = currentFilters.search.toLowerCase().trim();
             const nameMatch = exam.name && exam.name.toLowerCase().includes(term);
@@ -925,6 +955,7 @@ function updateActiveFiltersBadge() {
     if (currentFilters.grade) count++;
     if (currentFilters.gradeLevel) count++;
     if (currentFilters.subject) count++;
+    if (currentFilters.academicYear) count++;
     if (currentFilters.term) count++;
     if (currentFilters.examType) count++;
     if (currentFilters.isStandard) count++;
@@ -944,6 +975,8 @@ function setupExamsControlPanel() {
     const filterGrade = document.getElementById('filterGrade');
     const filterGradeLevel = document.getElementById('filterGradeLevel');
     const filterSubject = document.getElementById('filterSubject');
+    const filterYear = document.getElementById('filterYear');
+    filterYear.addEventListener('change', () => { currentFilters.academicYear = filterYear.value; applyExamsFiltering(); });
     const filterTerm = document.getElementById('filterTerm');
     const filterExamType = document.getElementById('filterExamType');
     const filterIsStandard = document.getElementById('filterIsStandard');
@@ -997,6 +1030,7 @@ function setupExamsControlPanel() {
     if (btnResetFilters) {
         btnResetFilters.addEventListener('click', () => {
             currentFilters = {
+                academicYear: '',
                 search: '',
                 grade: '',
                 gradeLevel: '',
@@ -1014,6 +1048,7 @@ function setupExamsControlPanel() {
                 filterGradeLevel.innerHTML = '<option value="">اختر المرحلة أولاً</option>';
             }
             if (filterSubject) filterSubject.value = '';
+            filterYear.value = '';
             if (filterTerm) filterTerm.value = '';
             if (filterExamType) filterExamType.value = '';
             if (filterIsStandard) filterIsStandard.value = '';
@@ -1163,7 +1198,7 @@ function openModal(isEdit = false, examName = '') {
         
         // Reset form for fresh addition
         const form = document.getElementById('addExamForm');
-        if (form) form.reset();
+        if (form) { form.reset(); document.getElementById('examYear').value = academicSettings.currentYear; document.getElementById('examTerm').value = academicSettings.activeTerm; }
         selectedIcon = null;
         document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
         const selectedIconInput = document.getElementById('selectedIcon');
@@ -1644,12 +1679,14 @@ function guessExamDetails(name) {
     }
 
     // 5. Guess Exam Type
-    if (lowercaseName.includes('نهائي') || lowercaseName.includes('النهائي')) {
+    if (lowercaseName.includes('مركزي')) {
+        details.examType = 'اختبار فتري مركزي';
+    } else if (lowercaseName.includes('نهائي') || lowercaseName.includes('النهائي')) {
         details.examType = 'اختبار نهائي';
     } else if (lowercaseName.includes('منتصف') || lowercaseName.includes('فترة') || lowercaseName.includes('الفترة') || lowercaseName.includes('شهري')) {
-        details.examType = 'اختبار منتصف الفصل';
+        details.examType = 'اختبار فتري';
     } else if (lowercaseName.includes('دوري') || lowercaseName.includes('فتري')) {
-        details.examType = 'اختبار دوري';
+        details.examType = 'اختبار فتري';
     } else if (lowercaseName.includes('ورقة عمل') || lowercaseName.includes('اوراق عمل') || lowercaseName.includes('أوراق عمل') || lowercaseName.includes('نشاط')) {
         details.examType = 'ورقة عمل';
     }
@@ -1761,6 +1798,7 @@ function renderScannedProductsTable(products) {
                             </select>
                         </div>
                         <div class="row-selectors-extra">
+                            <label>العام <input type="number" class="row-year-input" min="1400" max="1599" required value="${normalizeYear(prod.name?.match(/1[4-5]\d{2}/)?.[0]) || academicSettings.currentYear}" style="width:85px"></label>
                             <select class="row-term-select" style="flex: 1;">
                                 <option value="">الفصل</option>
                                 <option value="الفصل الأول" ${guessed.term === 'الفصل الأول' ? 'selected' : ''}>الفصل الأول</option>
@@ -2077,6 +2115,9 @@ function setupSallaImporter() {
             const selectedGrade = bulkGrade.value;
             const selectedGradeLevel = bulkGradeLevel.value;
             const selectedSubject = bulkSubject.value;
+            const bulkYearValue = document.getElementById('bulkYear').value;
+            const selectedYear = normalizeYear(bulkYearValue);
+            if (bulkYearValue && !selectedYear) { alert('أدخل عامًا هجريًا صحيحًا بين 1400 و1599'); return; }
             const selectedTerm = bulkTerm.value;
             const selectedType = bulkType.value;
             const selectedIconVal = bulkIcon.value;
@@ -2098,6 +2139,7 @@ function setupSallaImporter() {
                     gradeSelect.value = selectedGrade;
                     updateRowGradeDropdowns(row, selectedGrade, selectedGradeLevel, selectedSubject);
                 }
+                if (selectedYear) row.querySelector('.row-year-input').value = selectedYear;
                 if (selectedTerm) {
                     row.querySelector('.row-term-select').value = selectedTerm;
                 }
@@ -2159,6 +2201,7 @@ function setupSallaImporter() {
                 const grade = row.querySelector('.row-grade-select').value;
                 const gradeLevel = row.querySelector('.row-grade-level-select').value;
                 const subject = row.querySelector('.row-subject-select').value;
+                const academicYear = normalizeYear(row.querySelector('.row-year-input').value);
                 const term = row.querySelector('.row-term-select').value;
                 const examType = row.querySelector('.row-type-select').value;
                 const icon = row.querySelector('.row-icon-select-el').value;
@@ -2170,13 +2213,14 @@ function setupSallaImporter() {
                     validated = false;
                     return;
                 }
-                if (!grade || !gradeLevel || !subject || !term || !examType || !icon) {
+                if (!academicYear || !grade || !gradeLevel || !subject || !term || !examType || !icon) {
                     alert(`يرجى إكمال البيانات الأساسية للمنتج: "${name}" (المرحلة، الصف، المادة، الفصل، النوع، الأيقونة)`);
                     validated = false;
                     return;
                 }
 
                 examsToSave.push({
+                    academicYear,
                     name,
                     url,
                     imageUrl,

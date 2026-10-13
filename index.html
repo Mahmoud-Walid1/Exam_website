@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="اختبارات محاكية نهائية لجميع المراحل الدراسية - العلوم والتقنية للجميع">
-    <meta name="keywords" content="اختبارات محاكية نهائية، ابتدائي، متوسط، ثانوي، العلوم والتقنية للجميع">
-    <title>العلوم والتقنية للجميع للاختبارات المحاكية النهائية</title>
+    <meta name="description" content="اختبارات فترية وفترية مركزية لجميع المراحل الدراسية - العلوم والتقنية للجميع">
+    <meta name="keywords" content="اختبارات فترية وفترية مركزية، ابتدائي، متوسط، ثانوي، العلوم والتقنية للجميع">
+    <title>العلوم والتقنية للجميع للاختبارات الفترية والمركزية</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="header-tagline">
-                <p class="site-tagline">اختبارات محاكية نهائية</p>
+                <p class="site-tagline">اختبارات فترية وفترية مركزية</p>
             </div>
         </div>
     </header>
@@ -49,7 +49,7 @@
                         colors="primary:#1e3a5f,secondary:#0d9488" style="width:70px;height:70px;"></lord-icon>
                 </div>
                 <div class="ticker-card-content">
-                    <p class="ticker-text">اختبارات محاكية نهائية شاملة</p>
+                    <p class="ticker-text">اختبارات فترية وفترية مركزية شاملة</p>
                 </div>
             </div>
             <div class="ticker-card">
@@ -78,7 +78,7 @@
         <div class="container">
             <h2 class="hero-title typing-animation" id="heroTitle">اختبارات محاكية احترافية لجميع المراحل الدراسية</h2>
             <p class="hero-description">
-                نوفر لك اختبارات محاكية نهائية متميزة ومعدة بعناية فائقة لجميع المراحل والمواد الدراسية.
+                نوفر لك اختبارات فترية وفترية مركزية متميزة ومعدة بعناية فائقة لجميع المراحل والمواد الدراسية.
                 اختبارات شاملة تغطي المنهج بالكامل وتساعدك في تقييم طلابك بشكل احترافي.
             </p>
         </div>
@@ -118,7 +118,7 @@
                     </div>
                     <div class="stat-card-content">
                         <span class="stat-card-number" id="statCentralExamsCount">...</span>
-                        <span class="stat-card-label">اختبارات مركزية</span>
+                        <span class="stat-card-label">اختبارات فترية مركزية</span>
                     </div>
                 </div>
 
@@ -135,7 +135,7 @@
                     </div>
                     <div class="stat-card-content">
                         <span class="stat-card-number" id="statFinalExamsCount">...</span>
-                        <span class="stat-card-label">اختبارات نهائية</span>
+                        <span class="stat-card-label">اختبارات فترية</span>
                     </div>
                 </div>
             </div>
@@ -145,6 +145,15 @@
     <!-- Filters Section -->
     <main class="main-content">
         <div class="container">
+            <div class="academic-panel">
+                <div class="academic-heading"><div><span class="academic-eyebrow">مكتبة اختبارات المعلمين</span><h2 id="academicHeading">اختبارات عام 1448 هـ</h2></div><span class="academic-badge" id="academicBadge">العام الحالي</span></div>
+                <div class="library-tabs" aria-label="مكتبة الاختبارات">
+                    <button type="button" id="currentLibraryBtn" class="library-tab active" aria-pressed="true">اختبارات 1448</button>
+                    <button type="button" id="archiveLibraryBtn" class="library-tab" aria-pressed="false">اختبارات الأعوام السابقة</button>
+                </div>
+                <div id="archiveYearGroup" hidden><label for="archiveYear">العام الدراسي</label><select id="archiveYear" class="compact-select"></select><p class="academic-note">نماذج من أعوام سابقة للاستفادة والمراجعة.</p></div>
+                <p class="academic-note" id="academicNote">اختبارات الفصل الأول، مرتبة حسب المرحلة والمادة.</p>
+            </div>
             <!-- Smart Search Bar -->
             <div class="smart-search-container">
                 <div class="search-input-wrapper">
@@ -157,7 +166,7 @@
             <!-- Terms Tabs (Top Level) -->
             <div class="terms-tabs-container">
                 <button class="term-tab active" data-term="الفصل الأول">الفصل الأول</button>
-                <button class="term-tab" data-term="الفصل الثاني">الفصل الثاني</button>
+                <button class="term-tab" data-term="الفصل الثاني" hidden>الفصل الثاني</button>
             </div>
 
             <!-- Horizontal Compact Filters -->
@@ -166,7 +175,7 @@
                     <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/dxjqoygy.json"
                             trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon>
                         المرحلة</label>
-                    <select id="gradeFilter" class="compact-select">
+                    <select id="gradeFilter" aria-label="المرحلة" class="compact-select">
                         <option value="all">الكل</option>
                         <option value="ابتدائي">ابتدائي</option>
                         <option value="متوسط">متوسط</option>
@@ -178,7 +187,7 @@
                     <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/abfverha.json"
                             trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon>
                         الصف</label>
-                    <select id="gradeLevelFilter" class="compact-select">
+                    <select id="gradeLevelFilter" aria-label="الصف" class="compact-select">
                         <option value="all">الكل</option>
                     </select>
                 </div>
@@ -187,7 +196,7 @@
                     <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/kipaqhoz.json"
                             trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon>
                         المادة</label>
-                    <select id="subjectFilter" class="compact-select">
+                    <select id="subjectFilter" aria-label="المادة" class="compact-select">
                         <option value="all">الكل</option>
                     </select>
                 </div>
@@ -196,18 +205,18 @@
                     <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/gqzfzudq.json"
                             trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> نوع
                         الاختبار</label>
-                    <select id="examTypeFilter" class="compact-select">
+                    <select id="examTypeFilter" aria-label="نوع الاختبار" class="compact-select">
                         <option value="all">الكل</option>
                     </select>
                 </div>
             </div>
         </div>
-    </section>
+    </main>
 
     <!-- Exams Grid -->
     <section class="exams-section">
         <div class="container">
-            <h2 class="section-title">الاختبارات المتوفرة</h2>
+            <h2 class="section-title" id="resultsHeading">الاختبارات المتوفرة</h2><div class="results-toolbar"><p id="resultsCount" role="status" aria-live="polite">جارٍ تحميل الاختبارات…</p><button type="button" id="resetFiltersBtn" class="reset-filters">مسح الفلاتر</button></div>
             <div class="exams-grid" id="examsGrid">
                 <!-- سيتم إضافة بطاقات الاختبارات ديناميكياً من JavaScript -->
             </div>
@@ -217,7 +226,7 @@
                         colors="primary:#cbd5e1,secondary:#94a3b8" style="width:120px;height:120px;"></lord-icon>
                 </div>
                 <p class="no-exams-title">لا توجد اختبارات متوفرة حالياً</p>
-                <p class="no-exams-subtitle">تابعنا قريباً لإضافة اختبارات جديدة في هذه المادة</p>
+                <p class="no-exams-subtitle" id="noExamsSubtitle">ستُضاف اختبارات العام الجديد قريبًا. يمكنك تصفح اختبارات الأعوام السابقة.</p><button type="button" id="emptyArchiveBtn" class="reset-filters">تصفح الأعوام السابقة</button>
             </div>
         </div>
     </section>
@@ -264,7 +273,7 @@
                         </lord-icon>
                         عن الموقع
                     </h4>
-                    <p>اختبارات محاكية نهائية لجميع المراحل الدراسية</p>
+                    <p>اختبارات فترية وفترية مركزية لجميع المراحل الدراسية</p>
                 </div>
             </div>
             <div class="footer-bottom">
