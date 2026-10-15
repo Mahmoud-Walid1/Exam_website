@@ -661,7 +661,7 @@ window.editExam = function (examId) {
     if (exam.examType === 'اختبار فتري') {
         if (periodGroup) periodGroup.style.display = 'block';
         if (periodSelect) periodSelect.required = true;
-        if (['فترة أولى', 'فترة ثانية', 'فترة ثالثة'].includes(resolvedPeriod)) {
+        if (['فترة أولى', 'فترة ثانية'].includes(resolvedPeriod)) {
             if (periodSelect) periodSelect.value = resolvedPeriod;
             if (periodCustom) { periodCustom.style.display = 'none'; periodCustom.value = ''; periodCustom.required = false; }
         } else if (resolvedPeriod) {
@@ -1839,8 +1839,6 @@ function guessExamDetails(name) {
             details.examPeriod = 'فترة أولى';
         } else if (lowercaseName.includes('فترة ثانية') || lowercaseName.includes('فترة 2') || lowercaseName.includes('الفترة الثانية') || lowercaseName.includes('الفترة 2') || lowercaseName.includes('فتره ثانيه') || lowercaseName.includes('فتره 2')) {
             details.examPeriod = 'فترة ثانية';
-        } else if (lowercaseName.includes('فترة ثالثة') || lowercaseName.includes('فترة 3') || lowercaseName.includes('الفترة الثالثة') || lowercaseName.includes('الفترة 3') || lowercaseName.includes('فتره ثالثه') || lowercaseName.includes('فتره 3')) {
-            details.examPeriod = 'فترة ثالثة';
         }
     }
 
@@ -1967,7 +1965,6 @@ function renderScannedProductsTable(products) {
                                 <option value="">الفترة</option>
                                 <option value="فترة أولى" ${guessed.examPeriod === 'فترة أولى' ? 'selected' : ''}>فترة أولى</option>
                                 <option value="فترة ثانية" ${guessed.examPeriod === 'فترة ثانية' ? 'selected' : ''}>فترة ثانية</option>
-                                <option value="فترة ثالثة" ${guessed.examPeriod === 'فترة ثالثة' ? 'selected' : ''}>فترة ثالثة</option>
                             </select>
                             <input type="text" class="row-model-input" placeholder="النموذج" style="flex: 0.8; width: 60px;" value="">
                             <label class="row-checkbox-label">

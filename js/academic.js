@@ -1,7 +1,7 @@
 // Records created before academic years were introduced belong to 1447.
 export const LEGACY_YEAR = '1447';
 export const CURRENT_EXAM_TYPES = ['اختبار فتري', 'اختبار فتري مركزي', 'اختبار قصير'];
-export const DEFAULT_EXAM_PERIODS = ['فترة أولى', 'فترة ثانية', 'فترة ثالثة'];
+export const DEFAULT_EXAM_PERIODS = ['فترة أولى', 'فترة ثانية'];
 export const DEFAULT_ACADEMIC_SETTINGS = {
     currentYear: '1448', activeTerm: 'الفصل الأول', showSecondTerm: false
 };
@@ -18,11 +18,10 @@ export function getExamYear(exam) {
 export function getExamPeriod(exam) {
     const saved = String(exam.examPeriod || '').trim();
     const text = (saved || exam.name || '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F]/g, '');
-    const match = text.match(/(?:ال)?فتره[\s:()\-–]*(?:ال)?(اولي|ثانيه?|ثالثه?)/) || (saved ? text.match(/^(?:ال)?(اولي|ثانيه?|ثالثه?)$/) : null);
+    const match = text.match(/(?:ال)?فتره[\s:()\-–]*(?:ال)?(اولي|ثانيه?)/) || (saved ? text.match(/^(?:ال)?(اولي|ثانيه?)$/) : null);
     if (match) {
         if (match[1] === 'اولي') return 'فترة أولى';
-        if (match[1].startsWith('ثاني')) return 'فترة ثانية';
-        return 'فترة ثالثة';
+        return 'فترة ثانية';
     }
     return saved;
 }
