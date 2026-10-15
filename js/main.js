@@ -5,7 +5,7 @@ import { enhanceSelect } from './select-menu.js';
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, getExamsPage, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js';
+import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js';
 
 let allExams = [];
 let catalogPager;
@@ -288,20 +288,33 @@ function animateNumber(element, targetValue) {
     requestAnimationFrame(update);
 }
 
-// Calculate and animate exam counters
-function updateExamStats(exams) {
-    const finalExamsCount = exams.filter(exam => exam.examType === 'اختبار فتري').length;
-    const centralExamsCount = exams.filter(exam => exam.examType === 'اختبار فتري مركزي').length;
+function finishStatLoading(element, value) {
+    if (!element) return;
+    element.classList.remove('skeleton-number');
+    element.setAttribute('aria-busy', 'false');
+    element.removeAttribute('aria-label');
+    if (value === null) element.textContent = '—';
+    else animateNumber(element, value);
+}
 
+// Library totals stay independent of pagination, search and filters.
+async function loadExamStats() {
     const finalEl = document.getElementById('statFinalExamsCount');
     const centralEl = document.getElementById('statCentralExamsCount');
-    
-    if (finalEl) animateNumber(finalEl, finalExamsCount);
-    if (centralEl) animateNumber(centralEl, centralExamsCount);
+    try {
+        const counts = await getExamCounts();
+        finishStatLoading(finalEl, counts.periodic);
+        finishStatLoading(centralEl, counts.central);
+    } catch (error) {
+        console.error('Error loading exam totals:', error);
+        finishStatLoading(finalEl, null);
+        finishStatLoading(centralEl, null);
+    }
 }
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
+    loadExamStats();
     try {
         const settings = await getGeneralSettings();
         academicSettings = resolveAcademicSettings(settings);
@@ -330,10 +343,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const visitsEl = document.getElementById('statVisitsCount');
         if (visitsEl) {
-            animateNumber(visitsEl, visits + 465);
+            finishStatLoading(visitsEl, visits + 465);
         }
     } catch (e) {
         console.error('Error handling visitor counter:', e);
+        finishStatLoading(document.getElementById('statVisitsCount'), null);
     }
 
     await initializeSubjects();
@@ -766,7 +780,6 @@ function renderFilteredExams() {
     }
 
     const state = catalogPager;
-    updateExamStats(filteredExams);
     document.getElementById('resultsCount').textContent = (state.loading && !allExams.length ? 'جارٍ تحميل الاختبارات…' : 'المعروض: ' + filteredExams.length + ' اختبار') + ' • ' + selectedYear + ' هـ • ' + currentTerm;
     document.getElementById('noExamsSubtitle').textContent = state.hasMore ? 'جرّب «رؤية المزيد» أو غيّر الفلاتر لمتابعة البحث.' : (libraryMode === 'archive' ? 'لا توجد اختبارات تطابق هذه الفلاتر في العام المحدد.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو تصفح الأعوام السابقة.');
     document.querySelector('.no-exams-title').textContent = state.hasMore ? 'لم تظهر نتائج مطابقة بعد' : 'لا توجد اختبارات مطابقة حاليًا';
@@ -780,6 +793,7 @@ function renderFilteredExams() {
     status.textContent = state.error ? 'تعذر تحميل الاختبارات. تحقق من اتصالك ثم أعد المحاولة.' : '';
     status.hidden = !state.error;
     document.getElementById('examsGrid').setAttribute('aria-busy', String(state.loading));
+    document.getElementById('catalogSkeleton').hidden = !state.loading;
     if (state.loading || state.error) document.getElementById('noExams').style.display = 'none';
 }
 

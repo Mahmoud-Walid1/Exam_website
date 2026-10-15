@@ -100,7 +100,7 @@
                         </lord-icon>
                     </div>
                     <div class="stat-card-content">
-                        <span class="stat-card-number" id="statVisitsCount">...</span>
+                        <span class="stat-card-number skeleton-number" id="statVisitsCount" aria-busy="true" aria-label="جارٍ التحميل">&nbsp;</span>
                         <span class="stat-card-label">زوار الموقع</span>
                     </div>
                 </div>
@@ -117,8 +117,8 @@
                         </lord-icon>
                     </div>
                     <div class="stat-card-content">
-                        <span class="stat-card-number" id="statCentralExamsCount">...</span>
-                        <span class="stat-card-label">اختبارات فترية مركزية معروضة</span>
+                        <span class="stat-card-number skeleton-number" id="statCentralExamsCount" aria-busy="true" aria-label="جارٍ التحميل">&nbsp;</span>
+                        <span class="stat-card-label" title="الإجمالي في مكتبة الموقع">اختبارات فترية مركزية موجودة</span>
                     </div>
                 </div>
 
@@ -134,8 +134,8 @@
                         </lord-icon>
                     </div>
                     <div class="stat-card-content">
-                        <span class="stat-card-number" id="statFinalExamsCount">...</span>
-                        <span class="stat-card-label">اختبارات فترية معروضة</span>
+                        <span class="stat-card-number skeleton-number" id="statFinalExamsCount" aria-busy="true" aria-label="جارٍ التحميل">&nbsp;</span>
+                        <span class="stat-card-label" title="الإجمالي في مكتبة الموقع">اختبارات فترية موجودة</span>
                     </div>
                 </div>
             </div>
@@ -230,6 +230,12 @@
             <h2 class="section-title" id="resultsHeading">الاختبارات المتوفرة</h2><div class="results-toolbar"><p id="resultsCount" role="status" aria-live="polite">جارٍ تحميل الاختبارات…</p><button type="button" id="resetFiltersBtn" class="reset-filters">مسح الفلاتر</button></div>
             <div class="exams-grid" id="examsGrid">
                 <!-- سيتم إضافة بطاقات الاختبارات ديناميكياً من JavaScript -->
+            </div>
+            <div id="catalogSkeleton" class="exams-grid catalog-skeleton" aria-hidden="true">
+                <div class="exam-card skeleton-card"><div class="skeleton-media"></div><div class="exam-body"><span class="skeleton-line short"></span><span class="skeleton-line"></span><span class="skeleton-line medium"></span><span class="skeleton-line short"></span><span class="skeleton-line"></span></div></div>
+                <div class="exam-card skeleton-card"><div class="skeleton-media"></div><div class="exam-body"><span class="skeleton-line short"></span><span class="skeleton-line"></span><span class="skeleton-line medium"></span><span class="skeleton-line short"></span><span class="skeleton-line"></span></div></div>
+                <div class="exam-card skeleton-card"><div class="skeleton-media"></div><div class="exam-body"><span class="skeleton-line short"></span><span class="skeleton-line"></span><span class="skeleton-line medium"></span><span class="skeleton-line short"></span><span class="skeleton-line"></span></div></div>
+                <div class="exam-card skeleton-card"><div class="skeleton-media"></div><div class="exam-body"><span class="skeleton-line short"></span><span class="skeleton-line"></span><span class="skeleton-line medium"></span><span class="skeleton-line short"></span><span class="skeleton-line"></span></div></div>
             </div>
             <div id="noExams" class="no-exams" style="display: none;">
                 <div class="no-exams-icon">

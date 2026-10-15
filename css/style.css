@@ -949,6 +949,18 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 }
 .exam-details-btn { min-height: 44px; padding: 8px; font: inherit; font-size: .85rem; font-weight: 700; color: #0f766e; background: #fff; border: 1px solid #cfe3e0; border-radius: 12px; cursor: pointer; }
 .exam-details-btn:hover { background: #f0fdfa; }
+.skeleton-number { position: relative; display: inline-block; min-width: 2.5ch; min-height: 1em; }
+.skeleton-number::before { content: ''; position: absolute; inset: 22% 0; border-radius: 6px; background: currentColor; filter: blur(3px); opacity: .2; animation: skeleton-pulse 1.6s ease-in-out infinite; }
+.catalog-skeleton { margin-top: 16px; }
+.skeleton-card { color: var(--primary-color); cursor: default; pointer-events: none; min-height: 405px; }
+.skeleton-card .exam-body { gap: 15px; padding: 20px 16px; }
+.skeleton-media { height: 180px; flex-shrink: 0; background: currentColor; opacity: .07; filter: blur(3px); }
+.skeleton-line { display: block; height: 14px; width: 100%; border-radius: 6px; background: currentColor; opacity: .14; filter: blur(2.5px); animation: skeleton-pulse 1.6s ease-in-out infinite; }
+.skeleton-line.short { width: 36%; color: #0f766e; }
+.skeleton-line.medium { width: 74%; }
+.skeleton-line:nth-child(even) { animation-delay: .2s; }
+@keyframes skeleton-pulse { 0%, 100% { opacity: .1; } 50% { opacity: .24; } }
+@media (prefers-reduced-motion: reduce) { .skeleton-line, .skeleton-number::before { animation: none; } }
 
 .exam-card:hover .exam-action-btn {
     transform: translateY(-2px);

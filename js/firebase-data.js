@@ -4,6 +4,7 @@ import {
     collection,
     addDoc,
     getDocs,
+    getCountFromServer,
     query,
     where,
     orderBy,
@@ -216,6 +217,16 @@ export async function getExams() {
         console.error('Error getting exams:', error);
         return [];
     }
+}
+
+// Counts are aggregated by Firestore; exam documents are not downloaded.
+export async function getExamCounts() {
+    const countType = async type => {
+        const snapshot = await getCountFromServer(query(collection(db, 'exams'), where('examType', '==', type)));
+        return snapshot.data().count;
+    };
+    const [periodic, central] = await Promise.all([countType('اختبار فتري'), countType('اختبار فتري مركزي')]);
+    return { periodic, central };
 }
 
 // Listen to real-time exam updates
