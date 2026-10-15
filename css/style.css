@@ -865,32 +865,37 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 /* Bento Grid Layout for Exam Badges */
 .exam-tags {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 20px;
     width: 100%;
 }
 
 .exam-tag {
+    min-width: 0;
     width: 100%;
-    min-height: 38px;
-    padding: 6px 8px;
+    min-height: 58px;
+    padding: 8px;
     border-radius: 10px;
     font-size: 0.76rem;
     font-weight: 700;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 6px;
+    gap: 3px;
     background: #f1f5f9;
     color: #475569;
     box-sizing: border-box;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.exam-tag-label { font-size: .65rem; font-weight: 600; line-height: 1.5; }
+.exam-tag-value { font-size: .8rem; font-weight: 800; line-height: 1.6; }
+.exam-tag.stage-tag { background: #f1f5f9; color: #334155; }
+.exam-tag.year-tag { background: #ecfdf5; color: #0f766e; }
 
 .exam-tag lord-icon,
 .exam-tag svg {
@@ -1687,8 +1692,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
     position: absolute;
     top: 16px;
     left: 16px;
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: #f1f5f9;
     border: none;
@@ -1780,6 +1785,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 
 .qv-meta-top {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 12px;
 }
@@ -1804,12 +1810,13 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 
 .qv-specs-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 24px;
 }
 
 .qv-spec-card {
+    min-width: 0;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -1826,9 +1833,23 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 }
 
 .qv-spec-value {
+    overflow-wrap: anywhere;
+    line-height: 1.65;
     font-size: 0.92rem;
     color: #0f172a;
     font-weight: 800;
+}
+#qvPeriodCard { grid-column: 1 / -1; }
+@media (max-width: 480px) {
+    .quick-view-overlay { padding: 12px; }
+    .quick-view-modal { max-height: calc(100dvh - 24px); }
+    .quick-view-details-pane { padding: 22px 18px 18px; }
+    .quick-view-image-pane { padding: 20px; border-left: 0; border-bottom: 1px solid #e2e8f0; }
+    .quick-view-img { max-height: 240px; object-fit: contain; }
+    .qv-title { font-size: 1.1rem; line-height: 1.7; margin-bottom: 18px; }
+    .qv-spec-card { padding: 10px 12px; }
+    .qv-specs-grid { gap: 8px; margin-bottom: 18px; }
+    .qv-btn-primary { font-size: .95rem; }
 }
 
 .qv-features {

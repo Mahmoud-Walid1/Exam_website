@@ -800,14 +800,6 @@ function displayExams(exams) {
             mediaContent = iconHtml;
         }
 
-        let formattedGrade = exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '';
-        if (exam.gradeLevel && exam.grade) {
-            let gradeDefinite = exam.grade.startsWith('ال') ? exam.grade : 'ال' + exam.grade;
-            formattedGrade = `الصف ${exam.gradeLevel} ${gradeDefinite}`;
-        } else if (!exam.gradeLevel && exam.grade) {
-            formattedGrade = exam.grade;
-        }
-
         const periodLabel = exam.examType === 'اختبار فتري' && exam.examPeriod ? `فتري • ${exam.examPeriod}` : (exam.examType || 'اختبار');
 
         return `
@@ -828,21 +820,29 @@ function displayExams(exams) {
                 <div class="exam-body">
                     <h3 class="exam-title">${exam.name}</h3>
                     <div class="exam-tags">
-                        <span class="exam-tag subject-tag" title="${exam.subject}">
-                            <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#15803d" style="width:16px;height:16px;"></lord-icon>
-                            ${exam.subject}
+                        <span class="exam-tag subject-tag">
+                            <span class="exam-tag-label">المادة</span>
+                            <span class="exam-tag-value">${exam.subject || 'غير محددة'}</span>
                         </span>
-                        <span class="exam-tag level-tag" title="${formattedGrade}">
-                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#374151" style="width:16px;height:16px;"></lord-icon>
-                            ${formattedGrade}
+                        <span class="exam-tag type-tag">
+                            <span class="exam-tag-label">نوع الاختبار</span>
+                            <span class="exam-tag-value">${periodLabel}</span>
                         </span>
-                        <span class="exam-tag type-tag" title="${exam.examType || 'اختبار'}${exam.examPeriod ? ` (${exam.examPeriod})` : ''}">
-                            <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#be185d" style="width:16px;height:16px;"></lord-icon>
-                            ${periodLabel}
+                        <span class="exam-tag stage-tag">
+                            <span class="exam-tag-label">المرحلة</span>
+                            <span class="exam-tag-value">${exam.grade || 'غير محددة'}</span>
                         </span>
-                        <span class="exam-tag term-tag" title="${exam.term || 'الفصل الأول'} • ${getExamYear(exam)} هـ">
-                            <lord-icon src="https://cdn.lordicon.com/qzwudxuv.json" trigger="hover" colors="primary:#4338ca" style="width:16px;height:16px;"></lord-icon>
-                            ${exam.term || 'الفصل الأول'}
+                        <span class="exam-tag level-tag">
+                            <span class="exam-tag-label">الصف</span>
+                            <span class="exam-tag-value">${exam.gradeLevel || 'غير محدد'}</span>
+                        </span>
+                        <span class="exam-tag term-tag">
+                            <span class="exam-tag-label">الفصل الدراسي</span>
+                            <span class="exam-tag-value">${exam.term || 'الفصل الأول'}</span>
+                        </span>
+                        <span class="exam-tag year-tag">
+                            <span class="exam-tag-label">العام الدراسي</span>
+                            <span class="exam-tag-value">${getExamYear(exam)} هـ</span>
                         </span>
                     </div>
                 </div>
@@ -1194,20 +1194,14 @@ function openQuickView(examId) {
     const titleEl = document.getElementById('qvTitle');
     if (titleEl) titleEl.textContent = exam.name;
 
-    // Subject & Grade
-    let formattedGrade = exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '';
-    if (exam.gradeLevel && exam.grade) {
-        let gradeDefinite = exam.grade.startsWith('ال') ? exam.grade : 'ال' + exam.grade;
-        formattedGrade = `الصف ${exam.gradeLevel} ${gradeDefinite}`;
-    } else if (exam.grade) {
-        formattedGrade = exam.grade;
-    }
-
+    // Keep stage and grade separate so both remain readable on narrow screens.
     const subEl = document.getElementById('qvSubject');
     if (subEl) subEl.textContent = exam.subject || '-';
 
     const gradeEl = document.getElementById('qvGrade');
-    if (gradeEl) gradeEl.textContent = formattedGrade || '-';
+    if (gradeEl) gradeEl.textContent = exam.gradeLevel || 'غير محدد';
+    const stageEl = document.getElementById('qvStage');
+    if (stageEl) stageEl.textContent = exam.grade || 'غير محددة';
 
     // Type & Period
     const typeEl = document.getElementById('qvType');
