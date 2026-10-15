@@ -209,6 +209,17 @@
                         <option value="all">الكل</option>
                     </select>
                 </div>
+
+                <div class="compact-filter-box" id="periodFilterBox" style="display: none;">
+                    <label class="compact-filter-label"><lord-icon src="https://cdn.lordicon.com/qzwudxuv.json"
+                            trigger="hover" colors="primary:#1e3a5f" style="width:20px;height:20px;"></lord-icon> الفترة</label>
+                    <select id="periodFilter" aria-label="الفترة" class="compact-select">
+                        <option value="all">جميع الفترات</option>
+                        <option value="فترة أولى">فترة أولى</option>
+                        <option value="فترة ثانية">فترة ثانية</option>
+                        <option value="فترة ثالثة">فترة ثالثة</option>
+                    </select>
+                </div>
             </div>
         </div>
     </main>
@@ -302,6 +313,73 @@
             <polyline points="18 15 12 9 6 15"></polyline>
         </svg>
     </button>
+
+    <!-- Exam Quick View Modal -->
+    <div id="examQuickViewModal" class="quick-view-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="quick-view-modal">
+            <button type="button" class="quick-view-close" id="quickViewCloseBtn" aria-label="إغلاق النافذة">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="quick-view-body">
+                <div class="quick-view-image-pane">
+                    <div class="quick-view-img-wrapper">
+                        <img id="qvImage" src="" alt="غلاف الاختبار" class="quick-view-img">
+                        <span id="qvModelBadge" class="qv-model-badge" style="display: none;"></span>
+                        <span id="qvStandardBadge" class="qv-standard-badge" style="display: none;">وفق المواصفات ✨</span>
+                    </div>
+                </div>
+                <div class="quick-view-details-pane">
+                    <div class="qv-header">
+                        <div class="qv-meta-top">
+                            <span id="qvYear" class="qv-pill qv-pill-year"></span>
+                            <span id="qvTerm" class="qv-pill qv-pill-term"></span>
+                        </div>
+                        <h2 id="qvTitle" class="qv-title"></h2>
+                    </div>
+
+                    <div class="qv-specs-grid">
+                        <div class="qv-spec-card">
+                            <span class="qv-spec-label">المادة</span>
+                            <span id="qvSubject" class="qv-spec-value"></span>
+                        </div>
+                        <div class="qv-spec-card">
+                            <span class="qv-spec-label">المرحلة والصف</span>
+                            <span id="qvGrade" class="qv-spec-value"></span>
+                        </div>
+                        <div class="qv-spec-card">
+                            <span class="qv-spec-label">نوع الاختبار</span>
+                            <span id="qvType" class="qv-spec-value"></span>
+                        </div>
+                        <div class="qv-spec-card" id="qvPeriodCard" style="display: none;">
+                            <span class="qv-spec-label">الفترة</span>
+                            <span id="qvPeriod" class="qv-spec-value"></span>
+                        </div>
+                    </div>
+
+                    <div class="qv-features">
+                        <div class="qv-feature-item">
+                            <lord-icon src="https://cdn.lordicon.com/lupuorrc.json" trigger="hover" colors="primary:#0d9488" style="width:20px;height:20px;"></lord-icon>
+                            <span>صيغة قابلة للتعديل والطباعة (Word + PDF)</span>
+                        </div>
+                        <div class="qv-feature-item">
+                            <lord-icon src="https://cdn.lordicon.com/hjeckmwk.json" trigger="hover" colors="primary:#0d9488" style="width:20px;height:20px;"></lord-icon>
+                            <span>شامل نموذج الإجابة الرسمي وتوزيع الدرجات</span>
+                        </div>
+                    </div>
+
+                    <div class="qv-actions">
+                        <a id="qvStoreBtn" href="#" target="_blank" rel="noopener" class="qv-btn-primary">
+                            <lord-icon src="https://cdn.lordicon.com/cllunfud.json" trigger="hover" colors="primary:#ffffff" style="width:22px;height:22px;"></lord-icon>
+                            <span>عرض في المتجر والشراء</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Page logic is handled by module scripts below -->
 

@@ -228,6 +228,17 @@
                                     </select>
                                 </div>
                                 
+                                <!-- Exam Period Filter -->
+                                <div class="filter-group" id="filterExamPeriodGroup" style="display: none;">
+                                    <label for="filterExamPeriod">الفترة</label>
+                                    <select id="filterExamPeriod" class="filter-select">
+                                        <option value="">الكل</option>
+                                        <option value="فترة أولى">فترة أولى</option>
+                                        <option value="فترة ثانية">فترة ثانية</option>
+                                        <option value="فترة ثالثة">فترة ثالثة</option>
+                                    </select>
+                                </div>
+                                
                                 <!-- Specifications Filter -->
                                 <div class="filter-group">
                                     <label for="filterIsStandard">جدول المواصفات</label>
@@ -364,6 +375,17 @@
                                                     <option value="">اختر النوع</option>
                                                     <!-- سيتم إضافته ديناميكياً -->
                                                 </select>
+                                            </div>
+                                            <div class="form-group" id="examPeriodGroup" style="display: none;">
+                                                <label for="examPeriod">الفترة *</label>
+                                                <select id="examPeriod">
+                                                    <option value="">اختر الفترة</option>
+                                                    <option value="فترة أولى">فترة أولى</option>
+                                                    <option value="فترة ثانية">فترة ثانية</option>
+                                                    <option value="فترة ثالثة">فترة ثالثة</option>
+                                                    <option value="custom">أخرى (تحديد مخصص)...</option>
+                                                </select>
+                                                <input type="text" id="examPeriodCustom" placeholder="اكتب اسم الفترة المخصصة..." style="display: none; margin-top: 8px;">
                                             </div>
                                         </div>
 

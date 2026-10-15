@@ -15,6 +15,7 @@ let currentGrade = 'all';
 let currentGradeLevel = 'all';
 let currentSubject = 'all';
 let currentExamType = 'all';
+let currentExamPeriod = 'all';
 let currentSearchQuery = '';
 
 // ========================================
@@ -335,6 +336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadExamTypes();
     setupFilters();
     setupAcademicLibrary();
+    setupQuickViewModal();
     setupExamsListener();
     await updateTicker(); // Load ticker items
     initTypingAnimation(); // Start typing animation
@@ -591,10 +593,30 @@ function setupFilters() {
 
     // Exam Type Select
     const typeSelect = document.getElementById('examTypeFilter');
+    const periodSelect = document.getElementById('periodFilter');
+    const periodBox = document.getElementById('periodFilterBox');
+
     typeSelect.addEventListener('change', (e) => {
         currentExamType = e.target.value;
+        if (currentExamType === 'اختبار فتري') {
+            if (periodBox) periodBox.style.display = 'flex';
+        } else {
+            if (periodBox) periodBox.style.display = 'none';
+            if (periodSelect) {
+                periodSelect.value = 'all';
+                updateCustomSelect(periodSelect);
+            }
+            currentExamPeriod = 'all';
+        }
         filterExams();
     });
+
+    if (periodSelect) {
+        periodSelect.addEventListener('change', (e) => {
+            currentExamPeriod = e.target.value;
+            filterExams();
+        });
+    }
 
     updateGradeLevelFilter();
     updateSubjectFilter();
@@ -716,12 +738,17 @@ function filterExams() {
         filteredExams = filteredExams.filter(exam => exam.examType === currentExamType);
     }
 
+    // Filter by exam period
+    if (currentExamType === 'اختبار فتري' && currentExamPeriod !== 'all') {
+        filteredExams = filteredExams.filter(exam => (exam.examPeriod || 'فترة أولى') === currentExamPeriod);
+    }
+
     // Apply Smart Search (OmniSearch with Typo Tolerance)
     if (currentSearchQuery) {
         const queryWords = currentSearchQuery.split(/\s+/).filter(w => w);
         filteredExams = filteredExams.filter(exam => {
             const searchableText = normalizeText(
-                `${exam.name} ${exam.subject} ${exam.grade} ${exam.gradeLevel} ${exam.examType || ''} ${exam.term || 'الفصل الأول'}`
+                `${exam.name} ${exam.subject} ${exam.grade} ${exam.gradeLevel} ${exam.examType || ''} ${exam.examPeriod || ''} ${exam.term || 'الفصل الأول'}`
             );
             return queryWords.every(word => fuzzyMatchWord(word, searchableText));
         });
@@ -781,8 +808,10 @@ function displayExams(exams) {
             formattedGrade = exam.grade;
         }
 
+        const periodLabel = exam.examType === 'اختبار فتري' && exam.examPeriod ? `فتري • ${exam.examPeriod}` : (exam.examType || 'اختبار');
+
         return `
-            <div class="exam-card" onclick="window.open('${exam.url}', '_blank')">
+            <div class="exam-card" onclick="openQuickView('${exam.id}')">
                 <div class="exam-header">
                     ${exam.examModel ? `
                     <div class="stage-chip stage-${exam.grade}">
@@ -799,27 +828,26 @@ function displayExams(exams) {
                 <div class="exam-body">
                     <h3 class="exam-title">${exam.name}</h3>
                     <div class="exam-tags">
-                        <span class="exam-tag year-tag">${getExamYear(exam)} هـ</span>
-                        <span class="exam-tag term-tag">
-                            <lord-icon src="https://cdn.lordicon.com/qzwudxuv.json" trigger="hover" colors="primary:#4338ca" style="width:16px;height:16px;"></lord-icon>
-                            ${exam.term || 'الفصل الأول'}
-                        </span>
-                        <span class="exam-tag type-tag">
-                            <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#be185d" style="width:16px;height:16px;"></lord-icon>
-                            ${exam.examType || 'نوع غير محدد'}
-                        </span>
-                        <span class="exam-tag subject-tag">
+                        <span class="exam-tag subject-tag" title="${exam.subject}">
                             <lord-icon src="https://cdn.lordicon.com/abfverha.json" trigger="hover" colors="primary:#15803d" style="width:16px;height:16px;"></lord-icon>
                             ${exam.subject}
                         </span>
-                        <span class="exam-tag level-tag">
-                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#4b5563" style="width:16px;height:16px;"></lord-icon>
+                        <span class="exam-tag level-tag" title="${formattedGrade}">
+                            <lord-icon src="https://cdn.lordicon.com/kipaqhoz.json" trigger="hover" colors="primary:#374151" style="width:16px;height:16px;"></lord-icon>
                             ${formattedGrade}
+                        </span>
+                        <span class="exam-tag type-tag" title="${exam.examType || 'اختبار'}${exam.examPeriod ? ` (${exam.examPeriod})` : ''}">
+                            <lord-icon src="https://cdn.lordicon.com/gqzfzudq.json" trigger="hover" colors="primary:#be185d" style="width:16px;height:16px;"></lord-icon>
+                            ${periodLabel}
+                        </span>
+                        <span class="exam-tag term-tag" title="${exam.term || 'الفصل الأول'} • ${getExamYear(exam)} هـ">
+                            <lord-icon src="https://cdn.lordicon.com/qzwudxuv.json" trigger="hover" colors="primary:#4338ca" style="width:16px;height:16px;"></lord-icon>
+                            ${exam.term || 'الفصل الأول'}
                         </span>
                     </div>
                 </div>
                 <div class="exam-footer">
-                    <div class="exam-action-btn">
+                    <div class="exam-action-btn" onclick="event.stopPropagation(); window.open('${exam.url}', '_blank');">
                         <lord-icon src="https://cdn.lordicon.com/cllunfud.json" trigger="hover" colors="primary:#ffffff" style="width:20px;height:20px;"></lord-icon>
                         عرض في المتجر
                     </div>
@@ -1084,7 +1112,7 @@ function updateAcademicView() {
 }
 
 function resetLibraryFilters() {
-    currentGrade = currentGradeLevel = currentSubject = currentExamType = 'all';
+    currentGrade = currentGradeLevel = currentSubject = currentExamType = currentExamPeriod = 'all';
     currentSearchQuery = '';
     document.getElementById('smartSearchInput').value = '';
     document.getElementById('searchSuggestions').classList.remove('active');
@@ -1093,6 +1121,13 @@ function resetLibraryFilters() {
     updateGradeLevelFilter();
     updateSubjectFilter();
     updateExamTypeFilter();
+    const periodBox = document.getElementById('periodFilterBox');
+    if (periodBox) periodBox.style.display = 'none';
+    const periodSelect = document.getElementById('periodFilter');
+    if (periodSelect) {
+        periodSelect.value = 'all';
+        updateCustomSelect(periodSelect);
+    }
     filterExams();
 }
 
@@ -1116,3 +1151,112 @@ function setupAcademicLibrary() {
     document.querySelectorAll('.term-tab').forEach(tab => tab.addEventListener('click', updateAcademicView));
     updateAcademicView();
 }
+
+// ========================================
+// Quick View Detail Modal
+// ========================================
+function openQuickView(examId) {
+    const exam = allExams.find(e => e.id === examId);
+    if (!exam) return;
+
+    const modal = document.getElementById('examQuickViewModal');
+    if (!modal) return;
+
+    // Image & Fallback
+    const qvImg = document.getElementById('qvImage');
+    const fallbackIcon = exam.icon && exam.icon !== 'icons/default.png' ? exam.icon : getSubjectIcon(exam.subject);
+    qvImg.src = exam.imageUrl || fallbackIcon;
+    qvImg.alt = exam.name;
+
+    // Model & Standard Badges
+    const modelBadge = document.getElementById('qvModelBadge');
+    if (modelBadge) {
+        if (exam.examModel) {
+            modelBadge.textContent = exam.examModel;
+            modelBadge.style.display = 'block';
+        } else {
+            modelBadge.style.display = 'none';
+        }
+    }
+
+    const standardBadge = document.getElementById('qvStandardBadge');
+    if (standardBadge) {
+        standardBadge.style.display = exam.examIsStandard ? 'block' : 'none';
+    }
+
+    // Year & Term
+    const yearEl = document.getElementById('qvYear');
+    if (yearEl) yearEl.textContent = `${getExamYear(exam)} هـ`;
+    const termEl = document.getElementById('qvTerm');
+    if (termEl) termEl.textContent = exam.term || 'الفصل الأول';
+
+    // Title
+    const titleEl = document.getElementById('qvTitle');
+    if (titleEl) titleEl.textContent = exam.name;
+
+    // Subject & Grade
+    let formattedGrade = exam.gradeLevel ? `الصف ${exam.gradeLevel}` : '';
+    if (exam.gradeLevel && exam.grade) {
+        let gradeDefinite = exam.grade.startsWith('ال') ? exam.grade : 'ال' + exam.grade;
+        formattedGrade = `الصف ${exam.gradeLevel} ${gradeDefinite}`;
+    } else if (exam.grade) {
+        formattedGrade = exam.grade;
+    }
+
+    const subEl = document.getElementById('qvSubject');
+    if (subEl) subEl.textContent = exam.subject || '-';
+
+    const gradeEl = document.getElementById('qvGrade');
+    if (gradeEl) gradeEl.textContent = formattedGrade || '-';
+
+    // Type & Period
+    const typeEl = document.getElementById('qvType');
+    if (typeEl) typeEl.textContent = exam.examType || 'اختبار';
+
+    const periodCard = document.getElementById('qvPeriodCard');
+    const periodEl = document.getElementById('qvPeriod');
+    if (periodCard && periodEl) {
+        if (exam.examType === 'اختبار فتري' && exam.examPeriod) {
+            periodEl.textContent = exam.examPeriod;
+            periodCard.style.display = 'flex';
+        } else {
+            periodCard.style.display = 'none';
+        }
+    }
+
+    // Direct Salla Store URL
+    const storeBtn = document.getElementById('qvStoreBtn');
+    if (storeBtn) storeBtn.href = exam.url;
+
+    // Open Modal
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeQuickView() {
+    const modal = document.getElementById('examQuickViewModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}
+
+function setupQuickViewModal() {
+    const modal = document.getElementById('examQuickViewModal');
+    const closeBtn = document.getElementById('quickViewCloseBtn');
+    if (closeBtn) closeBtn.addEventListener('click', closeQuickView);
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeQuickView();
+        });
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
+            closeQuickView();
+        }
+    });
+}
+
+window.openQuickView = openQuickView;
+window.closeQuickView = closeQuickView;

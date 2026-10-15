@@ -1,6 +1,7 @@
 // Records created before academic years were introduced belong to 1447.
 export const LEGACY_YEAR = '1447';
 export const CURRENT_EXAM_TYPES = ['اختبار فتري', 'اختبار فتري مركزي', 'اختبار قصير'];
+export const DEFAULT_EXAM_PERIODS = ['فترة أولى', 'فترة ثانية', 'فترة ثالثة'];
 export const DEFAULT_ACADEMIC_SETTINGS = {
     currentYear: '1448', activeTerm: 'الفصل الأول', showSecondTerm: false
 };
