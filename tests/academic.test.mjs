@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const source = readFileSync(new URL('../js/academic.js', import.meta.url), 'utf8');
-const { normalizeYear, getExamYear, resolveAcademicSettings, getArchiveYears, isInAcademicScope } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+const { normalizeYear, getExamYear, getExamPeriod, resolveAcademicSettings, getArchiveYears, isInAcademicScope } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 
 assert.equal(normalizeYear('١٤٤٨'), '1448');
 assert.equal(normalizeYear('2026'), '');
 assert.equal(getExamYear({}), '1447');
 assert.equal(getExamYear({ academicYear: 1448 }), '1448');
+assert.equal(getExamPeriod({ name: 'اختبار محاكي لاختبار الفترة الأولى (الوحدة الثانية)' }), 'فترة أولى');
+assert.equal(getExamPeriod({ name: 'اختبار الفترة الثانية مع نموذج إجابة' }), 'فترة ثانية');
+assert.equal(getExamPeriod({ name: 'اختبار الفترة الاولي' }), 'فترة أولى');
+assert.equal(getExamPeriod({ name: 'اختبار الفصل الدراسي الأول' }), '');
+assert.equal(getExamPeriod({ examPeriod: 'الفترة الثانية', name: 'اختبار الفترة الأولى' }), 'فترة ثانية');
+assert.equal(getExamPeriod({ examPeriod: 'الثانية' }), 'فترة ثانية');
+assert.equal(getExamPeriod({ examPeriod: 'مراجعة خاصة', name: 'الفترة الأولى' }), 'مراجعة خاصة');
 // Existing defaultTerm must not expose the second term during the new-year rollout.
 assert.deepEqual(resolveAcademicSettings({ defaultTerm: 'الفصل الثاني' }), { currentYear: '1448', activeTerm: 'الفصل الأول', showSecondTerm: false });
 assert.equal(resolveAcademicSettings({ activeTerm: 'الفصل الثاني', showSecondTerm: true }).activeTerm, 'الفصل الثاني');

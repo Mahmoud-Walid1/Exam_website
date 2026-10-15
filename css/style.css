@@ -723,14 +723,15 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 }
 
 .exam-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-4px);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     border-color: #cbd5e1;
 }
 
 .exam-header {
     width: 100%;
-    height: 220px;
+    height: 180px;
+    flex-shrink: 0;
     position: relative;
     background: #f8fafc;
     overflow: hidden;
@@ -847,44 +848,46 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 }
 
 .exam-body {
-    padding: 18px 15px;
+    padding: 14px 16px 12px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
 }
 
 .exam-title {
-    font-size: 1rem;
+    font-size: .95rem;
     font-weight: 800;
     color: var(--primary-color);
-    margin-bottom: 12px;
-    line-height: 1.3;
+    margin-bottom: 10px;
+    line-height: 1.55;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    min-height: 3.9em;
+    min-height: 3.1em;
 }
+.exam-subject { color: #0f766e; font-size: .8rem; font-weight: 800; margin: 0 0 6px; }
 
-/* Bento Grid Layout for Exam Badges */
+/* Compact metadata chips; full specifications stay in the detail dialog. */
 .exam-tags {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
     width: 100%;
 }
 
 .exam-tag {
     min-width: 0;
-    width: 100%;
-    min-height: 58px;
-    padding: 8px;
-    border-radius: 10px;
+    width: auto;
+    max-width: 100%;
+    min-height: 28px;
+    padding: 4px 9px;
+    border-radius: 8px;
     font-size: 0.76rem;
     font-weight: 700;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -910,30 +913,42 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 .exam-tag.type-tag { background: #fce7f3; color: #be185d; }
 .exam-tag.subject-tag { background: #dcfce7; color: #15803d; }
 .exam-tag.level-tag { background: #f3f4f6; color: #374151; }
+.exam-tag.period-tag { background: #ecfdf5; color: #0f766e; }
+.exam-grade-line, .exam-card-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; font-size: .78rem; line-height: 1.65; color: #475569; }
+.exam-grade-line { margin-bottom: 8px; }
+.exam-grade-line strong { color: var(--primary-color); font-weight: 700; }
+.exam-card-meta { color: #64748b; padding-top: 8px; border-top: 1px solid #edf2f7; justify-content: space-between; }
 
 .exam-footer {
-    padding: 0 20px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 8px;
+    padding: 0 16px 16px;
     margin-top: auto;
 }
 
 .exam-action-btn {
+    min-height: 44px;
+    font-family: inherit;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 12px;
+    padding: 8px;
     background: linear-gradient(135deg, var(--secondary-color) 0%, #0ea5e9 100%);
     color: white;
     border: none;
     border-radius: 12px;
-    font-size: 1.05rem;
+    font-size: .85rem;
     font-weight: 800;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
 }
+.exam-details-btn { min-height: 44px; padding: 8px; font: inherit; font-size: .85rem; font-weight: 700; color: #0f766e; background: #fff; border: 1px solid #cfe3e0; border-radius: 12px; cursor: pointer; }
+.exam-details-btn:hover { background: #f0fdfa; }
 
 .exam-card:hover .exam-action-btn {
     transform: translateY(-2px);

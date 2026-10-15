@@ -1,4 +1,4 @@
-import { CURRENT_EXAM_TYPES, LEGACY_YEAR, resolveAcademicSettings, getExamYear, isInAcademicScope } from './academic.js';
+import { CURRENT_EXAM_TYPES, LEGACY_YEAR, resolveAcademicSettings, getExamYear, getExamPeriod, isInAcademicScope } from './academic.js';
 import { ExamPager } from './exam-pager.js';
 import { enhanceSelect } from './select-menu.js';
 // ========================================
@@ -501,7 +501,7 @@ function setupFilters() {
 
         if (scored.length === 0) {
             suggestionsBox.innerHTML = `
-                <div class="suggestions-header">لا توجد اقتراحات مطابقة في الدفعات المحملة. اضغط «تحميل المزيد» لمتابعة البحث.</div>
+                <div class="suggestions-header">لا توجد اقتراحات مطابقة بعد. جرّب «رؤية المزيد» لمتابعة البحث.</div>
             `;
             suggestionsBox.classList.add('active');
             return;
@@ -516,7 +516,7 @@ function setupFilters() {
             </div>`;
         }
         
-        html += `<div class="suggestions-header">نتائج من الدفعات المحملة (${scored.length})</div>`;
+        html += `<div class="suggestions-header">نتائج البحث (${scored.length})</div>`;
         
         scored.forEach((item, index) => {
             const exam = item.exam;
@@ -599,24 +599,14 @@ function setupFilters() {
     // Exam Type Select
     const typeSelect = document.getElementById('examTypeFilter');
     const periodSelect = document.getElementById('periodFilter');
-    const periodBox = document.getElementById('periodFilterBox');
 
     typeSelect.addEventListener('change', (e) => {
         currentExamType = e.target.value;
-        if (currentExamType === 'اختبار فتري') {
-            if (periodBox) periodBox.style.display = 'flex';
-        } else {
-            if (periodBox) periodBox.style.display = 'none';
-            if (periodSelect) {
-                periodSelect.value = 'all';
-                updateCustomSelect(periodSelect);
-            }
-            currentExamPeriod = 'all';
-        }
         filterExams();
     });
 
     if (periodSelect) {
+        updateCustomSelect(periodSelect);
         periodSelect.addEventListener('change', (e) => {
             currentExamPeriod = e.target.value;
             filterExams();
@@ -719,7 +709,7 @@ function filterExams() {
     const filters = {
         academicYear: selectedYear, term: currentTerm, grade: currentGrade,
         gradeLevel: currentGradeLevel, subject: currentSubject, examType: currentExamType,
-        examPeriod: currentExamType === 'اختبار فتري' ? currentExamPeriod : 'all'
+        examPeriod: currentExamPeriod
     };
     const key = JSON.stringify(filters);
     if (key !== catalogKey) {
@@ -734,7 +724,6 @@ function filterExams() {
 // Fuzzy search is applied to fetched batches without silently fetching the rest.
 function renderFilteredExams() {
     let filteredExams = allExams.filter(exam => getExamYear(exam) === selectedYear);
-    updateExamStats(allExams.filter(exam => isInAcademicScope(exam, selectedYear, currentTerm)));
     
     if (currentTerm !== 'all') {
         filteredExams = filteredExams.filter(exam => (exam.term || 'الفصل الأول') === currentTerm);
@@ -761,8 +750,8 @@ function renderFilteredExams() {
     }
 
     // Filter by exam period
-    if (currentExamType === 'اختبار فتري' && currentExamPeriod !== 'all') {
-        filteredExams = filteredExams.filter(exam => (exam.examPeriod || 'فترة أولى') === currentExamPeriod);
+    if (currentExamPeriod !== 'all') {
+        filteredExams = filteredExams.filter(exam => getExamPeriod(exam) === currentExamPeriod);
     }
 
     // Apply Smart Search (OmniSearch with Typo Tolerance)
@@ -770,24 +759,26 @@ function renderFilteredExams() {
         const queryWords = currentSearchQuery.split(/\s+/).filter(w => w);
         filteredExams = filteredExams.filter(exam => {
             const searchableText = normalizeText(
-                `${exam.name} ${exam.subject} ${exam.grade} ${exam.gradeLevel} ${exam.examType || ''} ${exam.examPeriod || ''} ${exam.term || 'الفصل الأول'}`
+                `${exam.name} ${exam.subject} ${exam.grade} ${exam.gradeLevel} ${exam.examType || ''} ${getExamPeriod(exam)} ${exam.term || 'الفصل الأول'}`
             );
             return queryWords.every(word => fuzzyMatchWord(word, searchableText));
         });
     }
 
     const state = catalogPager;
+    updateExamStats(filteredExams);
     document.getElementById('resultsCount').textContent = (state.loading && !allExams.length ? 'جارٍ تحميل الاختبارات…' : 'المعروض: ' + filteredExams.length + ' اختبار') + ' • ' + selectedYear + ' هـ • ' + currentTerm;
-    document.getElementById('noExamsSubtitle').textContent = state.hasMore ? 'لم تظهر نتائج مطابقة في الدفعات المحملة. اضغط «تحميل المزيد» للمتابعة.' : (libraryMode === 'archive' ? 'لا توجد اختبارات تطابق هذه الفلاتر في العام المحدد.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو تصفح الأعوام السابقة.');
-    document.querySelector('.no-exams-title').textContent = state.hasMore ? 'لا توجد نتائج في الدفعات المحملة' : 'لا توجد اختبارات مطابقة حاليًا';
+    document.getElementById('noExamsSubtitle').textContent = state.hasMore ? 'جرّب «رؤية المزيد» أو غيّر الفلاتر لمتابعة البحث.' : (libraryMode === 'archive' ? 'لا توجد اختبارات تطابق هذه الفلاتر في العام المحدد.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو تصفح الأعوام السابقة.');
+    document.querySelector('.no-exams-title').textContent = state.hasMore ? 'لم تظهر نتائج مطابقة بعد' : 'لا توجد اختبارات مطابقة حاليًا';
     document.getElementById('emptyArchiveBtn').hidden = libraryMode === 'archive';
     displayExams(filteredExams);
     const moreBtn = document.getElementById('loadMoreExamsBtn');
     moreBtn.hidden = !state.hasMore && !state.error;
     moreBtn.disabled = state.loading;
-    moreBtn.textContent = state.loading ? 'جارٍ التحميل…' : (state.error ? 'إعادة المحاولة' : 'تحميل المزيد');
+    moreBtn.textContent = state.loading ? 'جارٍ التحميل…' : (state.error ? 'إعادة المحاولة' : 'رؤية المزيد');
     const status = document.getElementById('paginationStatus');
-    status.textContent = state.error ? 'تعذر تحميل الاختبارات. تحقق من اتصالك ثم أعد المحاولة.' : (state.hasMore ? (currentSearchQuery ? 'البحث ضمن الدفعات المحملة. اضغط المزيد للبحث في بقية الاختبارات.' : 'تُحمّل الاختبارات على دفعات من 12 اختبارًا. اضغط المزيد للمتابعة.') : 'تم تحميل جميع الاختبارات لهذه الفلاتر.');
+    status.textContent = state.error ? 'تعذر تحميل الاختبارات. تحقق من اتصالك ثم أعد المحاولة.' : '';
+    status.hidden = !state.error;
     document.getElementById('examsGrid').setAttribute('aria-busy', String(state.loading));
     if (state.loading || state.error) document.getElementById('noExams').style.display = 'none';
 }
@@ -832,7 +823,8 @@ function displayExams(exams) {
             mediaContent = iconHtml;
         }
 
-        const periodLabel = exam.examType === 'اختبار فتري' && exam.examPeriod ? `فتري • ${exam.examPeriod}` : (exam.examType || 'اختبار');
+        const period = getExamPeriod(exam);
+        const periodLabel = period.replace(/^فترة /, 'الفترة ال');
 
         return `
             <div class="exam-card" onclick="openQuickView('${exam.id}')">
@@ -850,39 +842,23 @@ function displayExams(exams) {
                     ${mediaContent}
                 </div>
                 <div class="exam-body">
+                    <p class="exam-subject">${exam.subject || 'غير محددة'}</p>
                     <h3 class="exam-title">${exam.name}</h3>
                     <div class="exam-tags">
-                        <span class="exam-tag subject-tag">
-                            <span class="exam-tag-label">المادة</span>
-                            <span class="exam-tag-value">${exam.subject || 'غير محددة'}</span>
-                        </span>
-                        <span class="exam-tag type-tag">
-                            <span class="exam-tag-label">نوع الاختبار</span>
-                            <span class="exam-tag-value">${periodLabel}</span>
-                        </span>
-                        <span class="exam-tag stage-tag">
-                            <span class="exam-tag-label">المرحلة</span>
-                            <span class="exam-tag-value">${exam.grade || 'غير محددة'}</span>
-                        </span>
-                        <span class="exam-tag level-tag">
-                            <span class="exam-tag-label">الصف</span>
-                            <span class="exam-tag-value">${exam.gradeLevel || 'غير محدد'}</span>
-                        </span>
-                        <span class="exam-tag term-tag">
-                            <span class="exam-tag-label">الفصل الدراسي</span>
-                            <span class="exam-tag-value">${exam.term || 'الفصل الأول'}</span>
-                        </span>
-                        <span class="exam-tag year-tag">
-                            <span class="exam-tag-label">العام الدراسي</span>
-                            <span class="exam-tag-value">${getExamYear(exam)} هـ</span>
-                        </span>
+                        <span class="exam-tag type-tag">${exam.examType || 'اختبار'}</span>
+                        ${period ? `<span class="exam-tag period-tag">${periodLabel}</span>` : ''}
+                    </div>
+                    <div class="exam-grade-line">
+                        <span>المرحلة: <strong>${exam.grade || 'غير محددة'}</strong></span>
+                        <span>الصف: <strong>${exam.gradeLevel || 'غير محدد'}</strong></span>
+                    </div>
+                    <div class="exam-card-meta">
+                        <span>${exam.term || 'الفصل الأول'}</span><span>${getExamYear(exam)} هـ</span>
                     </div>
                 </div>
                 <div class="exam-footer">
-                    <div class="exam-action-btn" onclick="event.stopPropagation(); window.open('${exam.url}', '_blank');">
-                        <lord-icon src="https://cdn.lordicon.com/cllunfud.json" trigger="hover" colors="primary:#ffffff" style="width:20px;height:20px;"></lord-icon>
-                        عرض في المتجر
-                    </div>
+                    <button type="button" class="exam-details-btn" onclick="event.stopPropagation(); openQuickView('${exam.id}');">التفاصيل</button>
+                    <a class="exam-action-btn" href="${exam.url}" target="_blank" rel="noopener" onclick="event.stopPropagation();">عرض في المتجر</a>
                 </div>
             </div>
         `;
@@ -1159,8 +1135,6 @@ function resetLibraryFilters() {
     updateGradeLevelFilter();
     updateSubjectFilter();
     updateExamTypeFilter();
-    const periodBox = document.getElementById('periodFilterBox');
-    if (periodBox) periodBox.style.display = 'none';
     const periodSelect = document.getElementById('periodFilter');
     if (periodSelect) {
         periodSelect.value = 'all';
@@ -1248,8 +1222,9 @@ function openQuickView(examId) {
     const periodCard = document.getElementById('qvPeriodCard');
     const periodEl = document.getElementById('qvPeriod');
     if (periodCard && periodEl) {
-        if (exam.examType === 'اختبار فتري' && exam.examPeriod) {
-            periodEl.textContent = exam.examPeriod;
+        const period = getExamPeriod(exam);
+        if (period) {
+            periodEl.textContent = period.replace(/^فترة /, 'الفترة ال');
             periodCard.style.display = 'flex';
         } else {
             periodCard.style.display = 'none';

@@ -231,9 +231,7 @@ export async function getExamsPage({ filters = {}, cursor = null, pageSize = 12,
     for (const field of ['subject', 'grade', 'gradeLevel', 'examType']) {
         if (filters[field] && filters[field] !== 'all') conditions.push(where(field, '==', filters[field]));
     }
-    if (filters.examPeriod && filters.examPeriod !== 'all' && filters.examPeriod !== 'فترة أولى') {
-        conditions.push(where('examPeriod', '==', filters.examPeriod));
-    }
+    // Older exams encode the period in their title, so resolve it after each bounded read.
     async function read(simple) {
         const constraints = simple ? conditions.slice(0, 1) : conditions;
         const pageQuery = query(collection(db, 'exams'), ...constraints, orderBy(documentId()), ...(cursor ? [startAfter(cursor)] : []), limit(size));

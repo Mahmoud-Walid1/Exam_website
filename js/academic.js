@@ -15,6 +15,18 @@ export function getExamYear(exam) {
     return normalizeYear(exam.academicYear) || LEGACY_YEAR;
 }
 
+export function getExamPeriod(exam) {
+    const saved = String(exam.examPeriod || '').trim();
+    const text = (saved || exam.name || '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F]/g, '');
+    const match = text.match(/(?:ال)?فتره[\s:()\-–]*(?:ال)?(اولي|ثانيه?|ثالثه?)/) || (saved ? text.match(/^(?:ال)?(اولي|ثانيه?|ثالثه?)$/) : null);
+    if (match) {
+        if (match[1] === 'اولي') return 'فترة أولى';
+        if (match[1].startsWith('ثاني')) return 'فترة ثانية';
+        return 'فترة ثالثة';
+    }
+    return saved;
+}
+
 export function resolveAcademicSettings(settings = {}) {
     return {
         ...DEFAULT_ACADEMIC_SETTINGS,

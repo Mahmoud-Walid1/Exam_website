@@ -1,4 +1,4 @@
-import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear } from './academic.js';
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear, getExamPeriod } from './academic.js';
 // ========================================
 // Admin Panel JavaScript - Firebase with Icons
 // ========================================
@@ -629,18 +629,19 @@ window.editExam = function (examId) {
     document.getElementById('examType').value = exam.examType || '';
     
     // Handle examPeriod for midterm exams
+    const resolvedPeriod = getExamPeriod(exam);
     const periodGroup = document.getElementById('examPeriodGroup');
     const periodSelect = document.getElementById('examPeriod');
     const periodCustom = document.getElementById('examPeriodCustom');
     if (exam.examType === 'اختبار فتري') {
         if (periodGroup) periodGroup.style.display = 'block';
         if (periodSelect) periodSelect.required = true;
-        if (['فترة أولى', 'فترة ثانية', 'فترة ثالثة'].includes(exam.examPeriod)) {
-            if (periodSelect) periodSelect.value = exam.examPeriod;
+        if (['فترة أولى', 'فترة ثانية', 'فترة ثالثة'].includes(resolvedPeriod)) {
+            if (periodSelect) periodSelect.value = resolvedPeriod;
             if (periodCustom) { periodCustom.style.display = 'none'; periodCustom.value = ''; periodCustom.required = false; }
-        } else if (exam.examPeriod) {
+        } else if (resolvedPeriod) {
             if (periodSelect) periodSelect.value = 'custom';
-            if (periodCustom) { periodCustom.style.display = 'block'; periodCustom.value = exam.examPeriod; periodCustom.required = true; }
+            if (periodCustom) { periodCustom.style.display = 'block'; periodCustom.value = resolvedPeriod; periodCustom.required = true; }
         } else {
             if (periodSelect) periodSelect.value = '';
             if (periodCustom) { periodCustom.style.display = 'none'; periodCustom.value = ''; periodCustom.required = false; }
@@ -970,7 +971,7 @@ function applyExamsFiltering() {
             return false;
         }
 
-        if (currentFilters.examPeriod && exam.examPeriod !== currentFilters.examPeriod) {
+        if (currentFilters.examPeriod && getExamPeriod(exam) !== currentFilters.examPeriod) {
             return false;
         }
         
