@@ -26,6 +26,14 @@ export function getExamPeriod(exam) {
     return saved;
 }
 
+export function matchesExamFilters(exam, filters = {}) {
+    if (filters.term && filters.term !== 'all' && (exam.term || 'الفصل الأول') !== filters.term) return false;
+    for (const field of ['grade', 'gradeLevel', 'subject', 'examType']) {
+        if (filters[field] && filters[field] !== 'all' && exam[field] !== filters[field]) return false;
+    }
+    return !filters.examPeriod || filters.examPeriod === 'all' || getExamPeriod(exam) === filters.examPeriod;
+}
+
 export function resolveAcademicSettings(settings = {}) {
     return {
         ...DEFAULT_ACADEMIC_SETTINGS,

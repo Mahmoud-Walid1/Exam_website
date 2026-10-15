@@ -1,5 +1,5 @@
 import { CURRENT_EXAM_TYPES } from './academic.js';
-import { resolveExamCounts, changeExamCounts } from './exam-counts.js';
+import { resolveExamCounts, changeExamCounts } from './exam-counts.js?v=20261016-more';
 import { db, auth } from './firebase-config.js';
 import {
     collection,

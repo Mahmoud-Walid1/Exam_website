@@ -16,7 +16,7 @@
         rel="stylesheet">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20261015-counters">
+    <link rel="stylesheet" href="css/style.css?v=20261016-more">
 
     <!-- Lord Icon -->
     <script src="https://cdn.lordicon.com/lordicon.js"></script>
@@ -88,6 +88,13 @@
     <section class="stats-section">
         <div class="container">
             <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-icon central" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5M8 12h8M8 16h8"/></svg></div>
+                    <div class="stat-card-content">
+                        <span class="stat-card-number skeleton-number" id="statTotalExamsCount" aria-busy="true" aria-label="جارٍ التحميل">&nbsp;</span>
+                        <span class="stat-card-label">إجمالي الاختبارات الموجودة</span>
+                    </div>
+                </div>
                 <!-- Visits Counter -->
                 <div class="stat-card">
                     <div class="stat-card-icon visits">
@@ -160,7 +167,8 @@
 
             <!-- Terms Tabs (Top Level) -->
             <div class="terms-tabs-container">
-                <button class="term-tab active" data-term="الفصل الأول">الفصل الأول</button>
+                <button class="term-tab active" data-term="all">كل الفصول</button>
+                <button class="term-tab" data-term="الفصل الأول">الفصل الأول</button>
                 <button class="term-tab" data-term="الفصل الثاني" hidden>الفصل الثاني</button>
             </div>
 
@@ -392,8 +400,8 @@
     <!-- Page logic is handled by module scripts below -->
 
     <!-- Main JavaScript -->
-    <script src="js/firebase-data.js?v=20261015-counters" type="module"></script>
-    <script src="js/main.js?v=20261016-unified" type="module"></script>
+    <script src="js/firebase-data.js?v=20261016-more" type="module"></script>
+    <script src="js/main.js?v=20261016-more" type="module"></script>
 </body>
 
 </html>

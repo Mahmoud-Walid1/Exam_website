@@ -4,13 +4,13 @@ const source = readFileSync(new URL('../js/exam-pager.js', import.meta.url), 'ut
 const { ExamPager } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 let requests = [];
 let pending = [];
-const pager = new ExamPager(args => { requests.push(args); return new Promise((resolve, reject) => pending.push({ resolve, reject })); }, () => {});
+const pager = new ExamPager(args => { requests.push(args); return new Promise((resolve, reject) => pending.push({ resolve, reject })); }, () => {}, { maxRequests: 1 });
 assert.equal(requests.length, 0, 'Constructing the pager must not fetch anything');
 pager.reset({ academicYear: '1448' });
 const first = pager.more();
 await pager.more();
 assert.equal(requests.length, 1, 'Double clicking cannot fetch duplicate pages');
-assert.equal(requests[0].pageSize, 12);
+assert.equal(requests[0].pageSize, 24);
 pending.shift().resolve({ exams: [{ id: 'a' }], cursor: 'cursor-a', hasMore: true, simpleQuery: false });
 await first;
 assert.equal(requests.length, 1, 'No automatic prefetch after a successful page');
@@ -39,3 +39,46 @@ await retry;
 assert.deepEqual(pager.exams.map(e => e.id), ['fresh']);
 assert.equal(pager.simpleQuery, true);
 console.log('Pagination checks passed: bounded pages, explicit fetching, deduplication, stale response handling and retry.');
+
+// Sparse matches must fill a visible page instead of exposing only four results.
+const mixed = Array.from({ length: 144 }, (_, id) => ({ id: String(id), visible: id % 3 === 0 }));
+let mixedReads = 0;
+const filtered = new ExamPager(async ({ cursor, pageSize }) => {
+    mixedReads++;
+    const start = cursor || 0;
+    const exams = mixed.slice(start, start + pageSize);
+    return { exams, cursor: start + exams.length, hasMore: start + exams.length < mixed.length };
+}, () => {}, { matches: exam => exam.visible });
+await filtered.more();
+assert.equal(filtered.visibleLimit, 12);
+assert.equal(mixedReads, 2);
+await filtered.more();
+assert.equal(filtered.visibleLimit, 36, 'More must add 24 visible matches, not raw records');
+assert.equal(mixedReads, 5);
+
+let bufferedReads = 0;
+const buffered = new ExamPager(async ({ cursor, pageSize }) => {
+    bufferedReads++;
+    const exams = Array.from({ length: 40 }, (_, id) => ({ id: String(id) })).slice(cursor || 0, (cursor || 0) + pageSize);
+    return { exams, cursor: (cursor || 0) + exams.length, hasMore: (cursor || 0) + exams.length < 40 };
+}, () => {});
+await buffered.more();
+assert.equal(buffered.visibleLimit, 12);
+await buffered.more();
+assert.equal(buffered.visibleLimit, 36);
+assert.equal(buffered.hasMore, false);
+assert.equal(buffered.canLoadMore, true, 'Already fetched tail records must remain reachable');
+await buffered.more();
+assert.equal(buffered.visibleLimit, 40);
+assert.equal(buffered.canLoadMore, false);
+assert.equal(bufferedReads, 2, 'Buffered records should not require another database read');
+
+let boundedReads = 0;
+const sparse = new ExamPager(async ({ cursor }) => {
+    boundedReads++;
+    return { exams: [{ id: String(boundedReads) }], cursor: (cursor || 0) + 1, hasMore: true };
+}, () => {}, { matches: () => false });
+await sparse.more();
+assert.equal(boundedReads, 3, 'A click cannot scan the entire catalog for rare matches');
+assert.equal(sparse.canLoadMore, true);
+console.log('Visible-page checks passed: 12 initial, 24 more, bounded scanning and retained buffered results.');

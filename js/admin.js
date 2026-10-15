@@ -4,7 +4,7 @@ import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear
 // ========================================
 
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js?v=20261015-counters';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js?v=20261016-more';
 
 let academicSettings = resolveAcademicSettings();
 let allSubjects = {};
@@ -391,7 +391,7 @@ function displayFullReport() {
 
 // Setup ticker manager
 async function setupTickerManager() {
-    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js?v=20261015-counters');
+    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js?v=20261016-more');
 
     // Load and display ticker items
     async function loadTickerItems() {

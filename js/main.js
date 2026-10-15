@@ -1,17 +1,17 @@
-import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getExamPeriod } from './academic.js?v=20261015-counters';
-import { ExamPager } from './exam-pager.js';
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getExamPeriod, matchesExamFilters } from './academic.js?v=20261016-more';
+import { ExamPager } from './exam-pager.js?v=20261016-more';
 import { enhanceSelect } from './select-menu.js';
 // ========================================
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js?v=20261015-counters';
+import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js?v=20261016-more';
 
 let allExams = [];
 let catalogPager;
 let catalogKey = '';
 let academicSettings = resolveAcademicSettings();
-let currentTerm = 'الفصل الأول';
+let currentTerm = 'all';
 let currentGrade = 'all';
 let currentGradeLevel = 'all';
 let currentSubject = 'all';
@@ -298,14 +298,17 @@ function finishStatLoading(element, value) {
 async function loadExamStats() {
     const finalEl = document.getElementById('statFinalExamsCount');
     const centralEl = document.getElementById('statCentralExamsCount');
+    const totalEl = document.getElementById('statTotalExamsCount');
     try {
         const counts = await getExamCounts();
         finishStatLoading(finalEl, counts.periodic);
         finishStatLoading(centralEl, counts.central);
+        finishStatLoading(totalEl, counts.total);
     } catch (error) {
         console.error('Error loading exam totals:', error);
         finishStatLoading(finalEl, null);
         finishStatLoading(centralEl, null);
+        finishStatLoading(totalEl, null);
     }
 }
 
@@ -315,7 +318,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const settings = await getGeneralSettings();
         academicSettings = resolveAcademicSettings(settings);
-        currentTerm = academicSettings.activeTerm;
         updateTermTabs();
         
         // Update the visual tabs based on default term
@@ -709,7 +711,7 @@ function setupPagedCatalog() {
         allExams = state.exams;
         updateExamTypeFilter();
         renderFilteredExams();
-    });
+    }, { matches: matchesExamFilters });
     document.getElementById('loadMoreExamsBtn').addEventListener('click', () => catalogPager.more());
     filterExams();
 }
@@ -733,37 +735,8 @@ function filterExams() {
 
 // Fuzzy search is applied to fetched batches without silently fetching the rest.
 function renderFilteredExams() {
-    let filteredExams = allExams;
+    let filteredExams = allExams.filter(exam => matchesExamFilters(exam, catalogPager.filters));
     
-    if (currentTerm !== 'all') {
-        filteredExams = filteredExams.filter(exam => (exam.term || 'الفصل الأول') === currentTerm);
-    }
-
-    // Filter by grade
-    if (currentGrade !== 'all') {
-        filteredExams = filteredExams.filter(exam => exam.grade === currentGrade);
-    }
-
-    // Filter by grade level
-    if (currentGradeLevel !== 'all') {
-        filteredExams = filteredExams.filter(exam => exam.gradeLevel === currentGradeLevel);
-    }
-
-    // Filter by subject
-    if (currentSubject !== 'all') {
-        filteredExams = filteredExams.filter(exam => exam.subject === currentSubject);
-    }
-    
-    // Filter by exam type
-    if (currentExamType !== 'all') {
-        filteredExams = filteredExams.filter(exam => exam.examType === currentExamType);
-    }
-
-    // Filter by exam period
-    if (currentExamPeriod !== 'all') {
-        filteredExams = filteredExams.filter(exam => getExamPeriod(exam) === currentExamPeriod);
-    }
-
     // Apply Smart Search (OmniSearch with Typo Tolerance)
     if (currentSearchQuery) {
         const queryWords = currentSearchQuery.split(/\s+/).filter(w => w);
@@ -776,12 +749,13 @@ function renderFilteredExams() {
     }
 
     const state = catalogPager;
-    document.getElementById('resultsCount').textContent = (state.loading && !allExams.length ? 'جارٍ تحميل الاختبارات…' : 'المعروض: ' + filteredExams.length + ' اختبار') + ' • ' + currentTerm;
-    document.getElementById('noExamsSubtitle').textContent = state.hasMore ? 'جرّب «رؤية المزيد» أو غيّر الفلاتر لمتابعة البحث.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو البحث عن اختبار آخر.';
-    document.querySelector('.no-exams-title').textContent = state.hasMore ? 'لم تظهر نتائج مطابقة بعد' : 'لا توجد اختبارات مطابقة حاليًا';
+    filteredExams = filteredExams.slice(0, state.visibleLimit);
+    document.getElementById('resultsCount').textContent = (state.loading && !allExams.length ? 'جارٍ تحميل الاختبارات…' : 'المعروض: ' + filteredExams.length + ' اختبار') + ' • ' + (currentTerm === 'all' ? 'كل الفصول' : currentTerm);
+    document.getElementById('noExamsSubtitle').textContent = state.canLoadMore ? 'جرّب «رؤية المزيد» أو غيّر الفلاتر لمتابعة البحث.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو البحث عن اختبار آخر.';
+    document.querySelector('.no-exams-title').textContent = state.canLoadMore ? 'لم تظهر نتائج مطابقة بعد' : 'لا توجد اختبارات مطابقة حاليًا';
     displayExams(filteredExams);
     const moreBtn = document.getElementById('loadMoreExamsBtn');
-    moreBtn.hidden = !state.hasMore && !state.error;
+    moreBtn.hidden = !state.canLoadMore && !state.error;
     moreBtn.disabled = state.loading;
     moreBtn.textContent = state.loading ? 'جارٍ التحميل…' : (state.error ? 'إعادة المحاولة' : 'رؤية المزيد');
     const status = document.getElementById('paginationStatus');
