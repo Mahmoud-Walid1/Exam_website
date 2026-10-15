@@ -1,6 +1,13 @@
 // Records created before academic years were introduced belong to 1447.
 export const LEGACY_YEAR = '1447';
-export const CURRENT_EXAM_TYPES = ['اختبار فتري', 'اختبار فتري مركزي', 'اختبار قصير'];
+export const CENTRAL_EXAM_TYPE = 'الاختبار المركزي النهائي';
+export const CENTRAL_EXAM_ALIASES = [CENTRAL_EXAM_TYPE, 'اختبار مركزي', 'اختبار فتري مركزي', 'اختبار مركزي نهائي'];
+export const CURRENT_EXAM_TYPES = ['اختبار فتري', CENTRAL_EXAM_TYPE, 'اختبار قصير'];
+export function normalizeExamType(type) {
+    const value = String(type || '').trim();
+    return CENTRAL_EXAM_ALIASES.includes(value) ? CENTRAL_EXAM_TYPE : value;
+}
+export function normalizeExam(exam) { return { ...exam, examType: normalizeExamType(exam.examType) }; }
 export const DEFAULT_EXAM_PERIODS = ['فترة أولى', 'فترة ثانية'];
 export const DEFAULT_ACADEMIC_SETTINGS = {
     currentYear: '1448', activeTerm: 'الفصل الأول', showSecondTerm: false
@@ -29,7 +36,7 @@ export function getExamPeriod(exam) {
 export function matchesExamFilters(exam, filters = {}) {
     if (filters.term && filters.term !== 'all' && (exam.term || 'الفصل الأول') !== filters.term) return false;
     for (const field of ['grade', 'gradeLevel', 'subject', 'examType']) {
-        if (filters[field] && filters[field] !== 'all' && exam[field] !== filters[field]) return false;
+        if (filters[field] && filters[field] !== 'all' && (field === 'examType' ? normalizeExamType(exam[field]) !== normalizeExamType(filters[field]) : exam[field] !== filters[field])) return false;
     }
     return !filters.examPeriod || filters.examPeriod === 'all' || getExamPeriod(exam) === filters.examPeriod;
 }

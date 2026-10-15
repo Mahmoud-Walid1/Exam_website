@@ -1,10 +1,10 @@
-import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear, getExamPeriod } from './academic.js';
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear, getExamPeriod } from './academic.js?v=20261016-central';
 // ========================================
 // Admin Panel JavaScript - Firebase with Icons
 // ========================================
 
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js?v=20261016-more';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js?v=20261016-central';
 
 let academicSettings = resolveAcademicSettings();
 let allSubjects = {};
@@ -391,7 +391,7 @@ function displayFullReport() {
 
 // Setup ticker manager
 async function setupTickerManager() {
-    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js?v=20261016-more');
+    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js?v=20261016-central');
 
     // Load and display ticker items
     async function loadTickerItems() {
@@ -1822,7 +1822,7 @@ function guessExamDetails(name) {
     if (lowercaseName.includes('قصير')) {
         details.examType = 'اختبار قصير';
     } else if (lowercaseName.includes('مركزي')) {
-        details.examType = 'اختبار فتري مركزي';
+        details.examType = 'الاختبار المركزي النهائي';
     } else if (lowercaseName.includes('نهائي') || lowercaseName.includes('النهائي')) {
         details.examType = 'اختبار نهائي';
     } else if (lowercaseName.includes('منتصف') || lowercaseName.includes('فترة') || lowercaseName.includes('الفترة') || lowercaseName.includes('شهري')) {

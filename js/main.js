@@ -1,11 +1,11 @@
-import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getExamPeriod, matchesExamFilters } from './academic.js?v=20261016-more';
-import { ExamPager } from './exam-pager.js?v=20261016-more';
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getExamPeriod, matchesExamFilters } from './academic.js?v=20261016-central';
+import { ExamPager } from './exam-pager.js?v=20261016-central';
 import { enhanceSelect } from './select-menu.js';
 // ========================================
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js?v=20261016-more';
+import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js?v=20261016-central';
 
 let allExams = [];
 let catalogPager;
@@ -934,7 +934,7 @@ async function updateTicker() {
         // If no Firebase items, use default features/benefits
         if (itemsToUse.length === 0) {
             itemsToUse = [
-                { text: 'اختبارات فترية وفترية مركزية', icon: '', url: '' },
+                { text: 'اختبارات فترية ومركزية نهائية', icon: '', url: '' },
                 { text: 'جميع المراحل الدراسية', icon: '', url: '' },
                 { text: 'محدثة باستمرار', icon: '', url: '' },
                 { text: 'تغطية كاملة للمنهج', icon: '', url: '' },

@@ -1,5 +1,5 @@
-import { CURRENT_EXAM_TYPES } from './academic.js';
-import { resolveExamCounts, changeExamCounts } from './exam-counts.js?v=20261016-more';
+import { CURRENT_EXAM_TYPES, CENTRAL_EXAM_TYPE, CENTRAL_EXAM_ALIASES, normalizeExamType, normalizeExam } from './academic.js?v=20261016-central';
+import { resolveExamCounts, changeExamCounts } from './exam-counts.js?v=20261016-central';
 import { db, auth } from './firebase-config.js';
 import {
     collection,
@@ -130,7 +130,7 @@ export async function getExamTypes() {
         const typesDoc = await getDoc(typesRef);
 
         if (typesDoc.exists()) {
-            return [...new Set([...CURRENT_EXAM_TYPES, ...(typesDoc.data().types || [])])];
+            return [...new Set([...CURRENT_EXAM_TYPES, ...(typesDoc.data().types || []).map(normalizeExamType)])];
         }
 
         return [...CURRENT_EXAM_TYPES];
@@ -142,6 +142,7 @@ export async function getExamTypes() {
 
 // Add an exam type
 export async function addExamType(type) {
+    type = normalizeExamType(type);
     try {
         const typesRef = doc(db, 'settings', 'examTypes');
         const typesDoc = await getDoc(typesRef);
@@ -184,6 +185,7 @@ export async function deleteExamType(type) {
 
 // Add a new exam
 export async function addExam(examData) {
+    examData = normalizeExam(examData);
     try {
         const examsRef = collection(db, 'exams');
         const docRef = doc(examsRef);
@@ -192,7 +194,7 @@ export async function addExam(examData) {
             const countsSnapshot = await transaction.get(countsRef);
             const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, null, examData);
             transaction.set(docRef, { ...examData, createdAt: new Date().toISOString() });
-            transaction.set(countsRef, { ...counts, updatedAt: new Date().toISOString() }, { merge: true });
+            transaction.set(countsRef, { ...counts, centralCategoryVersion: 2, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return docRef.id;
     } catch (error) {
@@ -209,10 +211,10 @@ export async function getExams() {
         const exams = [];
 
         snapshot.forEach((doc) => {
-            exams.push({
+            exams.push(normalizeExam({
                 id: doc.id,
                 ...doc.data()
-            });
+            }));
         });
 
         return exams;
@@ -239,7 +241,10 @@ export async function getExamsPage({ filters = {}, cursor = null, pageSize = 12,
         if (filters.term) conditions.push(where('term', '==', filters.term));
     }
     for (const field of ['subject', 'grade', 'gradeLevel', 'examType']) {
-        if (filters[field] && filters[field] !== 'all') conditions.push(where(field, '==', filters[field]));
+        if (filters[field] && filters[field] !== 'all') {
+            if (field === 'examType' && normalizeExamType(filters[field]) === CENTRAL_EXAM_TYPE) conditions.push(where(field, 'in', CENTRAL_EXAM_ALIASES));
+            else conditions.push(where(field, '==', filters[field]));
+        }
     }
     // Older exams encode the period in their title, so resolve it after each bounded read.
     async function read(simple) {
@@ -247,7 +252,7 @@ export async function getExamsPage({ filters = {}, cursor = null, pageSize = 12,
         const pageQuery = query(collection(db, 'exams'), ...constraints, orderBy(documentId()), ...(cursor ? [startAfter(cursor)] : []), limit(size));
         const snapshot = await getDocs(pageQuery);
         return {
-            exams: snapshot.docs.map(record => ({ ...record.data(), id: record.id })),
+            exams: snapshot.docs.map(record => normalizeExam({ ...record.data(), id: record.id })),
             cursor: snapshot.docs.at(-1) || cursor,
             hasMore: snapshot.size === size,
             simpleQuery: simple
@@ -266,10 +271,10 @@ export function onExamsChange(callback) {
     return onSnapshot(examsRef, (snapshot) => {
         const exams = [];
         snapshot.forEach((doc) => {
-            exams.push({
+            exams.push(normalizeExam({
                 id: doc.id,
                 ...doc.data()
-            });
+            }));
         });
         callback(exams);
     }, (error) => {
@@ -279,6 +284,7 @@ export function onExamsChange(callback) {
 
 // Update an exam
 export async function updateExam(examId, examData) {
+    if (Object.hasOwn(examData, 'examType')) examData = { ...examData, examType: normalizeExamType(examData.examType) };
     try {
         const examRef = doc(db, 'exams', examId);
         const countsRef = doc(db, 'settings', 'examCounts');
@@ -288,7 +294,7 @@ export async function updateExam(examId, examData) {
             const previous = examSnapshot.data();
             const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, previous, { ...previous, ...examData });
             transaction.update(examRef, { ...examData, updatedAt: new Date().toISOString() });
-            transaction.set(countsRef, { ...counts, updatedAt: new Date().toISOString() }, { merge: true });
+            transaction.set(countsRef, { ...counts, centralCategoryVersion: 2, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return true;
     } catch (error) {
@@ -307,7 +313,7 @@ export async function deleteExam(examId) {
             if (!examSnapshot.exists()) return;
             const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, examSnapshot.data(), null);
             transaction.delete(examRef);
-            transaction.set(countsRef, { ...counts, updatedAt: new Date().toISOString() }, { merge: true });
+            transaction.set(countsRef, { ...counts, centralCategoryVersion: 2, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return true;
     } catch (error) {
