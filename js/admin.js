@@ -1679,7 +1679,9 @@ function guessExamDetails(name) {
     }
 
     // 5. Guess Exam Type
-    if (lowercaseName.includes('مركزي')) {
+    if (lowercaseName.includes('قصير')) {
+        details.examType = 'اختبار قصير';
+    } else if (lowercaseName.includes('مركزي')) {
         details.examType = 'اختبار فتري مركزي';
     } else if (lowercaseName.includes('نهائي') || lowercaseName.includes('النهائي')) {
         details.examType = 'اختبار نهائي';
