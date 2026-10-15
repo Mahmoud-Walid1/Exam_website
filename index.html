@@ -118,7 +118,7 @@
                     </div>
                     <div class="stat-card-content">
                         <span class="stat-card-number" id="statCentralExamsCount">...</span>
-                        <span class="stat-card-label">اختبارات فترية مركزية</span>
+                        <span class="stat-card-label">اختبارات فترية مركزية محملة</span>
                     </div>
                 </div>
 
@@ -135,7 +135,7 @@
                     </div>
                     <div class="stat-card-content">
                         <span class="stat-card-number" id="statFinalExamsCount">...</span>
-                        <span class="stat-card-label">اختبارات فترية</span>
+                        <span class="stat-card-label">اختبارات فترية محملة</span>
                     </div>
                 </div>
             </div>
@@ -238,6 +238,10 @@
                 </div>
                 <p class="no-exams-title">لا توجد اختبارات متوفرة حالياً</p>
                 <p class="no-exams-subtitle" id="noExamsSubtitle">ستُضاف اختبارات العام الجديد قريبًا. يمكنك تصفح اختبارات الأعوام السابقة.</p><button type="button" id="emptyArchiveBtn" class="reset-filters">تصفح الأعوام السابقة</button>
+            </div>
+            <div class="catalog-pagination">
+                <p id="paginationStatus" role="status" aria-live="polite"></p>
+                <button type="button" id="loadMoreExamsBtn" class="reset-filters" hidden>تحميل المزيد</button>
             </div>
         </div>
     </section>

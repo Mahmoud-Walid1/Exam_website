@@ -525,6 +525,10 @@ lord-icon.icon-xlarge {
 .results-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -10px 0 24px; color: #52657a; font-size: .9rem; }
 .reset-filters { min-height: 44px; border: 1px solid #b7d9d6; background: #fff; border-radius: 12px; padding: 8px 14px; color: #0f766e; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
 .reset-filters:hover { background: #ecfdf5; }
+.catalog-pagination { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 28px; text-align: center; }
+.catalog-pagination p { color: #52657a; font-size: .9rem; line-height: 1.8; }
+#loadMoreExamsBtn { min-width: 190px; min-height: 48px; background: #0f766e; color: #fff; border-color: #0f766e; }
+#loadMoreExamsBtn:disabled { opacity: .65; cursor: wait; }
 .year-tag { background: #ecfdf5; color: #0f766e; font-weight: 800; }
 .compact-select { min-height: 48px; padding-left: 40px; font-size: 1rem; }
 .compact-filter-box { min-width: 0; }

@@ -4,6 +4,12 @@ import {
     collection,
     addDoc,
     getDocs,
+    query,
+    where,
+    orderBy,
+    documentId,
+    limit,
+    startAfter,
     doc,
     updateDoc,
     deleteDoc,
@@ -213,6 +219,40 @@ export async function getExams() {
 }
 
 // Listen to real-time exam updates
+// Public catalog reads bounded pages; admin/report callers can still use getExams.
+export async function getExamsPage({ filters = {}, cursor = null, pageSize = 12, simpleQuery = false } = {}) {
+    const size = Math.max(1, Math.min(24, pageSize));
+    const conditions = [];
+    // Legacy records can lack academicYear/term, so keep those checks in the client.
+    if (filters.academicYear && filters.academicYear !== '1447') {
+        conditions.push(where('academicYear', 'in', [filters.academicYear, Number(filters.academicYear)]));
+        if (filters.term) conditions.push(where('term', '==', filters.term));
+    }
+    for (const field of ['subject', 'grade', 'gradeLevel', 'examType']) {
+        if (filters[field] && filters[field] !== 'all') conditions.push(where(field, '==', filters[field]));
+    }
+    if (filters.examPeriod && filters.examPeriod !== 'all' && filters.examPeriod !== 'فترة أولى') {
+        conditions.push(where('examPeriod', '==', filters.examPeriod));
+    }
+    async function read(simple) {
+        const constraints = simple ? conditions.slice(0, 1) : conditions;
+        const pageQuery = query(collection(db, 'exams'), ...constraints, orderBy(documentId()), ...(cursor ? [startAfter(cursor)] : []), limit(size));
+        const snapshot = await getDocs(pageQuery);
+        return {
+            exams: snapshot.docs.map(record => ({ ...record.data(), id: record.id })),
+            cursor: snapshot.docs.at(-1) || cursor,
+            hasMore: snapshot.size === size,
+            simpleQuery: simple
+        };
+    }
+    try { return await read(simpleQuery); }
+    catch (error) {
+        // A missing compound index must not trigger an unbounded collection read.
+        if (!simpleQuery && error.code === 'failed-precondition' && conditions.length > 1) return read(true);
+        throw error;
+    }
+}
+
 export function onExamsChange(callback) {
     const examsRef = collection(db, 'exams');
     return onSnapshot(examsRef, (snapshot) => {

@@ -1,12 +1,16 @@
-import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getArchiveYears, isInAcademicScope } from './academic.js';
+import { CURRENT_EXAM_TYPES, LEGACY_YEAR, resolveAcademicSettings, getExamYear, isInAcademicScope } from './academic.js';
+import { ExamPager } from './exam-pager.js';
 import { enhanceSelect } from './select-menu.js';
 // ========================================
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, onExamsChange, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js';
+import { initializeSubjects, getSubjects, getExamsPage, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js';
 
 let allExams = [];
+let catalogPager;
+let catalogKey = '';
+let configuredArchiveYears = [];
 let academicSettings = resolveAcademicSettings();
 let libraryMode = 'current';
 let selectedYear = academicSettings.currentYear;
@@ -301,6 +305,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const settings = await getGeneralSettings();
         academicSettings = resolveAcademicSettings(settings);
+        configuredArchiveYears = Array.isArray(settings.archiveYears) ? settings.archiveYears : [];
         selectedYear = academicSettings.currentYear;
         currentTerm = academicSettings.activeTerm;
         updateAcademicView();
@@ -337,7 +342,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupFilters();
     setupAcademicLibrary();
     setupQuickViewModal();
-    setupExamsListener();
+    setupPagedCatalog();
     await updateTicker(); // Load ticker items
     initTypingAnimation(); // Start typing animation
     initWhatsAppWidget(); // Start WhatsApp widget logic
@@ -496,7 +501,7 @@ function setupFilters() {
 
         if (scored.length === 0) {
             suggestionsBox.innerHTML = `
-                <div class="suggestions-header">😕 لا توجد نتائج مطابقة لـ "${query}"</div>
+                <div class="suggestions-header">لا توجد اقتراحات مطابقة في الدفعات المحملة. اضغط «تحميل المزيد» لمتابعة البحث.</div>
             `;
             suggestionsBox.classList.add('active');
             return;
@@ -511,7 +516,7 @@ function setupFilters() {
             </div>`;
         }
         
-        html += `<div class="suggestions-header">🔍 نتائج البحث (${scored.length})</div>`;
+        html += `<div class="suggestions-header">نتائج من الدفعات المحملة (${scored.length})</div>`;
         
         scored.forEach((item, index) => {
             const exam = item.exam;
@@ -699,18 +704,35 @@ function updateExamTypeFilter() {
     updateCustomSelect(typeSelect);
 }
 
-// Setup real-time exams listener
-function setupExamsListener() {
-    onExamsChange((exams) => {
-        allExams = exams;
-        updateAcademicView();
-        updateExamTypeFilter();
-        filterExams();
+// Only explicit pagination clicks request subsequent batches.
+function setupPagedCatalog() {
+    catalogPager = new ExamPager(getExamsPage, state => {
+        allExams = state.exams;
+        renderFilteredExams();
     });
+    document.getElementById('loadMoreExamsBtn').addEventListener('click', () => catalogPager.more());
+    filterExams();
 }
 
-// Filter and display exams
 function filterExams() {
+    if (!catalogPager) return;
+    const filters = {
+        academicYear: selectedYear, term: currentTerm, grade: currentGrade,
+        gradeLevel: currentGradeLevel, subject: currentSubject, examType: currentExamType,
+        examPeriod: currentExamType === 'اختبار فتري' ? currentExamPeriod : 'all'
+    };
+    const key = JSON.stringify(filters);
+    if (key !== catalogKey) {
+        catalogKey = key;
+        catalogPager.reset(filters);
+        allExams = [];
+        document.getElementById('searchSuggestions').classList.remove('active');
+        catalogPager.more();
+    } else renderFilteredExams();
+}
+
+// Fuzzy search is applied to fetched batches without silently fetching the rest.
+function renderFilteredExams() {
     let filteredExams = allExams.filter(exam => getExamYear(exam) === selectedYear);
     updateExamStats(allExams.filter(exam => isInAcademicScope(exam, selectedYear, currentTerm)));
     
@@ -754,10 +776,20 @@ function filterExams() {
         });
     }
 
-    document.getElementById('resultsCount').textContent = filteredExams.length + ' اختبار • ' + selectedYear + ' هـ • ' + currentTerm;
-    document.getElementById('noExamsSubtitle').textContent = libraryMode === 'archive' ? 'لا توجد اختبارات تطابق هذه الفلاتر في العام المحدد.' : (allExams.some(exam => isInAcademicScope(exam, selectedYear, currentTerm)) ? 'لا توجد نتائج مطابقة. جرّب مسح الفلاتر أو تغيير البحث.' : 'ستُضاف اختبارات العام الجديد قريبًا. يمكنك تصفح اختبارات الأعوام السابقة.');
+    const state = catalogPager;
+    document.getElementById('resultsCount').textContent = (state.loading && !allExams.length ? 'جارٍ تحميل الاختبارات…' : 'المعروض: ' + filteredExams.length + ' اختبار') + ' • ' + selectedYear + ' هـ • ' + currentTerm;
+    document.getElementById('noExamsSubtitle').textContent = state.hasMore ? 'لم تظهر نتائج مطابقة في الدفعات المحملة. اضغط «تحميل المزيد» للمتابعة.' : (libraryMode === 'archive' ? 'لا توجد اختبارات تطابق هذه الفلاتر في العام المحدد.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو تصفح الأعوام السابقة.');
+    document.querySelector('.no-exams-title').textContent = state.hasMore ? 'لا توجد نتائج في الدفعات المحملة' : 'لا توجد اختبارات مطابقة حاليًا';
     document.getElementById('emptyArchiveBtn').hidden = libraryMode === 'archive';
     displayExams(filteredExams);
+    const moreBtn = document.getElementById('loadMoreExamsBtn');
+    moreBtn.hidden = !state.hasMore && !state.error;
+    moreBtn.disabled = state.loading;
+    moreBtn.textContent = state.loading ? 'جارٍ التحميل…' : (state.error ? 'إعادة المحاولة' : 'تحميل المزيد');
+    const status = document.getElementById('paginationStatus');
+    status.textContent = state.error ? 'تعذر تحميل الاختبارات. تحقق من اتصالك ثم أعد المحاولة.' : (state.hasMore ? (currentSearchQuery ? 'البحث ضمن الدفعات المحملة. اضغط المزيد للبحث في بقية الاختبارات.' : 'تُحمّل الاختبارات على دفعات من 12 اختبارًا. اضغط المزيد للمتابعة.') : 'تم تحميل جميع الاختبارات لهذه الفلاتر.');
+    document.getElementById('examsGrid').setAttribute('aria-busy', String(state.loading));
+    if (state.loading || state.error) document.getElementById('noExams').style.display = 'none';
 }
 
 // Display exams grid
@@ -1084,9 +1116,15 @@ function initScrollToTop() {
     });
 }
 
+function availableArchiveYears() {
+    const years = new Set(configuredArchiveYears.map(String));
+    for (let year = Number(LEGACY_YEAR); year < Number(academicSettings.currentYear); year++) years.add(String(year));
+    return [...years].filter(year => /^1[45]\d{2}$/.test(year) && Number(year) < Number(academicSettings.currentYear)).sort((a, b) => Number(b) - Number(a));
+}
+
 function updateAcademicView() {
     const archive = libraryMode === 'archive';
-    const years = getArchiveYears(allExams, academicSettings.currentYear);
+    const years = availableArchiveYears();
     const select = document.getElementById('archiveYear');
     if (archive && !years.includes(selectedYear)) selectedYear = years[0] || String(Number(academicSettings.currentYear) - 1);
     select.replaceChildren(...years.map(year => new Option(year + ' هـ', year)));
@@ -1134,7 +1172,7 @@ function resetLibraryFilters() {
 function setupAcademicLibrary() {
     function switchLibrary(mode) {
         libraryMode = mode;
-        selectedYear = mode === 'current' ? academicSettings.currentYear : (getArchiveYears(allExams, academicSettings.currentYear)[0] || String(Number(academicSettings.currentYear) - 1));
+        selectedYear = mode === 'current' ? academicSettings.currentYear : (availableArchiveYears()[0] || String(Number(academicSettings.currentYear) - 1));
         currentTerm = mode === 'current' ? academicSettings.activeTerm : 'الفصل الأول';
         updateAcademicView();
         resetLibraryFilters();
