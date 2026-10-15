@@ -1,10 +1,10 @@
 import { CURRENT_EXAM_TYPES } from './academic.js';
+import { resolveExamCounts, changeExamCounts } from './exam-counts.js';
 import { db, auth } from './firebase-config.js';
 import {
     collection,
-    addDoc,
     getDocs,
-    getCountFromServer,
+    runTransaction,
     query,
     where,
     orderBy,
@@ -13,7 +13,6 @@ import {
     startAfter,
     doc,
     updateDoc,
-    deleteDoc,
     onSnapshot,
     setDoc,
     getDoc,
@@ -187,9 +186,13 @@ export async function deleteExamType(type) {
 export async function addExam(examData) {
     try {
         const examsRef = collection(db, 'exams');
-        const docRef = await addDoc(examsRef, {
-            ...examData,
-            createdAt: new Date().toISOString()
+        const docRef = doc(examsRef);
+        const countsRef = doc(db, 'settings', 'examCounts');
+        await runTransaction(db, async transaction => {
+            const countsSnapshot = await transaction.get(countsRef);
+            const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, null, examData);
+            transaction.set(docRef, { ...examData, createdAt: new Date().toISOString() });
+            transaction.set(countsRef, { ...counts, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return docRef.id;
     } catch (error) {
@@ -219,14 +222,10 @@ export async function getExams() {
     }
 }
 
-// Counts are aggregated by Firestore; exam documents are not downloaded.
+// Read a single saved summary; never count or download the exam collection.
 export async function getExamCounts() {
-    const countType = async type => {
-        const snapshot = await getCountFromServer(query(collection(db, 'exams'), where('examType', '==', type)));
-        return snapshot.data().count;
-    };
-    const [periodic, central] = await Promise.all([countType('اختبار فتري'), countType('اختبار فتري مركزي')]);
-    return { periodic, central };
+    const snapshot = await getDoc(doc(db, 'settings', 'examCounts'));
+    return resolveExamCounts(snapshot.exists() ? snapshot.data() : {});
 }
 
 // Listen to real-time exam updates
@@ -282,9 +281,14 @@ export function onExamsChange(callback) {
 export async function updateExam(examId, examData) {
     try {
         const examRef = doc(db, 'exams', examId);
-        await updateDoc(examRef, {
-            ...examData,
-            updatedAt: new Date().toISOString()
+        const countsRef = doc(db, 'settings', 'examCounts');
+        await runTransaction(db, async transaction => {
+            const [examSnapshot, countsSnapshot] = await Promise.all([transaction.get(examRef), transaction.get(countsRef)]);
+            if (!examSnapshot.exists()) throw new Error('الاختبار غير موجود');
+            const previous = examSnapshot.data();
+            const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, previous, { ...previous, ...examData });
+            transaction.update(examRef, { ...examData, updatedAt: new Date().toISOString() });
+            transaction.set(countsRef, { ...counts, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return true;
     } catch (error) {
@@ -297,7 +301,14 @@ export async function updateExam(examId, examData) {
 export async function deleteExam(examId) {
     try {
         const examRef = doc(db, 'exams', examId);
-        await deleteDoc(examRef);
+        const countsRef = doc(db, 'settings', 'examCounts');
+        await runTransaction(db, async transaction => {
+            const [examSnapshot, countsSnapshot] = await Promise.all([transaction.get(examRef), transaction.get(countsRef)]);
+            if (!examSnapshot.exists()) return;
+            const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, examSnapshot.data(), null);
+            transaction.delete(examRef);
+            transaction.set(countsRef, { ...counts, updatedAt: new Date().toISOString() }, { merge: true });
+        });
         return true;
     } catch (error) {
         console.error('Error deleting exam:', error);

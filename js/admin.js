@@ -4,7 +4,7 @@ import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear
 // ========================================
 
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js?v=20261015-counters';
 
 let academicSettings = resolveAcademicSettings();
 let allSubjects = {};
@@ -179,24 +179,49 @@ async function setupGeneralSettings() {
     };
 }
 
-// Setup Mobile Sidebar Toggle
+// Setup Sidebar Toggle (Desktop Collapse & Mobile Drawer)
 function setupMobileSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const toggle = document.getElementById('sidebarToggle');
     
-    if (toggle) {
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sidebar.classList.toggle('open');
-        });
+    if (!sidebar || !toggle) return;
 
-        // Close when clicking outside
-        document.addEventListener('click', (e) => {
-            if (sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
-                sidebar.classList.remove('open');
-            }
-        });
+    const isMobile = () => window.innerWidth <= 1024;
+
+    // Restore saved collapse state on desktop
+    if (!isMobile() && localStorage.getItem('admin_sidebar_collapsed') === 'true') {
+        sidebar.classList.add('collapsed');
     }
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isMobile()) {
+            sidebar.classList.toggle('open');
+        } else {
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('admin_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+        }
+    });
+
+    // Close when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+        if (isMobile() && sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
+            sidebar.classList.remove('open');
+        }
+    });
+
+    // Handle window resize gracefully
+    window.addEventListener('resize', () => {
+        if (isMobile()) {
+            sidebar.classList.remove('collapsed');
+        } else {
+            sidebar.classList.remove('open');
+            if (localStorage.getItem('admin_sidebar_collapsed') === 'true') {
+                sidebar.classList.add('collapsed');
+            }
+        }
+    });
 }
 
 // Setup Tab Switching
@@ -366,7 +391,7 @@ function displayFullReport() {
 
 // Setup ticker manager
 async function setupTickerManager() {
-    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js');
+    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js?v=20261015-counters');
 
     // Load and display ticker items
     async function loadTickerItems() {

@@ -1,11 +1,11 @@
-import { CURRENT_EXAM_TYPES, LEGACY_YEAR, resolveAcademicSettings, getExamYear, getExamPeriod, isInAcademicScope } from './academic.js';
+import { CURRENT_EXAM_TYPES, LEGACY_YEAR, resolveAcademicSettings, getExamYear, getExamPeriod, isInAcademicScope } from './academic.js?v=20261015-counters';
 import { ExamPager } from './exam-pager.js';
 import { enhanceSelect } from './select-menu.js';
 // ========================================
 // Main Page JavaScript - Firebase Version
 // ========================================
 
-import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js';
+import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTickerItems, GRADE_LEVELS, getExamTypes, getGeneralSettings, incrementVisits } from './firebase-data.js?v=20261015-counters';
 
 let allExams = [];
 let catalogPager;

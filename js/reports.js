@@ -10,6 +10,7 @@ let allSubjects = {};
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
+    setupSidebar();
     await loadData();
     generateReport();
 
@@ -19,6 +20,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         generateReport();
     });
 });
+
+function setupSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    
+    if (!sidebar || !toggle) return;
+
+    const isMobile = () => window.innerWidth <= 1024;
+
+    if (!isMobile() && localStorage.getItem('admin_sidebar_collapsed') === 'true') {
+        sidebar.classList.add('collapsed');
+    }
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isMobile()) {
+            sidebar.classList.toggle('open');
+        } else {
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('admin_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (isMobile() && sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
+            sidebar.classList.remove('open');
+        }
+    });
+}
 
 // Load data from Firebase
 async function loadData() {
