@@ -1,4 +1,4 @@
-import { CURRENT_EXAM_TYPES, LEGACY_YEAR, resolveAcademicSettings, getExamYear, getExamPeriod, isInAcademicScope } from './academic.js?v=20261015-counters';
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, getExamYear, getExamPeriod } from './academic.js?v=20261015-counters';
 import { ExamPager } from './exam-pager.js';
 import { enhanceSelect } from './select-menu.js';
 // ========================================
@@ -10,10 +10,7 @@ import { initializeSubjects, getSubjects, getExamsPage, getExamCounts, getTicker
 let allExams = [];
 let catalogPager;
 let catalogKey = '';
-let configuredArchiveYears = [];
 let academicSettings = resolveAcademicSettings();
-let libraryMode = 'current';
-let selectedYear = academicSettings.currentYear;
 let currentTerm = 'الفصل الأول';
 let currentGrade = 'all';
 let currentGradeLevel = 'all';
@@ -318,10 +315,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const settings = await getGeneralSettings();
         academicSettings = resolveAcademicSettings(settings);
-        configuredArchiveYears = Array.isArray(settings.archiveYears) ? settings.archiveYears : [];
-        selectedYear = academicSettings.currentYear;
         currentTerm = academicSettings.activeTerm;
-        updateAcademicView();
+        updateTermTabs();
         
         // Update the visual tabs based on default term
         const termTabs = document.querySelectorAll('.term-tab');
@@ -354,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSubjects();
     await loadExamTypes();
     setupFilters();
-    setupAcademicLibrary();
+    setupCatalogControls();
     setupQuickViewModal();
     setupPagedCatalog();
     await updateTicker(); // Load ticker items
@@ -507,7 +502,7 @@ function setupFilters() {
         const processedQuery = wasEnglishKeyboard ? convertEnglishToArabic(query) : query;
 
         // Score all exams
-        const scored = allExams.filter(exam => isInAcademicScope(exam, selectedYear, currentTerm))
+        const scored = allExams.filter(exam => currentTerm === 'all' || (exam.term || 'الفصل الأول') === currentTerm)
             .map(exam => ({ exam, score: scoreExam(exam, query) }))
             .filter(item => item.score > 0)
             .sort((a, b) => b.score - a.score)
@@ -697,7 +692,7 @@ function updateExamTypeFilter() {
     const typeSelect = document.getElementById('examTypeFilter');
     typeSelect.innerHTML = '<option value="all">الكل</option>';
     
-    const types = libraryMode === 'current' ? CURRENT_EXAM_TYPES : [...new Set([...allExamTypes, ...allExams.filter(exam => getExamYear(exam) === selectedYear).map(exam => exam.examType).filter(Boolean)])];
+    const types = [...new Set([...CURRENT_EXAM_TYPES, ...allExamTypes, ...allExams.map(exam => exam.examType).filter(Boolean), ...(currentExamType === 'all' ? [] : [currentExamType])])];
     types.forEach(type => {
         const opt = document.createElement('option');
         opt.value = type;
@@ -712,6 +707,7 @@ function updateExamTypeFilter() {
 function setupPagedCatalog() {
     catalogPager = new ExamPager(getExamsPage, state => {
         allExams = state.exams;
+        updateExamTypeFilter();
         renderFilteredExams();
     });
     document.getElementById('loadMoreExamsBtn').addEventListener('click', () => catalogPager.more());
@@ -721,7 +717,7 @@ function setupPagedCatalog() {
 function filterExams() {
     if (!catalogPager) return;
     const filters = {
-        academicYear: selectedYear, term: currentTerm, grade: currentGrade,
+        term: currentTerm, grade: currentGrade,
         gradeLevel: currentGradeLevel, subject: currentSubject, examType: currentExamType,
         examPeriod: currentExamPeriod
     };
@@ -737,7 +733,7 @@ function filterExams() {
 
 // Fuzzy search is applied to fetched batches without silently fetching the rest.
 function renderFilteredExams() {
-    let filteredExams = allExams.filter(exam => getExamYear(exam) === selectedYear);
+    let filteredExams = allExams;
     
     if (currentTerm !== 'all') {
         filteredExams = filteredExams.filter(exam => (exam.term || 'الفصل الأول') === currentTerm);
@@ -780,10 +776,9 @@ function renderFilteredExams() {
     }
 
     const state = catalogPager;
-    document.getElementById('resultsCount').textContent = (state.loading && !allExams.length ? 'جارٍ تحميل الاختبارات…' : 'المعروض: ' + filteredExams.length + ' اختبار') + ' • ' + selectedYear + ' هـ • ' + currentTerm;
-    document.getElementById('noExamsSubtitle').textContent = state.hasMore ? 'جرّب «رؤية المزيد» أو غيّر الفلاتر لمتابعة البحث.' : (libraryMode === 'archive' ? 'لا توجد اختبارات تطابق هذه الفلاتر في العام المحدد.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو تصفح الأعوام السابقة.');
+    document.getElementById('resultsCount').textContent = (state.loading && !allExams.length ? 'جارٍ تحميل الاختبارات…' : 'المعروض: ' + filteredExams.length + ' اختبار') + ' • ' + currentTerm;
+    document.getElementById('noExamsSubtitle').textContent = state.hasMore ? 'جرّب «رؤية المزيد» أو غيّر الفلاتر لمتابعة البحث.' : 'لا توجد نتائج مطابقة. جرّب تغيير الفلاتر أو البحث عن اختبار آخر.';
     document.querySelector('.no-exams-title').textContent = state.hasMore ? 'لم تظهر نتائج مطابقة بعد' : 'لا توجد اختبارات مطابقة حاليًا';
-    document.getElementById('emptyArchiveBtn').hidden = libraryMode === 'archive';
     displayExams(filteredExams);
     const moreBtn = document.getElementById('loadMoreExamsBtn');
     moreBtn.hidden = !state.hasMore && !state.error;
@@ -1106,37 +1101,12 @@ function initScrollToTop() {
     });
 }
 
-function availableArchiveYears() {
-    const years = new Set(configuredArchiveYears.map(String));
-    for (let year = Number(LEGACY_YEAR); year < Number(academicSettings.currentYear); year++) years.add(String(year));
-    return [...years].filter(year => /^1[45]\d{2}$/.test(year) && Number(year) < Number(academicSettings.currentYear)).sort((a, b) => Number(b) - Number(a));
-}
-
-function updateAcademicView() {
-    const archive = libraryMode === 'archive';
-    const years = availableArchiveYears();
-    const select = document.getElementById('archiveYear');
-    if (archive && !years.includes(selectedYear)) selectedYear = years[0] || String(Number(academicSettings.currentYear) - 1);
-    select.replaceChildren(...years.map(year => new Option(year + ' هـ', year)));
-    if (!years.length) select.add(new Option('لا توجد أعوام مؤرشفة بعد', selectedYear));
-    select.value = selectedYear;
-    select.disabled = !years.length;
-    updateCustomSelect(select);
-    document.getElementById('archiveYearGroup').hidden = !archive;
-    document.getElementById('academicHeading').textContent = archive ? 'أرشيف الاختبارات' : 'اختبارات عام ' + selectedYear + '\u00a0هـ';
-    document.getElementById('academicBadge').textContent = archive ? 'الأرشيف' : 'العام الحالي';
-    document.getElementById('academicNote').textContent = archive ? 'أنت تتصفح اختبارات ' + selectedYear + ' هـ.' : currentTerm + ' • اختبارات فترية وفترية مركزية';
-    document.getElementById('currentLibraryBtn').textContent = 'اختبارات ' + academicSettings.currentYear;
-    for (const [id, active] of [['currentLibraryBtn', !archive], ['archiveLibraryBtn', archive]]) {
-        document.getElementById(id).classList.toggle('active', active);
-        document.getElementById(id).setAttribute('aria-pressed', String(active));
-    }
+function updateTermTabs() {
     document.querySelectorAll('.term-tab').forEach(tab => {
-        tab.hidden = tab.dataset.term === 'الفصل الثاني' && !archive && !academicSettings.showSecondTerm;
+        tab.hidden = tab.dataset.term === 'الفصل الثاني' && !academicSettings.showSecondTerm;
         tab.classList.toggle('active', tab.dataset.term === currentTerm);
         tab.setAttribute('aria-pressed', String(tab.dataset.term === currentTerm));
     });
-    document.getElementById('resultsHeading').textContent = archive ? 'اختبارات ' + selectedYear + ' هـ' : 'الاختبارات المتوفرة';
 }
 
 function resetLibraryFilters() {
@@ -1157,25 +1127,10 @@ function resetLibraryFilters() {
     filterExams();
 }
 
-function setupAcademicLibrary() {
-    function switchLibrary(mode) {
-        libraryMode = mode;
-        selectedYear = mode === 'current' ? academicSettings.currentYear : (availableArchiveYears()[0] || String(Number(academicSettings.currentYear) - 1));
-        currentTerm = mode === 'current' ? academicSettings.activeTerm : 'الفصل الأول';
-        updateAcademicView();
-        resetLibraryFilters();
-    }
-    document.getElementById('currentLibraryBtn').addEventListener('click', () => switchLibrary('current'));
-    document.getElementById('archiveLibraryBtn').addEventListener('click', () => switchLibrary('archive'));
-    document.getElementById('emptyArchiveBtn').addEventListener('click', () => switchLibrary('archive'));
-    document.getElementById('archiveYear').addEventListener('change', event => {
-        selectedYear = event.target.value;
-        updateAcademicView();
-        resetLibraryFilters();
-    });
+function setupCatalogControls() {
     document.getElementById('resetFiltersBtn').addEventListener('click', resetLibraryFilters);
-    document.querySelectorAll('.term-tab').forEach(tab => tab.addEventListener('click', updateAcademicView));
-    updateAcademicView();
+    document.querySelectorAll('.term-tab').forEach(tab => tab.addEventListener('click', updateTermTabs));
+    updateTermTabs();
 }
 
 // ========================================

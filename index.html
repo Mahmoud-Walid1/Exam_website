@@ -146,13 +146,8 @@
     <main class="main-content">
         <div class="container">
             <div class="academic-panel">
-                <div class="academic-heading"><div><span class="academic-eyebrow">مكتبة اختبارات المعلمين</span><h2 id="academicHeading">اختبارات عام 1448 هـ</h2></div><span class="academic-badge" id="academicBadge">العام الحالي</span></div>
-                <div class="library-tabs" aria-label="مكتبة الاختبارات">
-                    <button type="button" id="currentLibraryBtn" class="library-tab active" aria-pressed="true">اختبارات 1448</button>
-                    <button type="button" id="archiveLibraryBtn" class="library-tab" aria-pressed="false">اختبارات الأعوام السابقة</button>
-                </div>
-                <div id="archiveYearGroup" hidden><label for="archiveYear">العام الدراسي</label><select id="archiveYear" class="compact-select"></select><p class="academic-note">نماذج من أعوام سابقة للاستفادة والمراجعة.</p></div>
-                <p class="academic-note" id="academicNote">اختبارات الفصل الأول، مرتبة حسب المرحلة والمادة.</p>
+                <div class="academic-heading"><div><span class="academic-eyebrow">مكتبة اختبارات المعلمين</span><h2>كل الاختبارات في مكان واحد</h2></div></div>
+                <p class="academic-note">اختر المرحلة والمادة ونوع الاختبار للوصول إلى ما تحتاجه.</p>
             </div>
             <!-- Smart Search Bar -->
             <div class="smart-search-container">
@@ -242,7 +237,7 @@
                         colors="primary:#cbd5e1,secondary:#94a3b8" style="width:120px;height:120px;"></lord-icon>
                 </div>
                 <p class="no-exams-title">لا توجد اختبارات متوفرة حالياً</p>
-                <p class="no-exams-subtitle" id="noExamsSubtitle">ستُضاف اختبارات العام الجديد قريبًا. يمكنك تصفح اختبارات الأعوام السابقة.</p><button type="button" id="emptyArchiveBtn" class="reset-filters">تصفح الأعوام السابقة</button>
+                <p class="no-exams-subtitle" id="noExamsSubtitle">جرّب تغيير الفلاتر أو البحث عن اختبار آخر.</p>
             </div>
             <div class="catalog-pagination">
                 <p id="paginationStatus" role="status" aria-live="polite"></p>
@@ -398,7 +393,7 @@
 
     <!-- Main JavaScript -->
     <script src="js/firebase-data.js?v=20261015-counters" type="module"></script>
-    <script src="js/main.js?v=20261015-counters" type="module"></script>
+    <script src="js/main.js?v=20261016-unified" type="module"></script>
 </body>
 
 </html>
