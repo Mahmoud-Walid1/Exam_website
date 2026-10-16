@@ -1,10 +1,10 @@
-import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear, getExamPeriod } from './academic.js?v=20261016-central';
+import { CURRENT_EXAM_TYPES, resolveAcademicSettings, normalizeYear, getExamYear, getExamPeriod } from './academic.js?v=20261016-types';
 // ========================================
 // Admin Panel JavaScript - Firebase with Icons
 // ========================================
 
 import { login, logout, checkAuth, registerAdmin } from './firebase-auth.js';
-import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js?v=20261016-central';
+import { initializeSubjects, getSubjects, addSubject, deleteSubject, getExamTypes, addExamType, deleteExamType, addExam, getExams, deleteExam, updateExam, getAdminEmails, addAdminEmail, deleteAdminEmail, GRADE_LEVELS, getGeneralSettings, updateGeneralSettings } from './firebase-data.js?v=20261016-types';
 
 let academicSettings = resolveAcademicSettings();
 let allSubjects = {};
@@ -391,7 +391,7 @@ function displayFullReport() {
 
 // Setup ticker manager
 async function setupTickerManager() {
-    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js?v=20261016-central');
+    const { getTickerItems, addTickerItem, deleteTickerItem } = await import('./firebase-data.js?v=20261016-types');
 
     // Load and display ticker items
     async function loadTickerItems() {
@@ -531,7 +531,7 @@ function setupAddExamForm() {
 
     if (examTypeSelect) {
         examTypeSelect.addEventListener('change', () => {
-            if (examTypeSelect.value === 'اختبار فتري') {
+            if (['اختبار فتري', 'اختبار فتري مركزي'].includes(examTypeSelect.value)) {
                 if (examPeriodGroup) examPeriodGroup.style.display = 'block';
                 if (examPeriodSelect) examPeriodSelect.required = true;
             } else {
@@ -581,7 +581,7 @@ function setupAddExamForm() {
         const subject = document.getElementById('examSubject').value;
         const examType = document.getElementById('examType').value;
         let examPeriod = '';
-        if (examType === 'اختبار فتري') {
+        if (['اختبار فتري', 'اختبار فتري مركزي'].includes(examType)) {
             const periodVal = examPeriodSelect ? examPeriodSelect.value : '';
             if (periodVal === 'custom') {
                 examPeriod = examPeriodCustom ? examPeriodCustom.value.trim() : '';
@@ -589,7 +589,7 @@ function setupAddExamForm() {
                 examPeriod = periodVal;
             }
             if (!examPeriod) {
-                alert('من فضلك حدد الفترة للاختبار الفتري (فترة أولى أو ثانية أو مخصصة)');
+                alert('من فضلك حدد الفترة للاختبار (فترة أولى أو ثانية أو مخصصة)');
                 return;
             }
         }
@@ -653,12 +653,12 @@ window.editExam = function (examId) {
     document.getElementById('examGrade').value = exam.grade;
     document.getElementById('examType').value = exam.examType || '';
     
-    // Handle examPeriod for midterm exams
+    // Handle examPeriod for midterm and central periodic exams
     const resolvedPeriod = getExamPeriod(exam);
     const periodGroup = document.getElementById('examPeriodGroup');
     const periodSelect = document.getElementById('examPeriod');
     const periodCustom = document.getElementById('examPeriodCustom');
-    if (exam.examType === 'اختبار فتري') {
+    if (['اختبار فتري', 'اختبار فتري مركزي'].includes(exam.examType)) {
         if (periodGroup) periodGroup.style.display = 'block';
         if (periodSelect) periodSelect.required = true;
         if (['فترة أولى', 'فترة ثانية'].includes(resolvedPeriod)) {
@@ -1225,7 +1225,7 @@ function setupExamsControlPanel() {
     if (filterExamType) {
         filterExamType.addEventListener('change', () => {
             currentFilters.examType = filterExamType.value;
-            if (filterExamType.value === 'اختبار فتري') {
+            if (['اختبار فتري', 'اختبار فتري مركزي'].includes(filterExamType.value)) {
                 if (filterExamPeriodGroup) filterExamPeriodGroup.style.display = 'block';
             } else {
                 if (filterExamPeriodGroup) filterExamPeriodGroup.style.display = 'none';
@@ -1821,6 +1821,8 @@ function guessExamDetails(name) {
     // 5. Guess Exam Type
     if (lowercaseName.includes('قصير')) {
         details.examType = 'اختبار قصير';
+    } else if (lowercaseName.includes('مركزي') && (lowercaseName.includes('فتري') || lowercaseName.includes('فترى'))) {
+        details.examType = 'اختبار فتري مركزي';
     } else if (lowercaseName.includes('مركزي')) {
         details.examType = 'الاختبار المركزي النهائي';
     } else if (lowercaseName.includes('نهائي') || lowercaseName.includes('النهائي')) {
@@ -1834,7 +1836,7 @@ function guessExamDetails(name) {
     }
 
     // 5.1 Guess Period
-    if (details.examType === 'اختبار فتري' || lowercaseName.includes('فترة') || lowercaseName.includes('فتره')) {
+    if (['اختبار فتري', 'اختبار فتري مركزي'].includes(details.examType) || lowercaseName.includes('فترة') || lowercaseName.includes('فتره')) {
         if (lowercaseName.includes('فترة أولى') || lowercaseName.includes('فترة 1') || lowercaseName.includes('فترة اولى') || lowercaseName.includes('الفترة الأولى') || lowercaseName.includes('الفترة 1') || lowercaseName.includes('فتره اولى') || lowercaseName.includes('فتره 1')) {
             details.examPeriod = 'فترة أولى';
         } else if (lowercaseName.includes('فترة ثانية') || lowercaseName.includes('فترة 2') || lowercaseName.includes('الفترة الثانية') || lowercaseName.includes('الفترة 2') || lowercaseName.includes('فتره ثانيه') || lowercaseName.includes('فتره 2')) {
@@ -1961,7 +1963,7 @@ function renderScannedProductsTable(products) {
                                     `<option value="${type}" ${guessed.examType === type ? 'selected' : ''}>${type}</option>`
                                 ).join('')}
                             </select>
-                            <select class="row-period-select" style="flex: 1; ${guessed.examType === 'اختبار فتري' ? '' : 'display: none;'}">
+                            <select class="row-period-select" style="flex: 1; ${['اختبار فتري', 'اختبار فتري مركزي'].includes(guessed.examType) ? '' : 'display: none;'}">
                                 <option value="">الفترة</option>
                                 <option value="فترة أولى" ${guessed.examPeriod === 'فترة أولى' ? 'selected' : ''}>فترة أولى</option>
                                 <option value="فترة ثانية" ${guessed.examPeriod === 'فترة ثانية' ? 'selected' : ''}>فترة ثانية</option>
@@ -2005,7 +2007,7 @@ function renderScannedProductsTable(products) {
 
         if (typeSelect && periodSelect) {
             typeSelect.addEventListener('change', () => {
-                periodSelect.style.display = typeSelect.value === 'اختبار فتري' ? '' : 'none';
+                periodSelect.style.display = ['اختبار فتري', 'اختبار فتري مركزي'].includes(typeSelect.value) ? '' : 'none';
             });
         }
 
@@ -2369,7 +2371,7 @@ function setupSallaImporter() {
                 const term = row.querySelector('.row-term-select').value;
                 const examType = row.querySelector('.row-type-select').value;
                 const icon = row.querySelector('.row-icon-select-el').value;
-                const examPeriod = examType === 'اختبار فتري' ? (row.querySelector('.row-period-select')?.value || '') : '';
+                const examPeriod = ['اختبار فتري', 'اختبار فتري مركزي'].includes(examType) ? (row.querySelector('.row-period-select')?.value || '') : '';
                 const examModel = row.querySelector('.row-model-input').value.trim();
                 const examIsStandard = row.querySelector('.row-standard-chk').checked;
 

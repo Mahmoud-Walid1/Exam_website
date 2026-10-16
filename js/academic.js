@@ -1,8 +1,8 @@
 // Records created before academic years were introduced belong to 1447.
 export const LEGACY_YEAR = '1447';
 export const CENTRAL_EXAM_TYPE = 'الاختبار المركزي النهائي';
-export const CENTRAL_EXAM_ALIASES = [CENTRAL_EXAM_TYPE, 'اختبار مركزي', 'اختبار فتري مركزي', 'اختبار مركزي نهائي'];
-export const CURRENT_EXAM_TYPES = ['اختبار فتري', CENTRAL_EXAM_TYPE, 'اختبار قصير'];
+export const CENTRAL_EXAM_ALIASES = [CENTRAL_EXAM_TYPE, 'اختبار مركزي', 'اختبار مركزي نهائي'];
+export const CURRENT_EXAM_TYPES = ['اختبار فتري', 'اختبار فتري مركزي', CENTRAL_EXAM_TYPE, 'اختبار قصير'];
 export function normalizeExamType(type) {
     const value = String(type || '').trim();
     return CENTRAL_EXAM_ALIASES.includes(value) ? CENTRAL_EXAM_TYPE : value;

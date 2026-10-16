@@ -1,5 +1,5 @@
-import { CURRENT_EXAM_TYPES, CENTRAL_EXAM_TYPE, CENTRAL_EXAM_ALIASES, normalizeExamType, normalizeExam } from './academic.js?v=20261016-central';
-import { resolveExamCounts, changeExamCounts } from './exam-counts.js?v=20261016-central';
+import { CURRENT_EXAM_TYPES, CENTRAL_EXAM_TYPE, CENTRAL_EXAM_ALIASES, normalizeExamType, normalizeExam } from './academic.js?v=20261016-types';
+import { resolveExamCounts, changeExamCounts } from './exam-counts.js?v=20261016-types';
 import { db, auth } from './firebase-config.js';
 import {
     collection,
@@ -194,7 +194,7 @@ export async function addExam(examData) {
             const countsSnapshot = await transaction.get(countsRef);
             const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, null, examData);
             transaction.set(docRef, { ...examData, createdAt: new Date().toISOString() });
-            transaction.set(countsRef, { ...counts, centralCategoryVersion: 2, updatedAt: new Date().toISOString() }, { merge: true });
+            transaction.set(countsRef, { ...counts, centralCategoryVersion: 3, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return docRef.id;
     } catch (error) {
@@ -294,7 +294,7 @@ export async function updateExam(examId, examData) {
             const previous = examSnapshot.data();
             const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, previous, { ...previous, ...examData });
             transaction.update(examRef, { ...examData, updatedAt: new Date().toISOString() });
-            transaction.set(countsRef, { ...counts, centralCategoryVersion: 2, updatedAt: new Date().toISOString() }, { merge: true });
+            transaction.set(countsRef, { ...counts, centralCategoryVersion: 3, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return true;
     } catch (error) {
@@ -313,7 +313,7 @@ export async function deleteExam(examId) {
             if (!examSnapshot.exists()) return;
             const counts = changeExamCounts(countsSnapshot.exists() ? countsSnapshot.data() : {}, examSnapshot.data(), null);
             transaction.delete(examRef);
-            transaction.set(countsRef, { ...counts, centralCategoryVersion: 2, updatedAt: new Date().toISOString() }, { merge: true });
+            transaction.set(countsRef, { ...counts, centralCategoryVersion: 3, updatedAt: new Date().toISOString() }, { merge: true });
         });
         return true;
     } catch (error) {

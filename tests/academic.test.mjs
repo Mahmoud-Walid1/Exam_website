@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const source = readFileSync(new URL('../js/academic.js', import.meta.url), 'utf8');
 const { normalizeYear, getExamYear, getExamPeriod, resolveAcademicSettings, getArchiveYears, isInAcademicScope, normalizeExamType, matchesExamFilters, CENTRAL_EXAM_TYPE } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
-for (const type of ['اختبار مركزي', 'اختبار فتري مركزي', 'اختبار مركزي نهائي', CENTRAL_EXAM_TYPE]) {
+for (const type of ['اختبار مركزي', 'اختبار مركزي نهائي', CENTRAL_EXAM_TYPE]) {
     assert.equal(normalizeExamType(type), CENTRAL_EXAM_TYPE);
     assert.equal(matchesExamFilters({ examType: type }, { examType: CENTRAL_EXAM_TYPE }), true);
 }
+assert.equal(normalizeExamType('اختبار فتري مركزي'), 'اختبار فتري مركزي');
+assert.equal(matchesExamFilters({ examType: 'اختبار فتري مركزي' }, { examType: CENTRAL_EXAM_TYPE }), false);
+assert.equal(matchesExamFilters({ examType: 'اختبار مركزي' }, { examType: 'اختبار فتري مركزي' }), false);
 assert.equal(normalizeExamType('اختبار نهائي'), 'اختبار نهائي');
 
 assert.equal(normalizeYear('١٤٤٨'), '1448');
